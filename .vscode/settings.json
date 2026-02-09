@@ -1,0 +1,26 @@
+{
+  "[dart]": {
+    "editor.rulers": [
+      120
+    ],
+  },
+  "dart.lineLength": 120,
+  "editor.formatOnSave": true,
+  "files.eol": "\n",
+  "editor.tabSize": 2,
+  "workbench.colorCustomizations": {
+    "commandCenter.border": "#e7e7e799",
+    "commandCenter.foreground": "#e7e7e7",
+    "sash.hoverBorder": "#144885",
+    "statusBar.background": "#0d3059",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#144885",
+    "statusBarItem.remoteBackground": "#0d3059",
+    "statusBarItem.remoteForeground": "#e7e7e7",
+    "titleBar.activeBackground": "#0d3059",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveBackground": "#0d305999",
+    "titleBar.inactiveForeground": "#e7e7e799"
+  },
+  "peacock.color": "#0d3059",
+}
