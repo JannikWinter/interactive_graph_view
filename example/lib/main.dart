@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 
-// import "package:graph_view/graph_view.dart";
+import "package:graph_view/graph_view.dart";
 
 void main() {
   runApp(const GraphViewExampleApp());
@@ -12,57 +12,85 @@ class GraphViewExampleApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: "Flutter Demo",
+      title: "Graph View Demo",
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const GraphViewExampleHomePage(title: "Flutter Demo Home Page"),
+      home: const GraphViewExampleHomePage(),
     );
   }
 }
 
 class GraphViewExampleHomePage extends StatefulWidget {
-  const GraphViewExampleHomePage({super.key, required this.title});
-
-  final String title;
+  const GraphViewExampleHomePage({super.key});
 
   @override
   State<GraphViewExampleHomePage> createState() => _GraphViewExampleHomePageState();
 }
 
 class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
+  final GraphViewportController _graphViewportController = GraphViewportController(
+    initialNodes: {
+      ExampleNode(id: "node1", position: Offset(-50, -50)),
+      ExampleNode(id: "node2", position: Offset(50, 50)),
+    },
+    initialEdges: {
+      ExampleEdge(id: "edge", startNodeId: "node1", endNodeId: "node2"),
+    },
+  );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: Text("Graph View Demo"),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: .center,
-          children: [
-            const Text("You have pushed the button this many times:"),
-            Text(
-              "$_counter",
-              style: Theme.of(context).textTheme.headlineMedium,
+      body: GraphView(
+        viewportController: _graphViewportController,
+        nodeBuilder: (context, nodeId) {
+          return NodeWidget(
+            content: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(nodeId),
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: "Increment",
-        child: const Icon(Icons.add),
+            background: Container(color: Colors.blue),
+            borderRadius: Radius.circular(10),
+          );
+        },
+        edgeBuilder: (context, edgeId) {
+          return EdgeWidget(
+            text: null,
+            color: Colors.red,
+            width: 2,
+            lineStyle: LineStyle.solid,
+            curveStyle: CurveStyle.straight,
+          );
+        },
       ),
     );
   }
+}
+
+class ExampleNode implements NodeData<String> {
+  ExampleNode({required this.id, required this.position});
+
+  @override
+  final String id;
+
+  @override
+  Offset position;
+}
+
+class ExampleEdge implements EdgeData<String, String> {
+  ExampleEdge({required this.id, required this.startNodeId, required this.endNodeId});
+
+  @override
+  final String id;
+
+  @override
+  String startNodeId;
+
+  @override
+  String endNodeId;
 }
