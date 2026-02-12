@@ -1,9 +1,9 @@
 import "package:flutter/material.dart";
-import "package:graph_view/edge_data.dart";
-import "package:graph_view/node_data.dart";
 
 import "drag_details.dart";
+import "edge_data.dart";
 import "graph_viewport_transform.dart";
+import "node_data.dart";
 import "render_objects/graph_viewport_base.dart";
 
 typedef NodeDataListener<NodeIdType, NodeDataType extends NodeData<NodeIdType>> =

@@ -1,12 +1,12 @@
 import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
-import "package:graph_view/edge_data.dart";
-import "package:graph_view/node_data.dart";
 
 import "../config.dart";
+import "../edge_data.dart";
 import "../elements/graph_viewport.dart";
 import "../graph_viewport_transform.dart";
+import "../node_data.dart";
 import "../parent_data.dart";
 import "../quad_tree.dart";
 import "edge.dart";
