@@ -1,35 +1,47 @@
 import "package:flutter/material.dart";
+import "package:graph_view/edge_data.dart";
+import "package:graph_view/node_data.dart";
 
 import "drag_details.dart";
 import "graph_viewport_transform.dart";
 import "render_objects/graph_viewport_base.dart";
 
+typedef NodeDataListener<NodeIdType, NodeDataType extends NodeData<NodeIdType>> =
+    void Function(NodeIdType nodeId, NodeDataType? previous, NodeDataType? next);
+typedef EdgeDataListener<EdgeIdType, EdgeDataType extends EdgeData<EdgeIdType, NodeIdType>, NodeIdType> =
+    void Function(EdgeIdType edgeId, EdgeDataType? previous, EdgeDataType? next);
+
 /// Manages all nodes and edges that are to be displayed in the viewport and the current selection.
 /// Also handles changes on any nodes, edges or the selection and reflects those changes back to any listeners.
-class GraphViewportController<NodeIdType, EdgeIdType> {
+class GraphViewportController<
+  NodeIdType,
+  NodeDataType extends NodeData<NodeIdType>,
+  EdgeIdType,
+  EdgeDataType extends EdgeData<EdgeIdType, NodeIdType>
+> {
   GraphViewportController({
-    required Set<ViewNode> initialNodes,
-    required Set<ViewEdge> initialEdges,
-  }) : _nodes = {for (final ViewNode node in initialNodes) node.id: node},
-       _edges = {for (final ViewEdge edge in initialEdges) edge.id: edge};
+    required Set<NodeDataType> initialNodes,
+    required Set<EdgeDataType> initialEdges,
+  }) : _nodes = {for (final NodeDataType node in initialNodes) node.id: node},
+       _edges = {for (final EdgeDataType edge in initialEdges) edge.id: edge};
 
-  final Set<ViewNodeListener> _nodeListeners = {};
-  final Set<ViewEdgeListener> _edgeListeners = {};
+  final Set<NodeDataListener<NodeIdType, NodeDataType>> _nodeListeners = {};
+  final Set<EdgeDataListener<EdgeIdType, EdgeDataType, NodeIdType>> _edgeListeners = {};
 
-  final Map<NodeIdType, ViewNode> _nodes;
-  final Map<EdgeIdType, ViewEdge> _edges;
+  final Map<NodeIdType, NodeDataType> _nodes;
+  final Map<EdgeIdType, EdgeDataType> _edges;
 
-  RenderGraphViewportBase? _viewport;
+  RenderGraphViewportBase<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>? _viewport;
 
   bool get isAttached => _viewport != null;
 
-  void onAttach(RenderGraphViewportBase viewport) {
+  void onAttach(RenderGraphViewportBase<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> viewport) {
     assert(!isAttached);
 
     _viewport = viewport;
   }
 
-  void onDetach(RenderGraphViewportBase viewport) {
+  void onDetach(RenderGraphViewportBase<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>? viewport) {
     assert(_viewport == viewport);
 
     _viewport = null;
@@ -38,7 +50,7 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   void rebuildNode(NodeIdType nodeId) {
     assert(_nodes.containsKey(nodeId));
 
-    final ViewNode previous = _nodes[nodeId]!;
+    final NodeDataType previous = _nodes[nodeId]!;
 
     _notifyNodeListeners(nodeId, previous, previous);
   }
@@ -46,17 +58,17 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   void rebuildEdge(EdgeIdType edgeId) {
     assert(_edges.containsKey(edgeId));
 
-    final ViewEdge previous = _edges[edgeId]!;
+    final EdgeDataType previous = _edges[edgeId]!;
 
     _notifyEdgeListeners(edgeId, previous, previous);
   }
 
-  void putNode(ViewNode viewNode) {
+  void putNode(NodeDataType viewNode) {
     final NodeIdType nodeId = viewNode.id;
 
     if (_nodes[nodeId] == viewNode) return;
 
-    final ViewNode? previous = _nodes[nodeId];
+    final NodeDataType? previous = _nodes[nodeId];
 
     _nodes[nodeId] = viewNode;
 
@@ -66,17 +78,17 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   void removeNode(NodeIdType nodeId) {
     assert(_nodes.containsKey(nodeId));
 
-    final ViewNode previous = _nodes.remove(nodeId)!;
+    final NodeDataType previous = _nodes.remove(nodeId)!;
 
     _notifyNodeListeners(nodeId, previous, null);
   }
 
-  void putEdge(ViewEdge viewEdge) {
+  void putEdge(EdgeDataType viewEdge) {
     final EdgeIdType edgeId = viewEdge.id;
 
     if (_edges[edgeId] == viewEdge) return;
 
-    final ViewEdge? previous = _edges[edgeId];
+    final EdgeDataType? previous = _edges[edgeId];
 
     _edges[edgeId] = viewEdge;
 
@@ -86,7 +98,7 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   void removeEdge(EdgeIdType edgeId) {
     assert(_edges.containsKey(edgeId));
 
-    final ViewEdge previous = _edges.remove(edgeId)!;
+    final EdgeDataType previous = _edges.remove(edgeId)!;
 
     _notifyEdgeListeners(edgeId, previous, null);
   }
@@ -111,29 +123,29 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
     );
   }
 
-  void addNodeListener(ViewNodeListener listener) {
+  void addNodeListener(NodeDataListener<NodeIdType, NodeDataType> listener) {
     _nodeListeners.add(listener);
   }
 
-  void removeNodeListener(ViewNodeListener listener) {
+  void removeNodeListener(NodeDataListener<NodeIdType, NodeDataType> listener) {
     _nodeListeners.remove(listener);
   }
 
-  void _notifyNodeListeners(NodeIdType nodeId, ViewNode? previous, ViewNode? next) {
+  void _notifyNodeListeners(NodeIdType nodeId, NodeDataType? previous, NodeDataType? next) {
     for (final listener in _nodeListeners) {
       listener(nodeId, previous, next);
     }
   }
 
-  void addEdgeListener(ViewEdgeListener listener) {
+  void addEdgeListener(EdgeDataListener<EdgeIdType, EdgeDataType, NodeIdType> listener) {
     _edgeListeners.add(listener);
   }
 
-  void removeEdgeListener(ViewEdgeListener listener) {
+  void removeEdgeListener(EdgeDataListener<EdgeIdType, EdgeDataType, NodeIdType> listener) {
     _edgeListeners.remove(listener);
   }
 
-  void _notifyEdgeListeners(EdgeIdType edgeId, ViewEdge? previous, ViewEdge? next) {
+  void _notifyEdgeListeners(EdgeIdType edgeId, EdgeDataType? previous, EdgeDataType? next) {
     for (final listener in _edgeListeners) {
       listener(edgeId, previous, next);
     }
@@ -144,13 +156,16 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   }
 
   /// Returns the ViewNode for the given [NodeIdType], or `null` if the given [NodeIdType] is not present.
-  ViewNode? getNode(NodeIdType nodeId) => _nodes[nodeId];
+  NodeDataType? getNode(NodeIdType nodeId) => _nodes[nodeId];
 
   /// Returns the ViewEdge for the given [EdgeIdType], or `null` if the given [EdgeIdType] is not present.
-  ViewEdge? getEdge(EdgeIdType edgeId) => _edges[edgeId];
+  EdgeDataType? getEdge(EdgeIdType edgeId) => _edges[edgeId];
 
-  Iterable<ViewNode> get nodes => _nodes.keys.map((nodeId) => getNode(nodeId)!);
-  Iterable<ViewEdge> get edges => _edges.values;
+  Iterable<NodeIdType> get allNodeIds => _nodes.keys;
+  Iterable<EdgeIdType> get allEdgeIds => _edges.keys;
+
+  Iterable<NodeDataType> get nodes => _nodes.keys.map((nodeId) => getNode(nodeId)!);
+  Iterable<EdgeDataType> get edges => _edges.values;
 
   void onNodePanDown(NodeIdType nodeId, NodeDragDownDetails details) {
     _viewport!.onNodePanDown(nodeId, details);

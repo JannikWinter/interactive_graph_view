@@ -68,8 +68,8 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   Map<EdgeIdType, Element> _lastEdges = {};
 
   late GraphViewportController _viewportController;
-  late NodeBuilder _nodeBuilder;
-  late EdgeBuilder _edgeBuilder;
+  late NodeBuilder<NodeIdType> _nodeBuilder;
+  late EdgeBuilder<EdgeIdType> _edgeBuilder;
 
   @override
   void startLayout() {
@@ -85,10 +85,10 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     owner!.buildScope(this, () {
       switch (slot) {
         case GraphViewportNodeSlot(nodeId: final nodeId):
-          _nodes[nodeId] = _buildNode(_viewportController.getNode(nodeId)!);
+          _nodes[nodeId] = _buildNode(nodeId);
 
         case GraphViewportEdgeSlot(edgeId: final edgeId):
-          _edges[edgeId] = _buildEdge(_viewportController.getEdge(edgeId)!);
+          _edges[edgeId] = _buildEdge(edgeId);
       }
     });
   }
@@ -122,33 +122,33 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     }
   }
 
-  Element _buildNode(ViewNode viewNode) {
-    final GraphViewportNodeSlot newNodeSlot = GraphViewportNodeSlot(viewNode.id);
-    final NodeWidget newNodeWidget = _nodeBuilder(this, viewNode);
-    final Element? oldNodeElement = _nodes[viewNode.id] ?? _lastNodes[viewNode.id];
+  Element _buildNode(NodeIdType nodeId) {
+    final GraphViewportNodeSlot newNodeSlot = GraphViewportNodeSlot(nodeId);
+    final NodeWidget newNodeWidget = _nodeBuilder(this, nodeId);
+    final Element? oldNodeElement = _nodes[nodeId] ?? _lastNodes[nodeId];
     final Element newNodeElement = updateChild(oldNodeElement, newNodeWidget, newNodeSlot)!;
 
     return newNodeElement;
   }
 
-  Element _buildEdge(ViewEdge viewEdge) {
-    final GraphViewportEdgeSlot newEdgeSlot = GraphViewportEdgeSlot(viewEdge.id);
-    final EdgeWidget newEdgeWidget = _edgeBuilder(this, viewEdge);
-    final Element? oldEdgeElement = _edges[viewEdge.id] ?? _lastEdges[viewEdge.id];
+  Element _buildEdge(EdgeIdType edgeId) {
+    final GraphViewportEdgeSlot newEdgeSlot = GraphViewportEdgeSlot(edgeId);
+    final EdgeWidget newEdgeWidget = _edgeBuilder(this, edgeId);
+    final Element? oldEdgeElement = _edges[edgeId] ?? _lastEdges[edgeId];
     final Element newEdgeElement = updateChild(oldEdgeElement, newEdgeWidget, newEdgeSlot)!;
 
     return newEdgeElement;
   }
 
   void _buildAllNodes() {
-    for (final ViewNode viewNode in _viewportController.nodes) {
-      _nodes[viewNode.id] = _buildNode(viewNode);
+    for (final NodeIdType nodeId in _viewportController.allNodeIds) {
+      _nodes[nodeId] = _buildNode(nodeId);
     }
   }
 
   void _buildAllEdges() {
-    for (final ViewEdge viewEdge in _viewportController.edges) {
-      _edges[viewEdge.id] = _buildEdge(viewEdge);
+    for (final EdgeIdType edgeId in _viewportController.allEdgeIds) {
+      _edges[edgeId] = _buildEdge(edgeId);
     }
   }
 

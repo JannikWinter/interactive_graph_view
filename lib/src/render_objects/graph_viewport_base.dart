@@ -3,13 +3,21 @@ import "dart:collection";
 
 import "package:flutter/widgets.dart";
 
+import "../../edge_data.dart";
+import "../../node_data.dart";
 import "../drag_details.dart";
 import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
 import "edge.dart";
 import "node.dart";
 
-abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox {
+abstract class RenderGraphViewportBase<
+  NodeIdType,
+  NodeDataType extends NodeData<NodeIdType>,
+  EdgeIdType,
+  EdgeDataType extends EdgeData<EdgeIdType, NodeIdType>
+>
+    extends RenderBox {
   static RenderGraphViewportBase? maybeOf(RenderObject? object) {
     while (object != null) {
       if (object is RenderGraphViewportBase) {
@@ -39,16 +47,17 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
   }
 
   RenderGraphViewportBase({
-    required GraphViewportController viewportController,
+    required GraphViewportController<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> viewportController,
     required GraphViewportTransform transform,
   }) : _viewportController = viewportController,
        _transform = transform {
     _viewportController.onAttach(this);
   }
 
-  GraphViewportController get viewportController => _viewportController;
-  GraphViewportController _viewportController;
-  set viewportController(GraphViewportController value) {
+  GraphViewportController<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> get viewportController =>
+      _viewportController;
+  GraphViewportController<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> _viewportController;
+  set viewportController(GraphViewportController<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> value) {
     if (_viewportController == value) return;
 
     assert(_viewportController.isAttached);

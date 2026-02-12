@@ -1,6 +1,8 @@
 import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
+import "package:graph_view/edge_data.dart";
+import "package:graph_view/node_data.dart";
 
 import "../config.dart";
 import "../elements/graph_viewport.dart";
@@ -12,7 +14,13 @@ import "graph_element.dart";
 import "graph_viewport_base.dart";
 import "node.dart";
 
-class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBase<NodeIdType, EdgeIdType> {
+class RenderGraphViewport<
+  NodeIdType,
+  NodeDataType extends NodeData<NodeIdType>,
+  EdgeIdType,
+  EdgeDataType extends EdgeData<EdgeIdType, NodeIdType>
+>
+    extends RenderGraphViewportBase<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> {
   RenderGraphViewport({
     required super.viewportController,
     required super.transform,
@@ -101,7 +109,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   GraphViewportNodeParentData _setChildNodeParentData(NodeIdType nodeId, GraphNodeRenderObject node) {
     final GraphViewportNodeParentData nodeParentData = node.parentData! as GraphViewportNodeParentData;
 
-    final ViewNode viewNode = viewportController.getNode(nodeId)!;
+    final NodeDataType viewNode = viewportController.getNode(nodeId)!;
 
     nodeParentData.position = viewNode.position;
 
@@ -117,7 +125,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   GraphViewportEdgeParentData _setChildEdgeParentData(EdgeIdType edgeId, GraphEdgeRenderObject edge) {
     final GraphViewportEdgeParentData edgeParentData = edge.parentData! as GraphViewportEdgeParentData;
 
-    final ViewEdge viewEdge = viewportController.getEdge(edgeId)!;
+    final EdgeDataType viewEdge = viewportController.getEdge(edgeId)!;
 
     final GraphNodeRenderObject startNode = _nodes[viewEdge.startNodeId]!;
     final GraphNodeRenderObject endNode = _nodes[viewEdge.endNodeId]!;
@@ -219,7 +227,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
       for (final EdgeIdType edgeId in usedEdgeIds) {
         _reuseOrBuildEdge(edgeId);
 
-        final ViewEdge edge = viewportController.getEdge(edgeId)!;
+        final EdgeDataType edge = viewportController.getEdge(edgeId)!;
         usedNodeIds.addAll([edge.startNodeId, edge.endNodeId]);
       }
 
@@ -387,7 +395,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     markNeedsLayout();
   }
 
-  void _onNodeChanged(NodeIdType nodeId, ViewNode? previous, ViewNode? next) {
+  void _onNodeChanged(NodeIdType nodeId, NodeDataType? previous, NodeDataType? next) {
     if (next == null) {
       _childQuadTree.removeNode(nodeId);
     } else {
@@ -405,7 +413,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     markNeedsLayout();
   }
 
-  void _onEdgeChanged(EdgeIdType edgeId, ViewEdge? previous, ViewEdge? next) {
+  void _onEdgeChanged(EdgeIdType edgeId, EdgeDataType? previous, EdgeDataType? next) {
     if (next == null) {
       _childQuadTree.removeEdge(edgeId);
     } else {

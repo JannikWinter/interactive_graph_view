@@ -8,8 +8,8 @@ import "../render_objects/graph_viewport.dart";
 import "edge.dart";
 import "node.dart";
 
-typedef NodeBuilder = NodeWidget Function(BuildContext context, ViewNode node);
-typedef EdgeBuilder = EdgeWidget Function(BuildContext context, ViewEdge edge);
+typedef NodeBuilder<NodeIdType> = NodeWidget Function(BuildContext context, NodeIdType nodeId);
+typedef EdgeBuilder<EdgeIdType> = EdgeWidget Function(BuildContext context, EdgeIdType edgeId);
 
 class GraphViewport extends RenderObjectWidget {
   const GraphViewport({
