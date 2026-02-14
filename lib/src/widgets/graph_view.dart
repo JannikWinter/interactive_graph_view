@@ -11,6 +11,8 @@ class GraphView extends StatefulWidget {
     required this.viewportController,
     this.initialPosition = Offset.zero,
     this.initialScale = 1.0,
+    this.minScale = 0.025,
+    this.maxScale = 5,
     required this.nodeBuilder,
     required this.edgeBuilder,
     this.onTransformSettled,
@@ -21,11 +23,15 @@ class GraphView extends StatefulWidget {
     this.onScaleStart,
     this.onScaleUpdate,
     this.onScaleEnd,
-  });
+  }) : assert(minScale > 0),
+       assert(maxScale >= minScale),
+       assert(initialScale >= minScale && initialScale <= maxScale);
 
   final GraphViewportController viewportController;
   final Offset initialPosition;
   final double initialScale;
+  final double minScale;
+  final double maxScale;
   final NodeBuilder nodeBuilder;
   final EdgeBuilder edgeBuilder;
   final TransformSettleListener? onTransformSettled;
@@ -51,11 +57,25 @@ class GraphViewState extends State<GraphView> with TickerProviderStateMixin {
     super.initState();
 
     _viewportTransform = GraphViewportTransform(
+      minScale: widget.minScale,
+      maxScale: widget.maxScale,
       initialPosition: widget.initialPosition,
       initialScale: widget.initialScale,
       vsync: this,
     );
     _viewportTransform.addSettleListener(_onTransformSettled);
+  }
+
+  @override
+  void didUpdateWidget(covariant GraphView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.minScale != widget.minScale) {
+      _viewportTransform.minScale = widget.minScale;
+    }
+    if (oldWidget.maxScale != widget.maxScale) {
+      _viewportTransform.maxScale = widget.maxScale;
+    }
   }
 
   @override

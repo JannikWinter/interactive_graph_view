@@ -89,20 +89,15 @@ class GraphViewportTransform extends ChangeNotifier {
   }
 
   double _clampScale(double value) {
-    return clampDouble(value, viewportMinScale, viewportMaxScale);
+    return clampDouble(value, minScale, maxScale);
   }
+
+  double minScale;
+  double maxScale;
 
   Size get viewportSize => _viewportSize!;
   Size? _viewportSize;
   bool get hasViewportSize => _viewportSize != null;
-
-  double get viewportMinScale => _viewportMinScale!;
-  double? _viewportMinScale;
-  bool get hasViewportMinScale => _viewportMinScale != null;
-
-  double get viewportMaxScale => _viewportMaxScale!;
-  double? _viewportMaxScale;
-  bool get hasViewportMaxScale => _viewportMaxScale != null;
 
   Rect get contentRect => _contentRect!;
   Rect? _contentRect;
@@ -120,8 +115,13 @@ class GraphViewportTransform extends ChangeNotifier {
   GraphViewportTransform({
     Offset initialPosition = Offset.zero,
     double initialScale = 1.0,
+    required this.minScale,
+    required this.maxScale,
     required TickerProvider vsync,
-  }) : _position = initialPosition,
+  }) : assert(minScale > 0),
+       assert(maxScale >= minScale),
+       assert(initialScale >= minScale && initialScale <= maxScale),
+       _position = initialPosition,
        _scale = initialScale,
        _vsync = vsync;
 
@@ -136,10 +136,8 @@ class GraphViewportTransform extends ChangeNotifier {
     ..scale(scale)
     ..translate(-position.dx, -position.dy);
 
-  void applyViewportDimensions(Size size, double minScale, double maxScale) {
+  void applyViewportDimensions(Size size) {
     _viewportSize = size;
-    _viewportMinScale = minScale;
-    _viewportMaxScale = maxScale;
   }
 
   void applyContentDimensions(Rect rect) {
@@ -172,7 +170,7 @@ class GraphViewportTransform extends ChangeNotifier {
     const epsilon = 0.2;
 
     final GraphVisibility actualVisibility;
-    if (scale == viewportMaxScale &&
+    if (scale == maxScale &&
         targetRect_GS.left >= paddedViewportRect_GS.left - epsilon &&
         targetRect_GS.right <= paddedViewportRect_GS.right + epsilon &&
         targetRect_GS.top >= paddedViewportRect_GS.top - epsilon &&

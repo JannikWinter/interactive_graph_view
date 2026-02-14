@@ -2,7 +2,6 @@ import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
 
-import "../config.dart";
 import "../edge_data.dart";
 import "../elements/graph_viewport.dart";
 import "../graph_viewport_transform.dart";
@@ -202,7 +201,7 @@ class RenderGraphViewport<
 
     if (!hasSize || size != constraints.biggest) {
       size = constraints.biggest;
-      transform.applyViewportDimensions(size, Config.graphMinScale, Config.graphMaxScale);
+      transform.applyViewportDimensions(size);
     }
 
     {
