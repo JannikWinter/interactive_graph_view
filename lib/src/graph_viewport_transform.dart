@@ -132,9 +132,9 @@ class GraphViewportTransform extends ChangeNotifier {
   );
 
   Matrix4 get childTransformMatrix => Matrix4.identity()
-    ..translate(viewportSize.width / 2, viewportSize.height / 2)
-    ..scale(scale)
-    ..translate(-position.dx, -position.dy);
+    ..translateByDouble(viewportSize.width / 2, viewportSize.height / 2, 0, 1)
+    ..scaleByDouble(scale, scale, scale, 1)
+    ..translateByDouble(-position.dx, -position.dy, 0, 1);
 
   void applyViewportDimensions(Size size) {
     _viewportSize = size;

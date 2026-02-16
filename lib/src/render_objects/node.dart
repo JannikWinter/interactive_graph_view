@@ -103,8 +103,8 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
 
   @override
   void applyPaintTransform(RenderBox child, Matrix4 transform) {
-    transform.translate(position.dx, position.dy);
-    transform.translate(-child.size.width / 2, -child.size.height / 2);
+    transform.translateByDouble(position.dx, position.dy, 0, 1);
+    transform.translateByDouble(-child.size.width / 2, -child.size.height / 2, 0, 1);
   }
 
   @override
