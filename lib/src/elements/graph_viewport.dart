@@ -1,7 +1,9 @@
 import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
 
+import "../edge_data.dart";
 import "../graph_viewport_controller.dart";
+import "../node_data.dart";
 import "../render_objects/edge.dart";
 import "../render_objects/graph_element.dart";
 import "../render_objects/graph_viewport.dart";
@@ -51,7 +53,14 @@ abstract interface class GraphViewportLayoutHelper {
   void endLayout();
 }
 
-class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement implements GraphViewportLayoutHelper {
+class GraphViewportElement<
+  NodeIdType,
+  NodeDataType extends NodeData<NodeIdType>,
+  EdgeIdType,
+  EdgeDataType extends EdgeData<EdgeIdType, NodeIdType>
+>
+    extends RenderObjectElement
+    implements GraphViewportLayoutHelper {
   GraphViewportElement(GraphViewport super.widget);
 
   late ScaleGestureRecognizer _scaleRecognizer;
@@ -59,7 +68,8 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   late DoubleTapGestureRecognizer _doubleTapRecognizer;
 
   @override
-  RenderGraphViewport get renderObject => super.renderObject as RenderGraphViewport;
+  RenderGraphViewport<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> get renderObject =>
+      super.renderObject as RenderGraphViewport<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>;
 
   Map<NodeIdType, Element> _nodes = {};
   Map<EdgeIdType, Element> _edges = {};
@@ -67,7 +77,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   Map<NodeIdType, Element> _lastNodes = {};
   Map<EdgeIdType, Element> _lastEdges = {};
 
-  late GraphViewportController _viewportController;
+  late GraphViewportController<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> _viewportController;
   late NodeBuilder<NodeIdType> _nodeBuilder;
   late EdgeBuilder<EdgeIdType> _edgeBuilder;
 
@@ -156,7 +166,8 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   void mount(Element? parent, Object? newSlot) {
     super.mount(parent, newSlot);
 
-    final GraphViewport widget = this.widget as GraphViewport;
+    final GraphViewport<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> widget =
+        this.widget as GraphViewport<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>;
 
     _viewportController = widget.viewportController;
     _nodeBuilder = widget.nodeBuilder;
@@ -184,10 +195,11 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   }
 
   @override
-  void update(GraphViewport newWidget) {
+  void update(GraphViewport<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> newWidget) {
     super.update(newWidget);
 
-    final GraphViewport oldWidget = widget as GraphViewport;
+    final GraphViewport<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> oldWidget =
+        widget as GraphViewport<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>;
 
     _viewportController = newWidget.viewportController;
     _nodeBuilder = newWidget.nodeBuilder;

@@ -18,9 +18,14 @@ abstract class RenderGraphViewportBase<
   EdgeDataType extends EdgeData<EdgeIdType, NodeIdType>
 >
     extends RenderBox {
-  static RenderGraphViewportBase? maybeOf(RenderObject? object) {
+  static RenderGraphViewportBase<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>? maybeOf<
+    NodeIdType,
+    NodeDataType extends NodeData<NodeIdType>,
+    EdgeIdType,
+    EdgeDataType extends EdgeData<EdgeIdType, NodeIdType>
+  >(RenderObject? object) {
     while (object != null) {
-      if (object is RenderGraphViewportBase) {
+      if (object is RenderGraphViewportBase<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>) {
         return object;
       }
       object = object.parent;
@@ -28,8 +33,14 @@ abstract class RenderGraphViewportBase<
     return null;
   }
 
-  static RenderGraphViewportBase of(RenderObject? object) {
-    final RenderGraphViewportBase? viewport = maybeOf(object);
+  static RenderGraphViewportBase<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> of<
+    NodeIdType,
+    NodeDataType extends NodeData<NodeIdType>,
+    EdgeIdType,
+    EdgeDataType extends EdgeData<EdgeIdType, NodeIdType>
+  >(RenderObject? object) {
+    final RenderGraphViewportBase<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>? viewport =
+        maybeOf<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>(object);
     assert(() {
       if (viewport == null) {
         throw FlutterError(
