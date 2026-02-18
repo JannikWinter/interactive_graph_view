@@ -29,15 +29,16 @@ class GraphViewExampleHomePage extends StatefulWidget {
 }
 
 class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
-  final GraphViewportController _graphViewportController = GraphViewportController(
-    initialNodes: {
-      ExampleNode(id: "node1", position: Offset(-50, -50)),
-      ExampleNode(id: "node2", position: Offset(50, 50)),
-    },
-    initialEdges: {
-      ExampleEdge(id: "edge", startNodeId: "node1", endNodeId: "node2"),
-    },
-  );
+  final GraphViewportController<String, ExampleNode, String, ExampleEdge> _graphViewportController =
+      GraphViewportController(
+        initialNodes: {
+          ExampleNode(id: "node1", position: Offset(-50, -50)),
+          ExampleNode(id: "node2", position: Offset(50, 50)),
+        },
+        initialEdges: {
+          ExampleEdge(id: "edge", startNodeId: "node1", endNodeId: "node2"),
+        },
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +47,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text("Graph View Demo"),
       ),
-      body: GraphView(
+      body: GraphView<String, ExampleNode, String, ExampleEdge>(
         viewportController: _graphViewportController,
         nodeBuilder: (context, nodeId) {
           return NodeWidget(
@@ -56,6 +57,11 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
             ),
             background: Container(color: Colors.blue),
             borderRadius: Radius.circular(10),
+            onPanDown: (details) => _graphViewportController.onNodePanDown(nodeId, details),
+            onPanStart: (details) => _graphViewportController.onNodePanStart(details, draggedNodeIds: {nodeId}),
+            onPanUpdate: (details) => _graphViewportController.onNodePanUpdate(details),
+            onPanCancel: () => _graphViewportController.onNodePanCancel(),
+            onPanEnd: (details) => _graphViewportController.onNodePanEnd(details),
           );
         },
         edgeBuilder: (context, edgeId) {
