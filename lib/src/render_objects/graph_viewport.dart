@@ -59,12 +59,14 @@ class RenderGraphViewport<
   @override
   void markNodeNeedsRebuild(NodeIdType nodeId) {
     _nodeIdsNeedingRebuild.add(nodeId);
+    markNodeNeedsLayout(nodeId);
   }
 
   @protected
   @override
   void markEdgeNeedsRebuild(EdgeIdType edgeId) {
     _edgeIdsNeedingRebuild.add(edgeId);
+    markEdgeNeedsLayout(edgeId);
   }
 
   @protected
