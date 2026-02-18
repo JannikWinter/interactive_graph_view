@@ -40,8 +40,8 @@ class GraphView<
   final double initialScale;
   final double minScale;
   final double maxScale;
-  final NodeBuilder nodeBuilder;
-  final EdgeBuilder edgeBuilder;
+  final NodeBuilder<NodeIdType> nodeBuilder;
+  final EdgeBuilder<EdgeIdType> edgeBuilder;
   final TransformSettleListener? onTransformSettled;
   final GestureTapDownCallback? onTapDown;
   final GestureTapCallback? onTap;
