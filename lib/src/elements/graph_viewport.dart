@@ -198,9 +198,6 @@ class GraphViewportElement<
   void update(GraphViewport<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> newWidget) {
     super.update(newWidget);
 
-    final GraphViewport<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> oldWidget =
-        widget as GraphViewport<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>;
-
     _viewportController = newWidget.viewportController;
     _nodeBuilder = newWidget.nodeBuilder;
     _edgeBuilder = newWidget.edgeBuilder;
@@ -218,13 +215,9 @@ class GraphViewportElement<
     renderObject.onPointerDown = _handlePointerDown;
     renderObject.onPointerPanZoomStart = _handlePointerPanZoomStart;
 
-    if (oldWidget.viewportController != newWidget.viewportController ||
-        oldWidget.nodeBuilder != newWidget.nodeBuilder ||
-        oldWidget.edgeBuilder != newWidget.edgeBuilder) {
-      _buildAllNodes();
-      _buildAllEdges();
-      renderObject.markNeedsFirstLayout();
-    }
+    _buildAllNodes();
+    _buildAllEdges();
+    renderObject.markNeedsFirstLayout();
   }
 
   @override
