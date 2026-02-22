@@ -17,13 +17,13 @@ final class GraphEdgeRenderObject extends GraphElementRenderObject {
   GraphEdgeRenderObject({
     required String? text,
     required Color color,
-    required double width,
+    required double thickness,
     required LineStyle lineStyle,
     required CurveStyle curveStyle,
     required List<LineShadow> shadow,
   }) : _text = text,
        _color = color,
-       _width = width,
+       _thickness = thickness,
        _lineStyle = lineStyle,
        _curveStyle = curveStyle,
        _shadow = shadow;
@@ -50,14 +50,14 @@ final class GraphEdgeRenderObject extends GraphElementRenderObject {
     markNeedsPaint();
   }
 
-  double get width => _width;
-  double _width;
-  set width(double value) {
-    if (_width == value) {
+  double get thickness => _thickness;
+  double _thickness;
+  set thickness(double value) {
+    if (_thickness == value) {
       return;
     }
 
-    _width = value;
+    _thickness = value;
     markNeedsPaint();
   }
 
@@ -262,7 +262,7 @@ final class GraphEdgeRenderObject extends GraphElementRenderObject {
         _linePath = dashPath(
           _basicLinePath,
           dashArray: CircularIntervalList([
-            width,
+            thickness,
             Config.edgeDottedPauseLength,
           ]),
         );
@@ -294,7 +294,7 @@ final class GraphEdgeRenderObject extends GraphElementRenderObject {
       Paint()
         ..style = PaintingStyle.stroke
         ..color = color
-        ..strokeWidth = width,
+        ..strokeWidth = thickness,
     );
 
     _paintArrow(

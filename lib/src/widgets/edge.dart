@@ -11,7 +11,7 @@ class EdgeWidget extends LeafRenderObjectWidget {
     super.key,
     required this.text,
     required this.color,
-    required this.width,
+    required this.thickness,
     required this.lineStyle,
     required this.curveStyle,
     this.onTap,
@@ -20,7 +20,7 @@ class EdgeWidget extends LeafRenderObjectWidget {
 
   final String? text;
   final Color color;
-  final double width;
+  final double thickness;
   final LineStyle lineStyle;
   final CurveStyle curveStyle;
   final VoidCallback? onTap;
@@ -31,7 +31,7 @@ class EdgeWidget extends LeafRenderObjectWidget {
     return GraphEdgeRenderObject(
       text: text,
       color: color,
-      width: width,
+      thickness: thickness,
       lineStyle: lineStyle,
       curveStyle: curveStyle,
       shadow: shadow,
@@ -48,7 +48,7 @@ class EdgeWidget extends LeafRenderObjectWidget {
     renderObject
       ..text = text
       ..color = color
-      ..width = width
+      ..thickness = thickness
       ..lineStyle = lineStyle
       ..curveStyle = curveStyle
       ..shadow = shadow;

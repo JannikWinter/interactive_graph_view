@@ -68,7 +68,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
           return EdgeWidget(
             text: null,
             color: Colors.red,
-            width: 2,
+            thickness: 2,
             lineStyle: LineStyle.solid,
             curveStyle: CurveStyle.straight,
           );
