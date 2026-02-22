@@ -73,11 +73,11 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     this.onTap,
     this.onDoubleTap,
     this.onLongPress,
-    this.onPanDown,
-    this.onPanStart,
-    this.onPanUpdate,
-    this.onPanEnd,
-    this.onPanCancel,
+    this.onDragDown,
+    this.onDragStart,
+    this.onDragUpdate,
+    this.onDragEnd,
+    this.onDragCancel,
   });
 
   final Widget content;
@@ -91,11 +91,11 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   final GestureLongPressCallback? onLongPress;
 
   // Drag callbacks
-  final GestureNodeDragDownCallback? onPanDown;
-  final GestureNodeDragStartCallback? onPanStart;
-  final GestureNodeDragUpdateCallback? onPanUpdate;
-  final GestureNodeDragEndCallback? onPanEnd;
-  final GestureNodeDragCancelCallback? onPanCancel;
+  final GestureNodeDragDownCallback? onDragDown;
+  final GestureNodeDragStartCallback? onDragStart;
+  final GestureNodeDragUpdateCallback? onDragUpdate;
+  final GestureNodeDragEndCallback? onDragEnd;
+  final GestureNodeDragCancelCallback? onDragCancel;
 
   @override
   Widget? childForSlot(NodeWidgetSlot slot) {

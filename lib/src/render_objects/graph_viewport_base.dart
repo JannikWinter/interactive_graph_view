@@ -130,22 +130,22 @@ abstract class RenderGraphViewportBase<
             ((_pointerScreenPosition - _startingPointerScreenPosition) / _transform.scale)
       : Offset.zero;
 
-  void onNodePanDown(NodeDragDownDetails details) {
-    transform.onNodePanDown(details);
+  void onNodeDragDown(NodeDragDownDetails details) {
+    transform.onNodeDragDown(details);
 
     _startingViewportPosition = _transform.position;
     _startingPointerScreenPosition = details.parentSpacePosition;
     _pointerScreenPosition = details.parentSpacePosition;
   }
 
-  void onNodePanStart(NodeDragStartDetails details) {
-    transform.onNodePanStart(details);
+  void onNodeDragStart(NodeDragStartDetails details) {
+    transform.onNodeDragStart(details);
 
     _isDraggingNodes = true;
   }
 
-  void onNodePanUpdate(NodeDragUpdateDetails details) {
-    transform.onNodePanUpdate(details);
+  void onNodeDragUpdate(NodeDragUpdateDetails details) {
+    transform.onNodeDragUpdate(details);
 
     if (details.hasMoved) {
       _pointerScreenPosition = details.parentSpacePosition;
@@ -161,8 +161,8 @@ abstract class RenderGraphViewportBase<
     }
   }
 
-  void onNodePanEnd(NodeDragEndDetails details) {
-    transform.onNodePanEnd(details);
+  void onNodeDragEnd(NodeDragEndDetails details) {
+    transform.onNodeDragEnd(details);
 
     for (final NodeIdType nodeId in inFlightNodeIds) {
       markNodeNeedsLayout(nodeId);
@@ -176,8 +176,8 @@ abstract class RenderGraphViewportBase<
     _isDraggingNodes = false;
   }
 
-  void onNodePanCancel() {
-    transform.onNodePanCancel();
+  void onNodeDragCancel() {
+    transform.onNodeDragCancel();
 
     for (final NodeIdType nodeId in inFlightNodeIds) {
       markNodeNeedsLayout(nodeId);

@@ -50,17 +50,17 @@ class NodeElement<NodeIdType, NodeDataType extends NodeData<NodeIdType>>
 
     _panRecognizer = PanGestureRecognizer(debugOwner: this);
     if ([
-      widget.onPanDown,
-      widget.onPanStart,
-      widget.onPanUpdate,
-      widget.onPanEnd,
-      widget.onPanCancel,
+      widget.onDragDown,
+      widget.onDragStart,
+      widget.onDragUpdate,
+      widget.onDragEnd,
+      widget.onDragCancel,
     ].nonNulls.isNotEmpty) {
-      _panRecognizer.onDown = _onPanDown;
-      _panRecognizer.onStart = _onPanStart;
-      _panRecognizer.onUpdate = _onPanUpdate;
-      _panRecognizer.onEnd = _onPanEnd;
-      _panRecognizer.onCancel = _onPanCancel;
+      _panRecognizer.onDown = _onDragDown;
+      _panRecognizer.onStart = _onDragStart;
+      _panRecognizer.onUpdate = _onDragUpdate;
+      _panRecognizer.onEnd = _onDragEnd;
+      _panRecognizer.onCancel = _onDragCancel;
     }
   }
 
@@ -78,42 +78,42 @@ class NodeElement<NodeIdType, NodeDataType extends NodeData<NodeIdType>>
     _panRecognizer.addPointerPanZoom(event);
   }
 
-  void _onPanDown(DragDownDetails details) {
+  void _onDragDown(DragDownDetails details) {
     final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
     final NodeDragDownDetails newDetails = viewportBase.convertDragDownDetails(details);
 
-    (widget as NodeWidget).onPanDown?.call(newDetails);
-    viewportBase.onNodePanDown(newDetails);
+    (widget as NodeWidget).onDragDown?.call(newDetails);
+    viewportBase.onNodeDragDown(newDetails);
   }
 
-  void _onPanStart(DragStartDetails details) {
+  void _onDragStart(DragStartDetails details) {
     final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
     final NodeDragStartDetails newDetails = viewportBase.convertDragStartDetails(details);
 
-    (widget as NodeWidget).onPanStart?.call(newDetails);
-    viewportBase.onNodePanStart(newDetails);
+    (widget as NodeWidget).onDragStart?.call(newDetails);
+    viewportBase.onNodeDragStart(newDetails);
   }
 
-  void _onPanUpdate(DragUpdateDetails details) {
+  void _onDragUpdate(DragUpdateDetails details) {
     final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
     final NodeDragUpdateDetails newDetails = viewportBase.convertDragUpdateDetails(details);
 
-    (widget as NodeWidget).onPanUpdate?.call(newDetails);
-    viewportBase.onNodePanUpdate(newDetails);
+    (widget as NodeWidget).onDragUpdate?.call(newDetails);
+    viewportBase.onNodeDragUpdate(newDetails);
   }
 
-  void _onPanEnd(DragEndDetails details) {
+  void _onDragEnd(DragEndDetails details) {
     final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
     final NodeDragEndDetails newDetails = viewportBase.convertDragEndDetails(details);
 
-    (widget as NodeWidget).onPanEnd?.call(newDetails);
-    viewportBase.onNodePanEnd(newDetails);
+    (widget as NodeWidget).onDragEnd?.call(newDetails);
+    viewportBase.onNodeDragEnd(newDetails);
   }
 
-  void _onPanCancel() {
+  void _onDragCancel() {
     final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
 
-    (widget as NodeWidget).onPanCancel?.call();
-    viewportBase.onNodePanCancel();
+    (widget as NodeWidget).onDragCancel?.call();
+    viewportBase.onNodeDragCancel();
   }
 }

@@ -107,7 +107,7 @@ class GraphViewportTransform extends ChangeNotifier {
   AnimationController? _ballisticController;
   final TickerProvider _vsync;
 
-  late Offset _parentSpaceNodePanPositionAtStart;
+  late Offset _nodeDragParentSpacePositionAtStart;
   late final Ticker _edgeMoveTicker = Ticker(_edgeMoveTick);
   AnimationController? _cameraMoveAnimationController;
   late Offset _edgeMoveDirection;
@@ -405,18 +405,18 @@ class GraphViewportTransform extends ChangeNotifier {
     _maybeNotifySettleListeners();
   }
 
-  void onNodePanDown(NodeDragDownDetails details) {
+  void onNodeDragDown(NodeDragDownDetails details) {
     _ballisticController?.stop();
     _cameraMoveAnimationController?.stop();
 
-    _parentSpaceNodePanPositionAtStart = details.parentSpacePosition;
+    _nodeDragParentSpacePositionAtStart = details.parentSpacePosition;
   }
 
-  void onNodePanStart(NodeDragStartDetails details) {}
+  void onNodeDragStart(NodeDragStartDetails details) {}
 
-  void onNodePanUpdate(NodeDragUpdateDetails details) {
+  void onNodeDragUpdate(NodeDragUpdateDetails details) {
     if (!_edgeMoveTicker.isActive &&
-        (details.parentSpacePosition - _parentSpaceNodePanPositionAtStart).distance < Config.cameraEdgeMove_minDelta) {
+        (details.parentSpacePosition - _nodeDragParentSpacePositionAtStart).distance < Config.cameraEdgeMove_minDelta) {
       // The Ticker wasn't started yet but we also haven't exceeded the minDelta, so do nothing
       return;
     }
@@ -449,6 +449,18 @@ class GraphViewportTransform extends ChangeNotifier {
     }
   }
 
+  void onNodeDragEnd(NodeDragEndDetails details) {
+    _edgeMoveTicker.stop();
+
+    _maybeNotifySettleListeners();
+  }
+
+  void onNodeDragCancel() {
+    _edgeMoveTicker.stop();
+
+    _maybeNotifySettleListeners();
+  }
+
   Offset? _lastSettledPosition;
   double? _lastSettledScale;
 
@@ -478,18 +490,6 @@ class GraphViewportTransform extends ChangeNotifier {
 
   void addSettleListener(TransformSettleListener listener) => _settleListeners.add(listener);
   void removeSettleListener(TransformSettleListener listener) => _settleListeners.remove(listener);
-
-  void onNodePanEnd(NodeDragEndDetails details) {
-    _edgeMoveTicker.stop();
-
-    _maybeNotifySettleListeners();
-  }
-
-  void onNodePanCancel() {
-    _edgeMoveTicker.stop();
-
-    _maybeNotifySettleListeners();
-  }
 
   void _edgeMoveTick(Duration elapsed) {
     position += _edgeMoveDirection * Config.cameraEdgeMove_speed;
