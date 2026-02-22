@@ -12,8 +12,11 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
     with SlottedContainerRenderObjectMixin<NodeWidgetSlot, RenderBox> {
   GraphNodeRenderObject({
     required Radius borderRadius,
+    required Clip clipBehavior,
+
     required NodeOverlayConfig? overlayConfig,
   }) : _borderRadius = borderRadius,
+       _clipBehavior = clipBehavior,
        _overlayConfig = overlayConfig;
 
   Offset get position => (parentData as GraphViewportNodeParentData).positionWithDragOffset;
@@ -25,6 +28,15 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
 
     _borderRadius = value;
     markParentNeedsLayout();
+  }
+
+  Clip _clipBehavior;
+  Clip get clipBehavior => _clipBehavior;
+  set clipBehavior(Clip value) {
+    if (_clipBehavior == value) return;
+
+    _clipBehavior = value;
+    markNeedsPaint();
   }
 
   NodeOverlayConfig? _overlayConfig;
@@ -79,15 +91,39 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
   void paint(PaintingContext context, Offset offset) {
     context.canvas.save();
     context.canvas.translate(offset.dx, offset.dy);
+    context.canvas.translate(position.dx, position.dy);
 
-    context.paintChild(background, position - Offset(background.size.width, background.size.height) / 2);
-    context.paintChild(content, position - Offset(content.size.width, content.size.height) / 2);
+    if (clipBehavior != Clip.none) {
+      context.pushClipRRect(
+        needsCompositing,
+        Offset.zero,
+        Rect.fromCenter(center: Offset.zero, width: size.width, height: size.height),
+        RRect.fromRectAndRadius(
+          Rect.fromCenter(center: Offset.zero, width: size.width, height: size.height),
+          borderRadius,
+        ),
+        (context, offset) => _paintChildren(context),
+        clipBehavior: clipBehavior,
+      );
+    } else {
+      _paintChildren(context);
+    }
 
+    _paintOverlay(context);
+
+    context.canvas.restore();
+  }
+
+  void _paintChildren(PaintingContext context) {
+    context.paintChild(background, -Offset(background.size.width, background.size.height) / 2);
+    context.paintChild(content, -Offset(content.size.width, content.size.height) / 2);
+  }
+
+  void _paintOverlay(PaintingContext context) {
     if (overlay != null) {
       context.paintChild(
         overlay!,
-        position +
-            Offset(size.width * overlayConfig!.alignmentInNode.x, size.height * overlayConfig!.alignmentInNode.y) / 2 -
+        Offset(size.width * overlayConfig!.alignmentInNode.x, size.height * overlayConfig!.alignmentInNode.y) / 2 -
             overlay!.size.center(Offset.zero) +
             Offset(
                   overlay!.size.width * overlayConfig!.alignmentAroundAnchor.x,
@@ -97,8 +133,6 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
             overlayConfig!.offset,
       );
     }
-
-    context.canvas.restore();
   }
 
   @override

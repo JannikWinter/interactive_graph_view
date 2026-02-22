@@ -51,12 +51,13 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
         viewportController: _graphViewportController,
         nodeBuilder: (context, nodeId) {
           return NodeWidget(
+            borderRadius: Radius.circular(10),
+            clipBehavior: Clip.antiAlias,
             content: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(nodeId),
             ),
             background: Container(color: Colors.blue),
-            borderRadius: Radius.circular(10),
             onDragDown: (details) => _graphViewportController.movingNodeIds = {nodeId},
           );
         },

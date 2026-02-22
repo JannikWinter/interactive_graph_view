@@ -69,6 +69,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     required this.content,
     required this.background,
     required this.borderRadius,
+    this.clipBehavior = Clip.none,
     this.overlay,
     this.onTap,
     this.onDoubleTap,
@@ -84,6 +85,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   final Widget background;
   final NodeOverlay? overlay;
   final Radius borderRadius;
+  final Clip clipBehavior;
 
   // Tap callbacks
   final GestureTapCallback? onTap;
@@ -110,6 +112,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   GraphNodeRenderObject createRenderObject(BuildContext context) {
     return GraphNodeRenderObject(
       borderRadius: borderRadius,
+      clipBehavior: clipBehavior,
       overlayConfig: overlay,
     );
   }
@@ -123,6 +126,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   void updateRenderObject(BuildContext context, GraphNodeRenderObject renderObject) {
     renderObject
       ..borderRadius = borderRadius
+      ..clipBehavior = clipBehavior
       ..overlayConfig = overlay;
   }
 
