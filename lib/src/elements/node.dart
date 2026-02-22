@@ -2,11 +2,13 @@ import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
 
 import "../drag_details.dart";
+import "../node_data.dart";
 import "../render_objects/graph_viewport_base.dart";
 import "../render_objects/node.dart";
 import "../widgets/node.dart";
 
-class NodeElement extends SlottedRenderObjectElement<NodeWidgetSlot, RenderBox> {
+class NodeElement<NodeIdType, NodeDataType extends NodeData<NodeIdType>>
+    extends SlottedRenderObjectElement<NodeWidgetSlot, RenderBox> {
   NodeElement(NodeWidget super.widget);
 
   late TapGestureRecognizer _tapRecognizer;
@@ -23,6 +25,20 @@ class NodeElement extends SlottedRenderObjectElement<NodeWidgetSlot, RenderBox> 
 
     final NodeWidget widget = this.widget as NodeWidget;
 
+    _initializeRecognizers(widget);
+
+    renderObject.onPointerDown = _handlePointerDown;
+    renderObject.onPointerPanZoomStart = _handlePointerPanZoomStart;
+  }
+
+  @override
+  void update(NodeWidget newWidget) {
+    super.update(newWidget);
+
+    _initializeRecognizers(newWidget);
+  }
+
+  void _initializeRecognizers(NodeWidget widget) {
     _tapRecognizer = TapGestureRecognizer(debugOwner: this);
     _tapRecognizer.onTap = widget.onTap;
 
@@ -39,38 +55,6 @@ class NodeElement extends SlottedRenderObjectElement<NodeWidgetSlot, RenderBox> 
       widget.onPanUpdate,
       widget.onPanEnd,
       widget.onPanCancel,
-    ].nonNulls.isNotEmpty) {
-      _panRecognizer.onDown = _onPanDown;
-      _panRecognizer.onStart = _onPanStart;
-      _panRecognizer.onUpdate = _onPanUpdate;
-      _panRecognizer.onEnd = _onPanEnd;
-      _panRecognizer.onCancel = _onPanCancel;
-    }
-
-    renderObject.onPointerDown = _handlePointerDown;
-    renderObject.onPointerPanZoomStart = _handlePointerPanZoomStart;
-  }
-
-  @override
-  void update(NodeWidget newWidget) {
-    super.update(newWidget);
-
-    _tapRecognizer = TapGestureRecognizer(debugOwner: this);
-    _tapRecognizer.onTap = newWidget.onTap;
-
-    _doubleTapRecognizer = DoubleTapGestureRecognizer(debugOwner: this);
-    _doubleTapRecognizer.onDoubleTap = newWidget.onDoubleTap;
-
-    _longPressRecognizer = LongPressGestureRecognizer(debugOwner: this);
-    _longPressRecognizer.onLongPress = newWidget.onLongPress;
-
-    _panRecognizer = PanGestureRecognizer(debugOwner: this);
-    if ([
-      newWidget.onPanDown,
-      newWidget.onPanStart,
-      newWidget.onPanUpdate,
-      newWidget.onPanEnd,
-      newWidget.onPanCancel,
     ].nonNulls.isNotEmpty) {
       _panRecognizer.onDown = _onPanDown;
       _panRecognizer.onStart = _onPanStart;
@@ -95,26 +79,41 @@ class NodeElement extends SlottedRenderObjectElement<NodeWidgetSlot, RenderBox> 
   }
 
   void _onPanDown(DragDownDetails details) {
-    final NodeDragDownDetails newDetails = RenderGraphViewportBase.of(renderObject).convertDragDownDetails(details);
+    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
+    final NodeDragDownDetails newDetails = viewportBase.convertDragDownDetails(details);
+
     (widget as NodeWidget).onPanDown?.call(newDetails);
+    viewportBase.onNodePanDown(newDetails);
   }
 
   void _onPanStart(DragStartDetails details) {
-    final NodeDragStartDetails newDetails = RenderGraphViewportBase.of(renderObject).convertDragStartDetails(details);
+    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
+    final NodeDragStartDetails newDetails = viewportBase.convertDragStartDetails(details);
+
     (widget as NodeWidget).onPanStart?.call(newDetails);
+    viewportBase.onNodePanStart(newDetails);
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
-    final NodeDragUpdateDetails newDetails = RenderGraphViewportBase.of(renderObject).convertDragUpdateDetails(details);
+    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
+    final NodeDragUpdateDetails newDetails = viewportBase.convertDragUpdateDetails(details);
+
     (widget as NodeWidget).onPanUpdate?.call(newDetails);
+    viewportBase.onNodePanUpdate(newDetails);
   }
 
   void _onPanEnd(DragEndDetails details) {
-    final NodeDragEndDetails newDetails = RenderGraphViewportBase.of(renderObject).convertDragEndDetails(details);
+    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
+    final NodeDragEndDetails newDetails = viewportBase.convertDragEndDetails(details);
+
     (widget as NodeWidget).onPanEnd?.call(newDetails);
+    viewportBase.onNodePanEnd(newDetails);
   }
 
   void _onPanCancel() {
+    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
+
     (widget as NodeWidget).onPanCancel?.call();
+    viewportBase.onNodePanCancel();
   }
 }

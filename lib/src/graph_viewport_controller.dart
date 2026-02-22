@@ -1,6 +1,7 @@
+import "dart:collection";
+
 import "package:flutter/material.dart";
 
-import "drag_details.dart";
 import "edge_data.dart";
 import "graph_viewport_transform.dart";
 import "node_data.dart";
@@ -46,6 +47,9 @@ class GraphViewportController<
 
     _viewport = null;
   }
+
+  UnmodifiableSetView<NodeIdType> get movingNodeIds => _viewport!.movingNodeIds;
+  set movingNodeIds(Set<NodeIdType> value) => _viewport!.movingNodeIds = value;
 
   void rebuildNode(NodeIdType nodeId) {
     assert(_nodes.containsKey(nodeId));
@@ -166,24 +170,4 @@ class GraphViewportController<
 
   Iterable<NodeDataType> get nodes => _nodes.keys.map((nodeId) => getNode(nodeId)!);
   Iterable<EdgeDataType> get edges => _edges.values;
-
-  void onNodePanDown(NodeIdType nodeId, NodeDragDownDetails details) {
-    _viewport!.onNodePanDown(nodeId, details);
-  }
-
-  void onNodePanStart(NodeDragStartDetails details, {Set<NodeIdType>? draggedNodeIds}) {
-    _viewport!.onNodePanStart(details, draggedNodeIds);
-  }
-
-  void onNodePanUpdate(NodeDragUpdateDetails details) {
-    _viewport!.onNodePanUpdate(details);
-  }
-
-  Offset onNodePanEnd(NodeDragEndDetails details) {
-    return _viewport!.onNodePanEnd(details);
-  }
-
-  void onNodePanCancel() {
-    _viewport!.onNodePanCancel();
-  }
 }

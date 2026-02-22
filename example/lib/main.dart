@@ -57,11 +57,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
             ),
             background: Container(color: Colors.blue),
             borderRadius: Radius.circular(10),
-            onPanDown: (details) => _graphViewportController.onNodePanDown(nodeId, details),
-            onPanStart: (details) => _graphViewportController.onNodePanStart(details, draggedNodeIds: {nodeId}),
-            onPanUpdate: (details) => _graphViewportController.onNodePanUpdate(details),
-            onPanCancel: () => _graphViewportController.onNodePanCancel(),
-            onPanEnd: (details) => _graphViewportController.onNodePanEnd(details),
+            onPanDown: (details) => _graphViewportController.movingNodeIds = {nodeId},
           );
         },
         edgeBuilder: (context, edgeId) {

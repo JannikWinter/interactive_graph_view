@@ -101,34 +101,47 @@ abstract class RenderGraphViewportBase<
   Offset _startingPointerScreenPosition = Offset.zero;
   Offset _pointerScreenPosition = Offset.zero;
 
-  NodeIdType? _dragDownNodeId;
-  Set<NodeIdType>? _movingNodeIds;
-  UnmodifiableSetView<NodeIdType> get movingNodeIds => UnmodifiableSetView(_movingNodeIds ?? const {});
+  bool _isDraggingNodes = false;
 
-  UnmodifiableSetView<EdgeIdType> get movingEdgeIds => // TODO: optimize with cache and `bool _activeEdgeIdsInvalid`
-      UnmodifiableSetView(Set.from(movingNodeIds.expand((nodeId) => _viewportController.getConnectingEdgeIds(nodeId))));
+  Set<NodeIdType> _movingNodeIds = {};
+
+  /// The NodeIds that are marked for being moved when dragging a Node.
+  UnmodifiableSetView<NodeIdType> get movingNodeIds => UnmodifiableSetView(_movingNodeIds);
+
+  /// The NodeIds that are marked for being moved when dragging a Node.
+  set movingNodeIds(Set<NodeIdType> value) => _movingNodeIds = Set.from(value);
+
+  @protected
+  UnmodifiableSetView<NodeIdType> get inFlightNodeIds =>
+      UnmodifiableSetView(_isDraggingNodes ? Set.from(_movingNodeIds) : const {});
+
+  @protected
+  UnmodifiableSetView<EdgeIdType> get inFlightEdgeIds => UnmodifiableSetView(
+    _isDraggingNodes
+        ? Set.from(_movingNodeIds.expand((nodeId) => _viewportController.getConnectingEdgeIds(nodeId)))
+        : const {},
+  );
 
   UnmodifiableSetView<NodeIdType> get animationTargetNodeIds =>
       UnmodifiableSetView(Set.from(_showOnScreenAnimationData?.animationTargetNodeIds ?? const {}));
 
-  Offset get movingNodeOffset => (_movingNodeIds != null && _movingNodeIds!.isNotEmpty)
+  Offset get movingNodeOffset => (_isDraggingNodes && _movingNodeIds.isNotEmpty)
       ? (_transform.position - _startingViewportPosition) +
             ((_pointerScreenPosition - _startingPointerScreenPosition) / _transform.scale)
       : Offset.zero;
 
-  void onNodePanDown(NodeIdType nodeId, NodeDragDownDetails details) {
+  void onNodePanDown(NodeDragDownDetails details) {
     transform.onNodePanDown(details);
 
-    _dragDownNodeId = nodeId;
     _startingViewportPosition = _transform.position;
     _startingPointerScreenPosition = details.parentSpacePosition;
     _pointerScreenPosition = details.parentSpacePosition;
   }
 
-  void onNodePanStart(NodeDragStartDetails details, Set<NodeIdType>? draggedNodeIds) {
+  void onNodePanStart(NodeDragStartDetails details) {
     transform.onNodePanStart(details);
 
-    _movingNodeIds = draggedNodeIds ?? {_dragDownNodeId!};
+    _isDraggingNodes = true;
   }
 
   void onNodePanUpdate(NodeDragUpdateDetails details) {
@@ -137,42 +150,45 @@ abstract class RenderGraphViewportBase<
     if (details.hasMoved) {
       _pointerScreenPosition = details.parentSpacePosition;
 
-      markNeedsLayout();
-
-      final Set<EdgeIdType> changedEdgeIds = Set.from(
-        _movingNodeIds!.expand((nodeId) => _viewportController.getConnectingEdgeIds(nodeId)),
-      );
-
-      for (final EdgeIdType edgeId in changedEdgeIds) {
+      for (final NodeIdType nodeId in inFlightNodeIds) {
+        markNodeNeedsLayout(nodeId);
+      }
+      for (final EdgeIdType edgeId in inFlightEdgeIds) {
         markEdgeNeedsLayout(edgeId);
       }
+
+      markNeedsLayout();
     }
   }
 
-  Offset onNodePanEnd(NodeDragEndDetails details) {
+  void onNodePanEnd(NodeDragEndDetails details) {
     transform.onNodePanEnd(details);
 
-    final Offset offset = movingNodeOffset;
-
-    final Set<NodeIdType> movingNodeIdsBefore = Set.from(movingNodeIds);
-    final Set<EdgeIdType> movingEdgeIdsBefore = Set.from(movingEdgeIds);
-
-    _dragDownNodeId = null;
-    _movingNodeIds = null;
-
-    final Set<NodeIdType> changedMovingNodeIds = movingNodeIdsBefore.difference(movingNodeIds);
-    final Set<EdgeIdType> changedMovingEdgeIds = movingEdgeIdsBefore.difference(movingEdgeIds);
-
-    for (final NodeIdType nodeId in changedMovingNodeIds) {
-      markNodeNeedsRebuild(nodeId);
+    for (final NodeIdType nodeId in inFlightNodeIds) {
+      markNodeNeedsLayout(nodeId);
     }
-    for (final EdgeIdType edgeId in changedMovingEdgeIds) {
-      markEdgeNeedsRebuild(edgeId);
+    for (final EdgeIdType edgeId in inFlightEdgeIds) {
+      markEdgeNeedsLayout(edgeId);
     }
 
     markNeedsLayout();
 
-    return offset;
+    _isDraggingNodes = false;
+  }
+
+  void onNodePanCancel() {
+    transform.onNodePanCancel();
+
+    for (final NodeIdType nodeId in inFlightNodeIds) {
+      markNodeNeedsLayout(nodeId);
+    }
+    for (final EdgeIdType edgeId in inFlightEdgeIds) {
+      markEdgeNeedsLayout(edgeId);
+    }
+
+    markNeedsLayout();
+
+    _isDraggingNodes = false;
   }
 
   GraphNodeRenderObject? getNode(NodeIdType nodeId);
@@ -187,28 +203,6 @@ abstract class RenderGraphViewportBase<
   void markNodeNeedsLayout(NodeIdType nodeId);
   @protected
   void markEdgeNeedsLayout(EdgeIdType edgeId);
-
-  void onNodePanCancel() {
-    transform.onNodePanCancel();
-
-    final Set<NodeIdType> movingNodeIdsBefore = Set.from(movingNodeIds);
-    final Set<EdgeIdType> movingEdgeIdsBefore = Set.from(movingEdgeIds);
-
-    _dragDownNodeId = null;
-    _movingNodeIds = null;
-
-    final Set<NodeIdType> changedMovingNodeIds = movingNodeIdsBefore.difference(movingNodeIds);
-    final Set<EdgeIdType> changedMovingEdgeIds = movingEdgeIdsBefore.difference(movingEdgeIds);
-
-    for (final NodeIdType nodeId in changedMovingNodeIds) {
-      markNodeNeedsRebuild(nodeId);
-    }
-    for (final EdgeIdType edgeId in changedMovingEdgeIds) {
-      markEdgeNeedsRebuild(edgeId);
-    }
-
-    markNeedsLayout();
-  }
 
   Offset get globalPaintOffset {
     final translation = getTransformTo(null).getTranslation();

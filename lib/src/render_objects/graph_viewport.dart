@@ -38,6 +38,8 @@ class RenderGraphViewport<
   final QuadTree _childQuadTree = QuadTree();
   final Set<NodeIdType> _nodeIdsNeedingRebuild = {};
   final Set<EdgeIdType> _edgeIdsNeedingRebuild = {};
+  final Set<NodeIdType> _nodeIdsNeedingLayout = {};
+  final Set<EdgeIdType> _edgeIdsNeedingLayout = {};
 
   double get cacheExtent => _cacheExtent;
   double _cacheExtent;
@@ -73,6 +75,7 @@ class RenderGraphViewport<
   @override
   void markNodeNeedsLayout(NodeIdType nodeId) {
     assert(_nodes.containsKey(nodeId));
+    _nodeIdsNeedingLayout.add(nodeId);
     _nodes[nodeId]!.markNeedsLayout();
   }
 
@@ -80,6 +83,7 @@ class RenderGraphViewport<
   @override
   void markEdgeNeedsLayout(EdgeIdType edgeId) {
     assert(_edges.containsKey(edgeId));
+    _edgeIdsNeedingLayout.add(edgeId);
     _edges[edgeId]!.markNeedsLayout();
   }
 
@@ -114,7 +118,7 @@ class RenderGraphViewport<
 
     nodeParentData.position = viewNode.position;
 
-    if (movingNodeIds.contains(nodeId)) {
+    if (inFlightNodeIds.contains(nodeId)) {
       nodeParentData.dragOffset = movingNodeOffset;
     } else {
       nodeParentData.dragOffset = Offset.zero;
@@ -148,13 +152,15 @@ class RenderGraphViewport<
   }
 
   void _layoutNode(NodeIdType nodeId, GraphNodeRenderObject node) {
+    _nodeIdsNeedingLayout.remove(nodeId);
+
     _setChildNodeParentData(nodeId, node);
     node.layout(BoxConstraints(), parentUsesSize: true);
 
     // Remove from QuadTree if this node is currently moving (e.g. during dragging).
     // Not removing a moving node here might result in many unnecessary quadtree updates.
-    // movingNodeIds are layouted even if they are not on screen, so they can safely be excluded from the quad tree.
-    if (movingNodeIds.contains(nodeId)) {
+    // inFlightNodeIds are layouted even if they are not on screen, so they can safely be excluded from the quad tree.
+    if (inFlightNodeIds.contains(nodeId)) {
       _childQuadTree.removeNode(nodeId);
     } else {
       _childQuadTree.putNode(nodeId, node.semanticBounds);
@@ -162,13 +168,15 @@ class RenderGraphViewport<
   }
 
   void _layoutEdge(EdgeIdType edgeId, GraphEdgeRenderObject edge) {
+    _edgeIdsNeedingLayout.remove(edgeId);
+
     _setChildEdgeParentData(edgeId, edge);
     edge.layout(BoxConstraints(), parentUsesSize: true);
 
     // Remove from QuadTree if this edge is currently moving (e.g. during dragging).
     // Not removing a moving edges here might result in many unnecessary quadtree updates.
-    // movingEdgeIds are layouted even if they are not on screen, so they can safely be excluded from the quad tree.
-    if (movingEdgeIds.contains(edgeId)) {
+    // inFlightEdgeIds are layouted even if they are not on screen, so they can safely be excluded from the quad tree.
+    if (inFlightEdgeIds.contains(edgeId)) {
       _childQuadTree.removeEdge(edgeId);
     } else {
       _childQuadTree.putEdge(edgeId, edge.linePath);
@@ -215,14 +223,16 @@ class RenderGraphViewport<
 
       final Set<NodeIdType> usedNodeIds = {
         ..._childQuadTree.getNodeIdsInRect(visibleRect),
-        ...movingNodeIds,
+        ...inFlightNodeIds,
         ...animationTargetNodeIds,
         ..._nodeIdsNeedingRebuild,
+        ..._nodeIdsNeedingLayout,
       };
       final Set<EdgeIdType> usedEdgeIds = {
         ..._childQuadTree.getEdgeIdsInRect(visibleRect),
-        ...movingEdgeIds,
+        ...inFlightEdgeIds,
         ..._edgeIdsNeedingRebuild,
+        ..._edgeIdsNeedingLayout,
       };
 
       for (final EdgeIdType edgeId in usedEdgeIds) {
@@ -256,8 +266,11 @@ class RenderGraphViewport<
         _layoutEdge(edgeId, edge);
       }
 
+      assert(_nodeIdsNeedingLayout.isEmpty);
+      assert(_edgeIdsNeedingLayout.isEmpty);
+
       Rect newContentRect = _childQuadTree.contentRect;
-      for (final NodeIdType movingNodeId in movingNodeIds) {
+      for (final NodeIdType movingNodeId in inFlightNodeIds) {
         final GraphNodeRenderObject movingNode = _nodes[movingNodeId]!;
         newContentRect = newContentRect.expandToInclude(movingNode.semanticBounds);
       }
@@ -386,10 +399,10 @@ class RenderGraphViewport<
 
   void _onTransformChanged() {
     // mark all moving nodes and edges as needing layout
-    for (final NodeIdType nodeId in movingNodeIds) {
+    for (final NodeIdType nodeId in inFlightNodeIds) {
       _nodes[nodeId]!.markNeedsLayout();
     }
-    for (final EdgeIdType edgeId in movingEdgeIds) {
+    for (final EdgeIdType edgeId in inFlightEdgeIds) {
       _edges[edgeId]!.markNeedsLayout();
     }
 
