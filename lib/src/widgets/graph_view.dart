@@ -1,19 +1,11 @@
 import "package:flutter/gestures.dart";
 import "package:flutter/widgets.dart";
 
-import "../edge_data.dart";
 import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
-import "../node_data.dart";
 import "graph_viewport.dart";
 
-class GraphView<
-  NodeIdType,
-  NodeDataType extends NodeData<NodeIdType>,
-  EdgeIdType,
-  EdgeDataType extends EdgeData<EdgeIdType, NodeIdType>
->
-    extends StatefulWidget {
+class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
   const GraphView({
     super.key,
     required this.viewportController,
@@ -35,7 +27,7 @@ class GraphView<
        assert(maxScale >= minScale),
        assert(initialScale >= minScale && initialScale <= maxScale);
 
-  final GraphViewportController<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> viewportController;
+  final GraphViewportController<NodeIdType, EdgeIdType> viewportController;
   final Offset initialPosition;
   final double initialScale;
   final double minScale;
@@ -52,17 +44,10 @@ class GraphView<
   final GestureScaleEndCallback? onScaleEnd;
 
   @override
-  State<GraphView<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>> createState() =>
-      GraphViewState<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>();
+  State<GraphView<NodeIdType, EdgeIdType>> createState() => GraphViewState<NodeIdType, EdgeIdType>();
 }
 
-class GraphViewState<
-  NodeIdType,
-  NodeDataType extends NodeData<NodeIdType>,
-  EdgeIdType,
-  EdgeDataType extends EdgeData<EdgeIdType, NodeIdType>
->
-    extends State<GraphView<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>>
+class GraphViewState<NodeIdType, EdgeIdType> extends State<GraphView<NodeIdType, EdgeIdType>>
     with TickerProviderStateMixin {
   late final GraphViewportTransform _viewportTransform;
 
@@ -83,7 +68,7 @@ class GraphViewState<
   }
 
   @override
-  void didUpdateWidget(covariant GraphView<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> oldWidget) {
+  void didUpdateWidget(covariant GraphView<NodeIdType, EdgeIdType> oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.minScale != widget.minScale) {
@@ -96,7 +81,7 @@ class GraphViewState<
 
   @override
   Widget build(BuildContext context) {
-    return GraphViewport<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>(
+    return GraphViewport<NodeIdType, EdgeIdType>(
       viewportController: widget.viewportController,
       transform: _viewportTransform,
       onTapDown: widget.onTapDown,

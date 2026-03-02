@@ -6,9 +6,11 @@ import "../line_shadow.dart";
 import "../line_style.dart";
 import "../render_objects/edge.dart";
 
-class EdgeWidget extends LeafRenderObjectWidget {
+class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
   const EdgeWidget({
     super.key,
+    required this.startNodeId,
+    required this.endNodeId,
     required this.text,
     required this.color,
     required this.thickness,
@@ -18,6 +20,8 @@ class EdgeWidget extends LeafRenderObjectWidget {
     this.shadow = const [],
   });
 
+  final NodeIdType startNodeId;
+  final NodeIdType endNodeId;
   final String? text;
   final Color color;
   final double thickness;
@@ -29,6 +33,8 @@ class EdgeWidget extends LeafRenderObjectWidget {
   @override
   GraphEdgeRenderObject createRenderObject(BuildContext context) {
     return GraphEdgeRenderObject(
+      startNodeId: startNodeId,
+      endNodeId: endNodeId,
       text: text,
       color: color,
       thickness: thickness,
@@ -46,6 +52,8 @@ class EdgeWidget extends LeafRenderObjectWidget {
   @override
   void updateRenderObject(BuildContext context, GraphEdgeRenderObject renderObject) {
     renderObject
+      ..startNodeId = startNodeId
+      ..endNodeId = endNodeId
       ..text = text
       ..color = color
       ..thickness = thickness

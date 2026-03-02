@@ -2,13 +2,11 @@ import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
 
 import "../drag_details.dart";
-import "../node_data.dart";
 import "../render_objects/graph_viewport_base.dart";
 import "../render_objects/node.dart";
 import "../widgets/node.dart";
 
-class NodeElement<NodeIdType, NodeDataType extends NodeData<NodeIdType>>
-    extends SlottedRenderObjectElement<NodeWidgetSlot, RenderBox> {
+class NodeElement<NodeIdType> extends SlottedRenderObjectElement<NodeWidgetSlot, RenderBox> {
   NodeElement(NodeWidget super.widget);
 
   late TapGestureRecognizer _tapRecognizer;

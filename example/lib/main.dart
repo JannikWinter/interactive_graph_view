@@ -29,16 +29,29 @@ class GraphViewExampleHomePage extends StatefulWidget {
 }
 
 class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
-  final GraphViewportController<String, ExampleNode, String, ExampleEdge> _graphViewportController =
-      GraphViewportController(
-        initialNodes: {
-          ExampleNode(id: "node1", position: Offset(-50, -50)),
-          ExampleNode(id: "node2", position: Offset(50, 50)),
-        },
-        initialEdges: {
-          ExampleEdge(id: "edge", startNodeId: "node1", endNodeId: "node2"),
-        },
-      );
+  final Map<String, ExampleNode> _nodes = Map.fromIterable(
+    {
+      ExampleNode(id: "node1", position: Offset(-50, -50)),
+      ExampleNode(id: "node2", position: Offset(50, 50)),
+    },
+    key: (node) => node.id,
+  );
+
+  final Map<String, ExampleEdge> _edges = Map.fromIterable({
+    ExampleEdge(id: "edge", startNodeId: "node1", endNodeId: "node2"),
+  }, key: (edge) => edge.id);
+
+  late final GraphViewportController<String, String> _graphViewportController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _graphViewportController = GraphViewportController(
+      initialNodeIds: _nodes.keys,
+      initialEdgeIds: _edges.keys,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,10 +60,11 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text("Graph View Demo"),
       ),
-      body: GraphView<String, ExampleNode, String, ExampleEdge>(
+      body: GraphView<String, String>(
         viewportController: _graphViewportController,
         nodeBuilder: (context, nodeId) {
           return NodeWidget(
+            position: _nodes[nodeId]!.position,
             borderRadius: Radius.circular(10),
             clipBehavior: Clip.antiAlias,
             content: Padding(
@@ -63,6 +77,8 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
         },
         edgeBuilder: (context, edgeId) {
           return EdgeWidget(
+            startNodeId: _edges[edgeId]!.startNodeId,
+            endNodeId: _edges[edgeId]!.endNodeId,
             text: null,
             color: Colors.red,
             thickness: 2,
@@ -75,25 +91,19 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
   }
 }
 
-class ExampleNode implements NodeData<String> {
+class ExampleNode {
   ExampleNode({required this.id, required this.position});
 
-  @override
   final String id;
 
-  @override
   Offset position;
 }
 
-class ExampleEdge implements EdgeData<String, String> {
+class ExampleEdge {
   ExampleEdge({required this.id, required this.startNodeId, required this.endNodeId});
 
-  @override
   final String id;
 
-  @override
   String startNodeId;
-
-  @override
   String endNodeId;
 }

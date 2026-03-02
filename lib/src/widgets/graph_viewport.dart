@@ -1,11 +1,9 @@
 import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
 
-import "../edge_data.dart";
 import "../elements/graph_viewport.dart";
 import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
-import "../node_data.dart";
 import "../render_objects/graph_viewport.dart";
 import "edge.dart";
 import "node.dart";
@@ -13,13 +11,7 @@ import "node.dart";
 typedef NodeBuilder<NodeIdType> = NodeWidget Function(BuildContext context, NodeIdType nodeId);
 typedef EdgeBuilder<EdgeIdType> = EdgeWidget Function(BuildContext context, EdgeIdType edgeId);
 
-class GraphViewport<
-  NodeIdType,
-  NodeDataType extends NodeData<NodeIdType>,
-  EdgeIdType,
-  EdgeDataType extends EdgeData<EdgeIdType, NodeIdType>
->
-    extends RenderObjectWidget {
+class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   const GraphViewport({
     super.key,
     required this.viewportController,
@@ -36,7 +28,7 @@ class GraphViewport<
     this.onDoubleTap,
   });
 
-  final GraphViewportController<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> viewportController;
+  final GraphViewportController<NodeIdType, EdgeIdType> viewportController;
   final NodeBuilder<NodeIdType> nodeBuilder;
   final EdgeBuilder<EdgeIdType> edgeBuilder;
   final GraphViewportTransform transform;
@@ -52,15 +44,15 @@ class GraphViewport<
 
   @override
   RenderObjectElement createElement() {
-    return GraphViewportElement<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>(this);
+    return GraphViewportElement<NodeIdType, EdgeIdType>(this);
   }
 
   @override
-  RenderGraphViewport<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> createRenderObject(BuildContext context) {
-    return RenderGraphViewport<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>(
+  RenderGraphViewport<NodeIdType, EdgeIdType> createRenderObject(BuildContext context) {
+    return RenderGraphViewport<NodeIdType, EdgeIdType>(
       viewportController: viewportController,
       transform: transform,
-      layoutHelper: context as GraphViewportElement<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>,
+      layoutHelper: context as GraphViewportElement<NodeIdType, EdgeIdType>,
       cacheExtent: cacheExtent,
     );
   }
@@ -68,7 +60,7 @@ class GraphViewport<
   @override
   void updateRenderObject(
     BuildContext context,
-    RenderGraphViewport<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> renderObject,
+    RenderGraphViewport<NodeIdType, EdgeIdType> renderObject,
   ) {
     renderObject
       ..viewportController = viewportController

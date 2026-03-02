@@ -11,22 +11,44 @@ import "../line_style.dart";
 import "../parent_data.dart";
 import "graph_element.dart";
 
-final class GraphEdgeRenderObject extends GraphElementRenderObject {
+final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
   static const double _hitTestPathStepSize = 5.0;
 
   GraphEdgeRenderObject({
+    required NodeIdType startNodeId,
+    required NodeIdType endNodeId,
     required String? text,
     required Color color,
     required double thickness,
     required LineStyle lineStyle,
     required CurveStyle curveStyle,
     required List<LineShadow> shadow,
-  }) : _text = text,
+  }) : _startNodeId = startNodeId,
+       _endNodeId = endNodeId,
+       _text = text,
        _color = color,
        _thickness = thickness,
        _lineStyle = lineStyle,
        _curveStyle = curveStyle,
        _shadow = shadow;
+
+  NodeIdType _startNodeId;
+  NodeIdType get startNodeId => _startNodeId;
+  set startNodeId(NodeIdType value) {
+    if (_startNodeId == value) return;
+
+    _startNodeId = value;
+    markParentNeedsLayout();
+  }
+
+  NodeIdType _endNodeId;
+  NodeIdType get endNodeId => _endNodeId;
+  set endNodeId(NodeIdType value) {
+    if (_endNodeId == value) return;
+
+    _endNodeId = value;
+    markParentNeedsLayout();
+  }
 
   String? get text => _text;
   String? _text;

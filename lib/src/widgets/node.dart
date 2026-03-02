@@ -66,6 +66,7 @@ class NodeOverlay extends NodeOverlayConfig {
 class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, RenderBox> {
   const NodeWidget({
     super.key,
+    required this.position,
     required this.content,
     required this.background,
     required this.borderRadius,
@@ -81,6 +82,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     this.onDragCancel,
   });
 
+  final Offset position;
   final Widget content;
   final Widget background;
   final NodeOverlay? overlay;
@@ -111,6 +113,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   @override
   GraphNodeRenderObject createRenderObject(BuildContext context) {
     return GraphNodeRenderObject(
+      position: position,
       borderRadius: borderRadius,
       clipBehavior: clipBehavior,
       overlayConfig: overlay,
@@ -125,6 +128,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   @override
   void updateRenderObject(BuildContext context, GraphNodeRenderObject renderObject) {
     renderObject
+      ..position = position
       ..borderRadius = borderRadius
       ..clipBehavior = clipBehavior
       ..overlayConfig = overlay;

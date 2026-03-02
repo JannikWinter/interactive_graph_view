@@ -11,15 +11,25 @@ import "graph_element.dart";
 final class GraphNodeRenderObject extends GraphElementRenderObject
     with SlottedContainerRenderObjectMixin<NodeWidgetSlot, RenderBox> {
   GraphNodeRenderObject({
+    required Offset position,
     required Radius borderRadius,
     required Clip clipBehavior,
-
     required NodeOverlayConfig? overlayConfig,
-  }) : _borderRadius = borderRadius,
+  }) : _position = position,
+       _borderRadius = borderRadius,
        _clipBehavior = clipBehavior,
        _overlayConfig = overlayConfig;
 
-  Offset get position => (parentData as GraphViewportNodeParentData).positionWithDragOffset;
+  Offset get positionWithDragOffset => (parentData as GraphViewportNodeParentData).positionWithDragOffset;
+
+  Offset _position;
+  Offset get position => _position;
+  set position(Offset value) {
+    if (_position == value) return;
+
+    _position = value;
+    markParentNeedsLayout();
+  }
 
   Radius _borderRadius;
   Radius get borderRadius => _borderRadius;
@@ -91,7 +101,7 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
   void paint(PaintingContext context, Offset offset) {
     context.canvas.save();
     context.canvas.translate(offset.dx, offset.dy);
-    context.canvas.translate(position.dx, position.dy);
+    context.canvas.translate(positionWithDragOffset.dx, positionWithDragOffset.dy);
 
     if (clipBehavior != Clip.none) {
       context.pushClipRRect(
@@ -137,12 +147,12 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
 
   @override
   void applyPaintTransform(RenderBox child, Matrix4 transform) {
-    transform.translateByDouble(position.dx, position.dy, 0, 1);
+    transform.translateByDouble(positionWithDragOffset.dx, positionWithDragOffset.dy, 0, 1);
     transform.translateByDouble(-child.size.width / 2, -child.size.height / 2, 0, 1);
   }
 
   @override
-  Rect get semanticBounds => Rect.fromCenter(center: position, width: size.width, height: size.height);
+  Rect get semanticBounds => Rect.fromCenter(center: positionWithDragOffset, width: size.width, height: size.height);
 
   @override
   bool hitTest(BoxHitTestResult result, Offset position) {

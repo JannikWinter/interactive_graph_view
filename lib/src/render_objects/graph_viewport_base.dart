@@ -3,29 +3,16 @@ import "dart:collection";
 
 import "package:flutter/widgets.dart";
 
-import "../edge_data.dart";
-import "../node_data.dart";
 import "../drag_details.dart";
 import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
 import "edge.dart";
 import "node.dart";
 
-abstract class RenderGraphViewportBase<
-  NodeIdType,
-  NodeDataType extends NodeData<NodeIdType>,
-  EdgeIdType,
-  EdgeDataType extends EdgeData<EdgeIdType, NodeIdType>
->
-    extends RenderBox {
-  static RenderGraphViewportBase<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>? maybeOf<
-    NodeIdType,
-    NodeDataType extends NodeData<NodeIdType>,
-    EdgeIdType,
-    EdgeDataType extends EdgeData<EdgeIdType, NodeIdType>
-  >(RenderObject? object) {
+abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox {
+  static RenderGraphViewportBase<NodeIdType, EdgeIdType>? maybeOf<NodeIdType, EdgeIdType>(RenderObject? object) {
     while (object != null) {
-      if (object is RenderGraphViewportBase<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>) {
+      if (object is RenderGraphViewportBase<NodeIdType, EdgeIdType>) {
         return object;
       }
       object = object.parent;
@@ -33,14 +20,8 @@ abstract class RenderGraphViewportBase<
     return null;
   }
 
-  static RenderGraphViewportBase<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> of<
-    NodeIdType,
-    NodeDataType extends NodeData<NodeIdType>,
-    EdgeIdType,
-    EdgeDataType extends EdgeData<EdgeIdType, NodeIdType>
-  >(RenderObject? object) {
-    final RenderGraphViewportBase<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>? viewport =
-        maybeOf<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType>(object);
+  static RenderGraphViewportBase<NodeIdType, EdgeIdType> of<NodeIdType, EdgeIdType>(RenderObject? object) {
+    final RenderGraphViewportBase<NodeIdType, EdgeIdType>? viewport = maybeOf<NodeIdType, EdgeIdType>(object);
     assert(() {
       if (viewport == null) {
         throw FlutterError(
@@ -58,17 +39,16 @@ abstract class RenderGraphViewportBase<
   }
 
   RenderGraphViewportBase({
-    required GraphViewportController<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> viewportController,
+    required GraphViewportController<NodeIdType, EdgeIdType> viewportController,
     required GraphViewportTransform transform,
   }) : _viewportController = viewportController,
        _transform = transform {
     _viewportController.onAttach(this);
   }
 
-  GraphViewportController<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> get viewportController =>
-      _viewportController;
-  GraphViewportController<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> _viewportController;
-  set viewportController(GraphViewportController<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> value) {
+  GraphViewportController<NodeIdType, EdgeIdType> get viewportController => _viewportController;
+  GraphViewportController<NodeIdType, EdgeIdType> _viewportController;
+  set viewportController(GraphViewportController<NodeIdType, EdgeIdType> value) {
     if (_viewportController == value) return;
 
     assert(_viewportController.isAttached);
@@ -117,9 +97,7 @@ abstract class RenderGraphViewportBase<
 
   @protected
   UnmodifiableSetView<EdgeIdType> get inFlightEdgeIds => UnmodifiableSetView(
-    _isDraggingNodes
-        ? Set.from(_movingNodeIds.expand((nodeId) => _viewportController.getConnectingEdgeIds(nodeId)))
-        : const {},
+    _isDraggingNodes ? Set.from(_movingNodeIds.expand((nodeId) => getConnectingEdgeIds(nodeId))) : const {},
   );
 
   UnmodifiableSetView<NodeIdType> get animationTargetNodeIds =>
@@ -194,15 +172,16 @@ abstract class RenderGraphViewportBase<
   GraphNodeRenderObject? getNode(NodeIdType nodeId);
   GraphEdgeRenderObject? getEdge(EdgeIdType nodeId);
 
-  @protected
   void markNodeNeedsRebuild(NodeIdType nodeId);
-  @protected
   void markEdgeNeedsRebuild(EdgeIdType edgeId);
 
   @protected
   void markNodeNeedsLayout(NodeIdType nodeId);
   @protected
   void markEdgeNeedsLayout(EdgeIdType edgeId);
+
+  @protected
+  Iterable<EdgeIdType> getConnectingEdgeIds(NodeIdType nodeId);
 
   Offset get globalPaintOffset {
     final translation = getTransformTo(null).getTranslation();
@@ -255,7 +234,7 @@ abstract class RenderGraphViewportBase<
     final Rect? targetGraphSpaceRect = targetNodeRenderObjects.fold(
       null,
       (Rect? previousValue, GraphNodeRenderObject nodeRenderObject) {
-        final Offset nodePosition = nodeRenderObject.position;
+        final Offset nodePosition = nodeRenderObject.positionWithDragOffset;
         final Size nodeSize = nodeRenderObject.size;
         final Rect nodeRect = Rect.fromCenter(center: nodePosition, width: nodeSize.width, height: nodeSize.height);
 

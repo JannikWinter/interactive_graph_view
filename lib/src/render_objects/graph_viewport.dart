@@ -2,10 +2,8 @@ import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
 
-import "../edge_data.dart";
 import "../elements/graph_viewport.dart";
 import "../graph_viewport_transform.dart";
-import "../node_data.dart";
 import "../parent_data.dart";
 import "../quad_tree.dart";
 import "edge.dart";
@@ -13,13 +11,7 @@ import "graph_element.dart";
 import "graph_viewport_base.dart";
 import "node.dart";
 
-class RenderGraphViewport<
-  NodeIdType,
-  NodeDataType extends NodeData<NodeIdType>,
-  EdgeIdType,
-  EdgeDataType extends EdgeData<EdgeIdType, NodeIdType>
->
-    extends RenderGraphViewportBase<NodeIdType, NodeDataType, EdgeIdType, EdgeDataType> {
+class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBase<NodeIdType, EdgeIdType> {
   RenderGraphViewport({
     required super.viewportController,
     required super.transform,
@@ -87,6 +79,13 @@ class RenderGraphViewport<
     _edges[edgeId]!.markNeedsLayout();
   }
 
+  @override
+  Iterable<EdgeIdType> getConnectingEdgeIds(NodeIdType nodeId) {
+    return _edges.entries
+        .where((edgeEntry) => edgeEntry.value.startNodeId == nodeId || edgeEntry.value.endNodeId == nodeId)
+        .map((edgeEntry) => edgeEntry.key);
+  }
+
   void insertNode(GraphNodeRenderObject node, NodeIdType nodeId) {
     _nodes[nodeId] = node;
 
@@ -114,9 +113,7 @@ class RenderGraphViewport<
   GraphViewportNodeParentData _setChildNodeParentData(NodeIdType nodeId, GraphNodeRenderObject node) {
     final GraphViewportNodeParentData nodeParentData = node.parentData! as GraphViewportNodeParentData;
 
-    final NodeDataType viewNode = viewportController.getNode(nodeId)!;
-
-    nodeParentData.position = viewNode.position;
+    nodeParentData.position = node.position;
 
     if (inFlightNodeIds.contains(nodeId)) {
       nodeParentData.dragOffset = movingNodeOffset;
@@ -130,16 +127,14 @@ class RenderGraphViewport<
   GraphViewportEdgeParentData _setChildEdgeParentData(EdgeIdType edgeId, GraphEdgeRenderObject edge) {
     final GraphViewportEdgeParentData edgeParentData = edge.parentData! as GraphViewportEdgeParentData;
 
-    final EdgeDataType viewEdge = viewportController.getEdge(edgeId)!;
-
-    final GraphNodeRenderObject startNode = _nodes[viewEdge.startNodeId]!;
-    final GraphNodeRenderObject endNode = _nodes[viewEdge.endNodeId]!;
+    final GraphNodeRenderObject startNode = _nodes[edge.startNodeId]!;
+    final GraphNodeRenderObject endNode = _nodes[edge.endNodeId]!;
 
     edgeParentData
-      ..startNodeCenter = startNode.position
+      ..startNodeCenter = startNode.positionWithDragOffset
       ..startNodeSize = startNode.size
       ..startNodeBorderRadius = startNode.borderRadius
-      ..endNodeCenter = endNode.position
+      ..endNodeCenter = endNode.positionWithDragOffset
       ..endNodeSize = endNode.size
       ..endNodeBorderRadius = endNode.borderRadius;
 
@@ -238,7 +233,8 @@ class RenderGraphViewport<
       for (final EdgeIdType edgeId in usedEdgeIds) {
         _reuseOrBuildEdge(edgeId);
 
-        final EdgeDataType edge = viewportController.getEdge(edgeId)!;
+        final GraphEdgeRenderObject edge = _edges[edgeId]!;
+
         usedNodeIds.addAll([edge.startNodeId, edge.endNodeId]);
       }
 
@@ -368,8 +364,6 @@ class RenderGraphViewport<
     _isFirstLayout = true;
 
     transform.addListener(_onTransformChanged);
-    viewportController.addNodeListener(_onNodeChanged);
-    viewportController.addEdgeListener(_onEdgeChanged);
 
     for (final GraphEdgeRenderObject edge in _edges.values) {
       edge.attach(owner);
@@ -384,9 +378,7 @@ class RenderGraphViewport<
   void detach() {
     super.detach();
 
-    transform.removeListener(markNeedsLayout);
-    viewportController.removeNodeListener(_onNodeChanged);
-    viewportController.removeEdgeListener(_onEdgeChanged);
+    transform.removeListener(_onTransformChanged);
 
     for (final GraphEdgeRenderObject edge in _edges.values) {
       edge.detach();
@@ -404,34 +396,6 @@ class RenderGraphViewport<
     }
     for (final EdgeIdType edgeId in inFlightEdgeIds) {
       _edges[edgeId]!.markNeedsLayout();
-    }
-
-    markNeedsLayout();
-  }
-
-  void _onNodeChanged(NodeIdType nodeId, NodeDataType? previous, NodeDataType? next) {
-    if (next == null) {
-      _childQuadTree.removeNode(nodeId);
-    } else {
-      _nodeIdsNeedingRebuild.add(nodeId);
-      for (final EdgeIdType edgeId in viewportController.getConnectingEdgeIds(nodeId)) {
-        final GraphEdgeRenderObject? edge = _edges[edgeId];
-        if (edge != null) {
-          edge.markNeedsLayout();
-        } else {
-          _edgeIdsNeedingRebuild.add(edgeId);
-        }
-      }
-    }
-
-    markNeedsLayout();
-  }
-
-  void _onEdgeChanged(EdgeIdType edgeId, EdgeDataType? previous, EdgeDataType? next) {
-    if (next == null) {
-      _childQuadTree.removeEdge(edgeId);
-    } else {
-      _edgeIdsNeedingRebuild.add(edgeId);
     }
 
     markNeedsLayout();
@@ -501,7 +465,7 @@ class RenderGraphViewport<
         final List<GraphNodeRenderObject> nodes = _nodes.values.toList();
         for (final GraphNodeRenderObject node in nodes.reversed) {
           final bool wasNodeHit = result.addWithPaintOffset(
-            offset: node.position,
+            offset: node.positionWithDragOffset,
             position: position,
             hitTest: node.hitTest,
           );
