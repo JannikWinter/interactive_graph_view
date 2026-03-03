@@ -7,12 +7,7 @@ class Config {
   static const double cameraEdgeMove_minDelta = 5; // ignore: constant_identifier_names
   static const double graphMinFlingVelocity = 50.0;
   static const double nodeMaxWidth = 400; // TODO: move to Node data and make editable per node
-  static const double lineArrowLength = 20;
-  static const double lineArrowHalfWidth = 10;
   static const double edgeHitBoxHalfThickness = 20;
-  static const double edgeDashedSegmentLength = 10;
-  static const double edgeDashedPauseLength = 10;
-  static const double edgeDottedPauseLength = 4;
   static const Color canvasBackgroundColor = Colors.black;
 
   static const String _defaultFontFamily = "NotoSans";

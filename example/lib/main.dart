@@ -81,9 +81,9 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
             endNodeId: _edges[edgeId]!.endNodeId,
             text: null,
             color: Colors.red,
-            thickness: 2,
-            lineStyle: LineStyle.solid,
-            curveStyle: CurveStyle.straight,
+            lineStyle: SolidLineStyle(thickness: 2),
+            curveStyle: StraightCurveStyle(),
+            arrowStyle: ArrowStyle(length: 20, width: 20),
           );
         },
       ),

@@ -4,7 +4,7 @@ import "dart:ui" as ui show Shadow, lerpDouble;
 import "package:flutter/material.dart";
 
 @immutable
-class LineShadow extends ui.Shadow {
+final class LineShadow extends ui.Shadow {
   const LineShadow({
     super.color,
     super.blurRadius,

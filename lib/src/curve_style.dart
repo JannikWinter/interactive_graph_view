@@ -1,4 +1,0 @@
-enum CurveStyle {
-  straight,
-  // cubicBezier,
-}

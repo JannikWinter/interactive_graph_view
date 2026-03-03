@@ -1,9 +1,10 @@
 import "package:flutter/material.dart";
 
-import "../curve_style.dart";
+import "../style/arrow_style.dart";
+import "../style/curve_style.dart";
 import "../elements/edge.dart";
-import "../line_shadow.dart";
-import "../line_style.dart";
+import "../style/line_shadow.dart";
+import "../style/line_style.dart";
 import "../render_objects/edge.dart";
 
 class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
@@ -13,9 +14,9 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
     required this.endNodeId,
     required this.text,
     required this.color,
-    required this.thickness,
     required this.lineStyle,
     required this.curveStyle,
+    required this.arrowStyle,
     this.onTap,
     this.shadow = const [],
   });
@@ -24,9 +25,9 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
   final NodeIdType endNodeId;
   final String? text;
   final Color color;
-  final double thickness;
   final LineStyle lineStyle;
   final CurveStyle curveStyle;
+  final ArrowStyle arrowStyle;
   final VoidCallback? onTap;
   final List<LineShadow> shadow;
 
@@ -37,9 +38,9 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
       endNodeId: endNodeId,
       text: text,
       color: color,
-      thickness: thickness,
       lineStyle: lineStyle,
       curveStyle: curveStyle,
+      arrowStyle: arrowStyle,
       shadow: shadow,
     );
   }
@@ -56,9 +57,9 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
       ..endNodeId = endNodeId
       ..text = text
       ..color = color
-      ..thickness = thickness
       ..lineStyle = lineStyle
       ..curveStyle = curveStyle
+      ..arrowStyle = arrowStyle
       ..shadow = shadow;
   }
 }

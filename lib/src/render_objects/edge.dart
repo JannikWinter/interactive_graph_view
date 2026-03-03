@@ -5,9 +5,10 @@ import "package:flutter/rendering.dart";
 import "package:path_drawing/path_drawing.dart";
 
 import "../config.dart";
-import "../curve_style.dart";
-import "../line_shadow.dart";
-import "../line_style.dart";
+import "../style/arrow_style.dart";
+import "../style/curve_style.dart";
+import "../style/line_shadow.dart";
+import "../style/line_style.dart";
 import "../parent_data.dart";
 import "graph_element.dart";
 
@@ -19,17 +20,17 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     required NodeIdType endNodeId,
     required String? text,
     required Color color,
-    required double thickness,
     required LineStyle lineStyle,
     required CurveStyle curveStyle,
+    required ArrowStyle arrowStyle,
     required List<LineShadow> shadow,
   }) : _startNodeId = startNodeId,
        _endNodeId = endNodeId,
        _text = text,
        _color = color,
-       _thickness = thickness,
        _lineStyle = lineStyle,
        _curveStyle = curveStyle,
+       _arrowStyle = arrowStyle,
        _shadow = shadow;
 
   NodeIdType _startNodeId;
@@ -72,17 +73,6 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     markNeedsPaint();
   }
 
-  double get thickness => _thickness;
-  double _thickness;
-  set thickness(double value) {
-    if (_thickness == value) {
-      return;
-    }
-
-    _thickness = value;
-    markNeedsPaint();
-  }
-
   LineStyle get lineStyle => _lineStyle;
   LineStyle _lineStyle;
   set lineStyle(LineStyle value) {
@@ -91,7 +81,7 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     }
 
     _lineStyle = value;
-    markNeedsPaint();
+    markNeedsLayout();
   }
 
   CurveStyle get curveStyle => _curveStyle;
@@ -103,6 +93,17 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
 
     _curveStyle = value;
     markParentNeedsLayout();
+  }
+
+  ArrowStyle get arrowStyle => _arrowStyle;
+  ArrowStyle _arrowStyle;
+  set arrowStyle(ArrowStyle value) {
+    if (_arrowStyle == value) {
+      return;
+    }
+
+    _arrowStyle = value;
+    markNeedsLayout();
   }
 
   List<LineShadow> get shadow => _shadow;
@@ -119,15 +120,11 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
   late Path _hitTestPath;
   late Path _basicLinePath;
   late Path _linePath;
+  late Path _arrowPath;
+
   late Offset _textPosition;
   late Offset _arrowPosition;
   late double _arrowDirection;
-
-  static Path get _arrowPath => Path()
-    ..moveTo(0, 0)
-    ..lineTo(-Config.lineArrowLength, -Config.lineArrowHalfWidth)
-    ..lineTo(-Config.lineArrowLength, Config.lineArrowHalfWidth)
-    ..close();
 
   Path get linePath => _basicLinePath;
 
@@ -156,8 +153,14 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
       ..relativeLineTo(endToStart.dx, endToStart.dy)
       ..close();
 
+    _arrowPath = Path()
+      ..moveTo(0, 0)
+      ..lineTo(-arrowStyle.length, -arrowStyle.width / 2)
+      ..lineTo(-arrowStyle.length, arrowStyle.width / 2)
+      ..close();
+
     switch (curveStyle) {
-      case CurveStyle.straight:
+      case StraightCurveStyle():
         {
           final double lineSlope = (startToEnd.dy / startToEnd.dx).abs();
 
@@ -256,7 +259,7 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
 
           final Offset startBorderToEndBorder = lineEndAtNodeBorder - lineStartAtNodeBorder;
           final Offset lineEndWithoutArrow =
-              _arrowPosition - (startBorderToEndBorder / startBorderToEndBorder.distance) * Config.lineArrowLength;
+              _arrowPosition - (startBorderToEndBorder / startBorderToEndBorder.distance) * arrowStyle.length;
 
           _textPosition = lineStartAtNodeBorder + startBorderToEndBorder / 2;
 
@@ -265,31 +268,31 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
             ..lineTo(lineEndWithoutArrow.dx, lineEndWithoutArrow.dy);
         }
 
-      // TODO: implement CurveStyle.cubicBezier
-      // case CurveStyle.cubicBezier:
+      // TODO: implement CubicBezierCurveStyle
+      // case CubicBezierCurveStyle():
       //   {}
     }
 
     switch (lineStyle) {
-      case LineStyle.dashed:
+      case DashedLineStyle(dashSize: final double dashSize, gapSize: final double gapSize):
         _linePath = dashPath(
           _basicLinePath,
           dashArray: CircularIntervalList([
-            Config.edgeDashedSegmentLength,
-            Config.edgeDashedPauseLength,
+            dashSize,
+            gapSize,
           ]),
         );
 
-      case LineStyle.dotted:
+      case DottedLineStyle(thickness: final double thickness, gapSize: final double gapSize):
         _linePath = dashPath(
           _basicLinePath,
           dashArray: CircularIntervalList([
             thickness,
-            Config.edgeDottedPauseLength,
+            gapSize,
           ]),
         );
 
-      case LineStyle.solid:
+      case SolidLineStyle():
         _linePath = Path.from(_basicLinePath);
     }
   }
@@ -316,7 +319,7 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
       Paint()
         ..style = PaintingStyle.stroke
         ..color = color
-        ..strokeWidth = thickness,
+        ..strokeWidth = lineStyle.thickness,
     );
 
     _paintArrow(
