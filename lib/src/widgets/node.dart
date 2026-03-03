@@ -75,6 +75,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     this.onTap,
     this.onDoubleTap,
     this.onLongPress,
+    required this.isDragEnabled,
     this.onDragDown,
     this.onDragStart,
     this.onDragUpdate,
@@ -95,6 +96,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   final GestureLongPressCallback? onLongPress;
 
   // Drag callbacks
+  final bool isDragEnabled;
   final GestureNodeDragDownCallback? onDragDown;
   final GestureNodeDragStartCallback? onDragStart;
   final GestureNodeDragUpdateCallback? onDragUpdate;

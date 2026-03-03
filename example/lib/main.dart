@@ -73,6 +73,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
             ),
             background: Container(color: Colors.blue),
             onDragDown: (details) => _graphViewportController.movingNodeIds = {nodeId},
+            isDragEnabled: true,
           );
         },
         edgeBuilder: (context, edgeId) {

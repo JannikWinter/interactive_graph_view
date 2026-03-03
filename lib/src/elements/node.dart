@@ -47,13 +47,7 @@ class NodeElement<NodeIdType> extends SlottedRenderObjectElement<NodeWidgetSlot,
     _longPressRecognizer.onLongPress = widget.onLongPress;
 
     _panRecognizer = PanGestureRecognizer(debugOwner: this);
-    if ([
-      widget.onDragDown,
-      widget.onDragStart,
-      widget.onDragUpdate,
-      widget.onDragEnd,
-      widget.onDragCancel,
-    ].nonNulls.isNotEmpty) {
+    if (widget.isDragEnabled) {
       _panRecognizer.onDown = _onDragDown;
       _panRecognizer.onStart = _onDragStart;
       _panRecognizer.onUpdate = _onDragUpdate;
