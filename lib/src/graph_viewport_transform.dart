@@ -492,7 +492,9 @@ class GraphViewportTransform extends ChangeNotifier {
   void removeSettleListener(TransformSettleListener listener) => _settleListeners.remove(listener);
 
   void _edgeMoveTick(Duration elapsed) {
-    position += _edgeMoveDirection * Config.cameraEdgeMove_speed;
+    final double buildUpFraction = elapsed.inMilliseconds / Config.cameraEdgeMove_buildUpDuration.inMilliseconds;
+    final double buildUpMultipilier = Config.cameraEdgeMove_buildUpCurve.transform(math.min(buildUpFraction, 1.0));
+    position += _edgeMoveDirection * Config.cameraEdgeMove_speed * buildUpMultipilier;
   }
 }
 
