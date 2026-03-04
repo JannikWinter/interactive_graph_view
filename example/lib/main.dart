@@ -50,6 +50,12 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
     _graphViewportController = GraphViewportController(
       initialNodeIds: _nodes.keys,
       initialEdgeIds: _edges.keys,
+      onNodesMoved: (nodeIds, offset) {
+        for (final String nodeId in nodeIds) {
+          _nodes[nodeId]!.position += offset;
+          _graphViewportController.rebuildNode(nodeId);
+        }
+      },
     );
   }
 

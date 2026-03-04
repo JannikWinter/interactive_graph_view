@@ -5,17 +5,22 @@ import "package:flutter/material.dart";
 import "graph_viewport_transform.dart";
 import "render_objects/graph_viewport_base.dart";
 
+typedef NodesMovedCallback<NodeIdType> = void Function(Set<NodeIdType> nodeIds, Offset offset);
+
 /// Manages all nodes and edges that are to be displayed in the viewport and the current selection.
 /// Also handles changes on any nodes, edges or the selection and reflects those changes back to any listeners.
 class GraphViewportController<NodeIdType, EdgeIdType> {
   GraphViewportController({
     required Iterable<NodeIdType> initialNodeIds,
     required Iterable<EdgeIdType> initialEdgeIds,
+    NodesMovedCallback? onNodesMoved,
   }) : _nodeIds = Set.from(initialNodeIds),
-       _edgeIds = Set.from(initialEdgeIds);
+       _edgeIds = Set.from(initialEdgeIds),
+       _onNodesMoved = onNodesMoved;
 
   final Set<NodeIdType> _nodeIds;
   final Set<EdgeIdType> _edgeIds;
+  final NodesMovedCallback? _onNodesMoved;
 
   RenderGraphViewportBase<NodeIdType, EdgeIdType>? _viewport;
 
@@ -70,6 +75,10 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
     assert(_edgeIds.contains(edgeId));
 
     _viewport!.markNeedsLayout();
+  }
+
+  void notifyNodesMoved(Offset offset) {
+    _onNodesMoved?.call(movingNodeIds, offset);
   }
 
   Future<void> showNodesOnScreen(
