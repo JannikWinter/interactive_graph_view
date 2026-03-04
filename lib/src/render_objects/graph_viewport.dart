@@ -67,7 +67,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   @protected
   @override
   void markNodeNeedsLayout(NodeIdType nodeId) {
-    assert(_nodes.containsKey(nodeId));
+    if (!_nodes.containsKey(nodeId)) return;
     _nodeIdsNeedingLayout.add(nodeId);
     _nodes[nodeId]!.markNeedsLayout();
   }
@@ -75,7 +75,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   @protected
   @override
   void markEdgeNeedsLayout(EdgeIdType edgeId) {
-    assert(_edges.containsKey(edgeId));
+    if (!_edges.containsKey(edgeId)) return;
     _edgeIdsNeedingLayout.add(edgeId);
     _edges[edgeId]!.markNeedsLayout();
   }
