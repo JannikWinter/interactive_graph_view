@@ -1,7 +1,7 @@
 import "dart:math" as math;
 import "dart:ui" as ui show Shadow, lerpDouble;
 
-import "package:flutter/material.dart";
+import "package:flutter/widgets.dart";
 
 @immutable
 final class LineShadow extends ui.Shadow {

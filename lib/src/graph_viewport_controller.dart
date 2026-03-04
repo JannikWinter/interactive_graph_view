@@ -1,6 +1,6 @@
 import "dart:collection";
 
-import "package:flutter/material.dart";
+import "package:flutter/widgets.dart";
 
 import "graph_viewport_transform.dart";
 import "render_objects/graph_viewport_base.dart";

@@ -1,6 +1,7 @@
 import "dart:math";
 
-import "package:flutter/material.dart";
+import "package:flutter/material.dart" show Colors;
+import "package:flutter/rendering.dart";
 
 const int _subdivisionMinNodeSize = 100;
 const int _subdivisionChildThreshold = 1;
