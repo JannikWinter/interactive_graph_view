@@ -12,8 +12,9 @@ class Config {
   static const double graphMinFlingVelocity = 50.0;
   static const double nodeMaxWidth = 400; // TODO: move to Node data and make editable per node
   static const double edgeHitBoxHalfThickness = 20;
-  static const Color canvasBackgroundColor = Colors.black;
 
+  // TODO: move to Theme:
+  static const Color canvasBackgroundColor = Colors.black;
   static const String _defaultFontFamily = "NotoSans";
   static const Color nullNodeTextColor = Colors.white;
   static const double nullNodeFontSize = 14;
