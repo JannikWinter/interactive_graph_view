@@ -13,6 +13,7 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
     this.initialScale = 1.0,
     this.minScale = 0.025,
     this.maxScale = 5,
+    this.cacheExtent = GraphViewport.kDefaultCacheExtent,
     required this.nodeBuilder,
     required this.edgeBuilder,
     this.onTransformSettled,
@@ -32,6 +33,7 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
   final double initialScale;
   final double minScale;
   final double maxScale;
+  final double cacheExtent;
   final NodeBuilder<NodeIdType> nodeBuilder;
   final EdgeBuilder<EdgeIdType> edgeBuilder;
   final TransformSettleListener? onTransformSettled;
@@ -84,6 +86,7 @@ class GraphViewState<NodeIdType, EdgeIdType> extends State<GraphView<NodeIdType,
     return GraphViewport<NodeIdType, EdgeIdType>(
       viewportController: widget.viewportController,
       transform: _viewportTransform,
+      cacheExtent: widget.cacheExtent,
       onTapDown: widget.onTapDown,
       onTap: widget.onTap,
       onDoubleTapDown: widget.onTapDown,

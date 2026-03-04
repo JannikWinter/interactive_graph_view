@@ -12,13 +12,15 @@ typedef NodeBuilder<NodeIdType> = NodeWidget Function(BuildContext context, Node
 typedef EdgeBuilder<EdgeIdType> = EdgeWidget Function(BuildContext context, EdgeIdType edgeId);
 
 class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
+  static const double kDefaultCacheExtent = 50.0;
+
   const GraphViewport({
     super.key,
     required this.viewportController,
     required this.nodeBuilder,
     required this.edgeBuilder,
     required this.transform,
-    this.cacheExtent = 50.0,
+    this.cacheExtent = kDefaultCacheExtent,
     this.onScaleStart,
     this.onScaleUpdate,
     this.onScaleEnd,
