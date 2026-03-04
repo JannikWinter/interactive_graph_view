@@ -4,7 +4,7 @@ import "package:flutter/rendering.dart";
 import "package:flutter/widgets.dart";
 
 import "../elements/graph_viewport.dart";
-import "../graph_viewport_transform.dart";
+import "../graph_viewport_behavior.dart";
 import "../parent_data.dart";
 import "../quad_tree.dart";
 import "edge.dart";

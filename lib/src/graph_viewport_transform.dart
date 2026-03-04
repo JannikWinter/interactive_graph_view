@@ -12,14 +12,6 @@ import "graph_visibility.dart";
 import "util.dart";
 
 typedef TransformSettleListener = void Function(Offset position, double scale);
-typedef GraphViewportBehaviorResolver =
-    (GraphViewportMoveBehavior?, GraphViewportZoomBehavior?) Function(
-      GraphVisibility visibility,
-      double scale,
-      Size paddedSize,
-      Size viewportSize,
-      Size targetSize,
-    );
 
 class GraphViewportTransform extends ChangeNotifier {
   static (GraphViewportMoveBehavior?, GraphViewportZoomBehavior?) kDefaultShowInViewportBehavior(

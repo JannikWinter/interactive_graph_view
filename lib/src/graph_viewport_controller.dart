@@ -2,7 +2,7 @@ import "dart:collection";
 
 import "package:flutter/widgets.dart";
 
-import "graph_viewport_transform.dart";
+import "graph_viewport_behavior.dart";
 import "render_objects/graph_viewport_base.dart";
 
 typedef NodesMovedCallback<NodeIdType> = void Function(Set<NodeIdType> nodeIds, Offset offset);
