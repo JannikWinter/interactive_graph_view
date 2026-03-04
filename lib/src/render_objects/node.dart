@@ -4,6 +4,7 @@ import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
 
 import "../config.dart";
+import "../node_overlay.dart";
 import "../parent_data.dart";
 import "../widgets/node.dart";
 import "graph_element.dart";
