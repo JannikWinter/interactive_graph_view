@@ -205,9 +205,11 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     renderObject.onPointerDown = _handlePointerDown;
     renderObject.onPointerPanZoomStart = _handlePointerPanZoomStart;
 
-    _buildAllNodes();
-    _buildAllEdges();
-    renderObject.markNeedsFirstLayout();
+    if (newWidget.rebuildAllChildrenOnWidgetUpdate) {
+      _buildAllNodes();
+      _buildAllEdges();
+      renderObject.markNeedsFirstLayout();
+    }
   }
 
   @override

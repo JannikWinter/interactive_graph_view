@@ -21,6 +21,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     required this.edgeBuilder,
     required this.transform,
     this.cacheExtent = kDefaultCacheExtent,
+    this.rebuildAllChildrenOnWidgetUpdate = true,
     this.onScaleStart,
     this.onScaleUpdate,
     this.onScaleEnd,
@@ -35,6 +36,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   final EdgeBuilder<EdgeIdType> edgeBuilder;
   final GraphViewportTransform transform;
   final double cacheExtent;
+  final bool rebuildAllChildrenOnWidgetUpdate;
 
   final GestureScaleStartCallback? onScaleStart;
   final GestureScaleUpdateCallback? onScaleUpdate;
