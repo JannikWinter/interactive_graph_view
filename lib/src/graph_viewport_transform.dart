@@ -47,6 +47,19 @@ class GraphViewportTransform extends ChangeNotifier {
     return (moveBehavior, zoomBehavior);
   }
 
+  GraphViewportTransform({
+    required Offset initialPosition,
+    required double initialScale,
+    required this.minScale,
+    required this.maxScale,
+    required TickerProvider vsync,
+  }) : assert(minScale > 0),
+       assert(maxScale >= minScale),
+       assert(initialScale >= minScale && initialScale <= maxScale),
+       _position = initialPosition,
+       _scale = initialScale,
+       _vsync = vsync;
+
   Offset get position => _position;
   Offset _position;
   set position(Offset value) {
@@ -111,19 +124,6 @@ class GraphViewportTransform extends ChangeNotifier {
   late final Ticker _edgeMoveTicker = Ticker(_edgeMoveTick);
   AnimationController? _cameraMoveAnimationController;
   late Offset _edgeMoveDirection;
-
-  GraphViewportTransform({
-    Offset initialPosition = Offset.zero,
-    double initialScale = 1.0,
-    required this.minScale,
-    required this.maxScale,
-    required TickerProvider vsync,
-  }) : assert(minScale > 0),
-       assert(maxScale >= minScale),
-       assert(initialScale >= minScale && initialScale <= maxScale),
-       _position = initialPosition,
-       _scale = initialScale,
-       _vsync = vsync;
 
   Rect get visibleRect => Rect.fromCenter(
     center: position,

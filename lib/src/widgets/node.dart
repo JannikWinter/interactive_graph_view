@@ -64,13 +64,14 @@ class NodeOverlay extends NodeOverlayConfig {
 }
 
 class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, RenderBox> {
+  static const Clip kDefaultClipBehavior = Clip.none;
   const NodeWidget({
     super.key,
     required this.position,
     required this.content,
     required this.background,
     required this.borderRadius,
-    this.clipBehavior = Clip.none,
+    this.clipBehavior = kDefaultClipBehavior,
     this.overlay,
     this.onTap,
     this.onDoubleTap,

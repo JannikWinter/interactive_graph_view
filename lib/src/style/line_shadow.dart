@@ -5,10 +5,14 @@ import "package:flutter/material.dart";
 
 @immutable
 final class LineShadow extends ui.Shadow {
+  static const Color kDefaultColor = Color(0xFF000000);
+  static const double kDefaultBlurRadius = 0.0;
+  static const double kDefaultSpreadRadius = 0.0;
+
   const LineShadow({
-    super.color,
-    super.blurRadius,
-    this.spreadRadius = 0.0,
+    super.color = kDefaultColor,
+    super.blurRadius = kDefaultBlurRadius,
+    this.spreadRadius = kDefaultSpreadRadius,
   });
 
   /// The amount the line should be inflated prior to applying the blur.

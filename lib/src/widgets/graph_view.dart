@@ -6,14 +6,20 @@ import "../graph_viewport_transform.dart";
 import "graph_viewport.dart";
 
 class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
+  static const Offset kDefaultInitialPosition = Offset.zero;
+  static const double kDefaultInitialScale = 1.0;
+  static const double kDefaultMinScale = 0.025;
+  static const double kDefaultMaxScale = 5.0;
+  static const double kDefaultCacheExtent = GraphViewport.kDefaultCacheExtent;
+
   const GraphView({
     super.key,
     required this.viewportController,
-    this.initialPosition = Offset.zero,
-    this.initialScale = 1.0,
-    this.minScale = 0.025,
-    this.maxScale = 5,
-    this.cacheExtent = GraphViewport.kDefaultCacheExtent,
+    this.initialPosition = kDefaultInitialPosition,
+    this.initialScale = kDefaultInitialScale,
+    this.minScale = kDefaultMinScale,
+    this.maxScale = kDefaultMaxScale,
+    this.cacheExtent = kDefaultCacheExtent,
     required this.nodeBuilder,
     required this.edgeBuilder,
     this.onTransformSettled,
