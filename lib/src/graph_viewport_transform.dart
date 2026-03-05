@@ -5,10 +5,10 @@ import "dart:ui";
 import "package:flutter/scheduler.dart";
 import "package:flutter/widgets.dart";
 
-import "config.dart";
 import "drag_details.dart";
 import "graph_viewport_behavior.dart";
 import "graph_visibility.dart";
+import "interaction_config.dart";
 import "util.dart";
 
 typedef TransformSettleListener = void Function(Offset position, double scale);
@@ -45,6 +45,7 @@ class GraphViewportTransform extends ChangeNotifier {
     required this.minScale,
     required this.maxScale,
     required TickerProvider vsync,
+    required this.interactionConfig,
   }) : assert(minScale > 0),
        assert(maxScale >= minScale),
        assert(initialScale >= minScale && initialScale <= maxScale),
@@ -97,6 +98,7 @@ class GraphViewportTransform extends ChangeNotifier {
     return clampDouble(value, minScale, maxScale);
   }
 
+  InteractionConfig interactionConfig;
   double minScale;
   double maxScale;
 
@@ -366,7 +368,7 @@ class GraphViewportTransform extends ChangeNotifier {
   }
 
   void onScaleEnd(ScaleEndDetails details) {
-    if (details.velocity.pixelsPerSecond.distance > Config.graphMinFlingVelocity) {
+    if (details.velocity.pixelsPerSecond.distance > interactionConfig.minFlingVelocity) {
       _ballisticController?.stop();
 
       final _GraphBallisticSimulation simulation = _GraphBallisticSimulation(
@@ -408,22 +410,25 @@ class GraphViewportTransform extends ChangeNotifier {
 
   void onNodeDragUpdate(NodeDragUpdateDetails details) {
     if (!_edgeMoveTicker.isActive &&
-        (details.parentSpacePosition - _nodeDragParentSpacePositionAtStart).distance < Config.cameraEdgeMove_minDelta) {
+        (details.parentSpacePosition - _nodeDragParentSpacePositionAtStart).distance <
+            interactionConfig.cameraEdgeMoveConfig.minDragDelta) {
       // The Ticker wasn't started yet but we also haven't exceeded the minDelta, so do nothing
       return;
     }
 
     double? horizontalCameraMovement;
-    if (details.parentSpacePosition.dx < Config.cameraEdgeMove_maxDistanceToEdge) {
+    if (details.parentSpacePosition.dx < interactionConfig.cameraEdgeMoveConfig.rimDistanceThreshold) {
       horizontalCameraMovement = -1;
-    } else if (details.parentSpacePosition.dx > viewportSize.width - Config.cameraEdgeMove_maxDistanceToEdge) {
+    } else if (details.parentSpacePosition.dx >
+        viewportSize.width - interactionConfig.cameraEdgeMoveConfig.rimDistanceThreshold) {
       horizontalCameraMovement = 1;
     }
 
     double? verticalCameraMovement;
-    if (details.parentSpacePosition.dy < Config.cameraEdgeMove_maxDistanceToEdge) {
+    if (details.parentSpacePosition.dy < interactionConfig.cameraEdgeMoveConfig.rimDistanceThreshold) {
       verticalCameraMovement = -1;
-    } else if (details.parentSpacePosition.dy > viewportSize.height - Config.cameraEdgeMove_maxDistanceToEdge) {
+    } else if (details.parentSpacePosition.dy >
+        viewportSize.height - interactionConfig.cameraEdgeMoveConfig.rimDistanceThreshold) {
       verticalCameraMovement = 1;
     }
 
@@ -484,9 +489,12 @@ class GraphViewportTransform extends ChangeNotifier {
   void removeSettleListener(TransformSettleListener listener) => _settleListeners.remove(listener);
 
   void _edgeMoveTick(Duration elapsed) {
-    final double buildUpFraction = elapsed.inMilliseconds / Config.cameraEdgeMove_buildUpDuration.inMilliseconds;
-    final double buildUpMultipilier = Config.cameraEdgeMove_buildUpCurve.transform(math.min(buildUpFraction, 1.0));
-    position += _edgeMoveDirection * Config.cameraEdgeMove_speed * buildUpMultipilier;
+    final double buildUpFraction =
+        elapsed.inMilliseconds / interactionConfig.cameraEdgeMoveConfig.buildUpDuration.inMilliseconds;
+    final double buildUpMultipilier = interactionConfig.cameraEdgeMoveConfig.buildUpCurve.transform(
+      math.min(buildUpFraction, 1.0),
+    );
+    position += _edgeMoveDirection * interactionConfig.cameraEdgeMoveConfig.speed * buildUpMultipilier;
   }
 }
 

@@ -1,15 +1,7 @@
-import "package:flutter/animation.dart";
 import "package:flutter/material.dart" show Colors;
 import "package:flutter/rendering.dart";
 
 class Config {
-  static const double cameraEdgeMove_speed = 15; // ignore: constant_identifier_names
-  static const double cameraEdgeMove_maxDistanceToEdge = 60; // ignore: constant_identifier_names
-  static const double cameraEdgeMove_minDelta = 5; // ignore: constant_identifier_names
-  static const Curve cameraEdgeMove_buildUpCurve = Curves.linear; // ignore: constant_identifier_names
-  // ignore: constant_identifier_names
-  static const Duration cameraEdgeMove_buildUpDuration = Duration(milliseconds: 750);
-  static const double graphMinFlingVelocity = 50.0;
   static const double nodeMaxWidth = 400; // TODO: move to Node data and make editable per node
   static const double edgeHitBoxHalfThickness = 20;
 

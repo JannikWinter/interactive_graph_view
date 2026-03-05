@@ -3,6 +3,7 @@ export "src/graph_viewport_behavior.dart";
 export "src/graph_viewport_controller.dart";
 export "src/graph_viewport_transform.dart";
 export "src/graph_visibility.dart";
+export "src/interaction_config.dart";
 export "src/node_overlay.dart";
 export "src/widgets/edge.dart";
 export "src/widgets/graph_view.dart";

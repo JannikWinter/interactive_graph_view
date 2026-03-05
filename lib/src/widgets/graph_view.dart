@@ -3,6 +3,7 @@ import "package:flutter/widgets.dart";
 
 import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
+import "../interaction_config.dart";
 import "graph_viewport.dart";
 
 class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
@@ -20,6 +21,7 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
     this.minScale = kDefaultMinScale,
     this.maxScale = kDefaultMaxScale,
     this.cacheExtent = kDefaultCacheExtent,
+    this.interactionConfig = const InteractionConfig(),
     required this.nodeBuilder,
     required this.edgeBuilder,
     this.onTransformSettled,
@@ -40,6 +42,7 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
   final double minScale;
   final double maxScale;
   final double cacheExtent;
+  final InteractionConfig interactionConfig;
   final NodeBuilder<NodeIdType> nodeBuilder;
   final EdgeBuilder<EdgeIdType> edgeBuilder;
   final TransformSettleListener? onTransformSettled;
@@ -71,6 +74,7 @@ class GraphViewState<NodeIdType, EdgeIdType> extends State<GraphView<NodeIdType,
       initialPosition: widget.initialPosition,
       initialScale: widget.initialScale,
       vsync: this,
+      interactionConfig: widget.interactionConfig,
     );
     _viewportTransform.addSettleListener(_onTransformSettled);
   }
