@@ -254,6 +254,9 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     {
       final Rect oldContentRect = _lastFrameContentRect;
 
+      _childQuadTree.removeAllEdges(inFlightEdgeIds);
+      _childQuadTree.removeAllNodes(inFlightNodeIds);
+
       for (final NodeIdType nodeId in _nodes.keys) {
         final GraphNodeRenderObject node = _nodes[nodeId]!;
         _layoutNode(nodeId, node);
