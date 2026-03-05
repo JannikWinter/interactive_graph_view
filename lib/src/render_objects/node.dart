@@ -21,7 +21,7 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
        _clipBehavior = clipBehavior,
        _overlayConfig = overlayConfig;
 
-  Offset get positionWithDragOffset => (parentData as GraphViewportNodeParentData).positionWithDragOffset;
+  Offset get positionWithDragOffset => position + (parentData as GraphViewportNodeParentData).dragOffset;
 
   Offset _position;
   Offset get position => _position;

@@ -114,8 +114,6 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   GraphViewportNodeParentData _setChildNodeParentData(NodeIdType nodeId, GraphNodeRenderObject node) {
     final GraphViewportNodeParentData nodeParentData = node.parentData! as GraphViewportNodeParentData;
 
-    nodeParentData.position = node.position;
-
     if (inFlightNodeIds.contains(nodeId)) {
       nodeParentData.dragOffset = movingNodeOffset;
     } else {
