@@ -85,36 +85,38 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
   bool _isDraggingNodes = false;
 
   Set<NodeIdType> _movingNodeIds = {};
+  NodeIdType? _dragDownNodeId;
 
   /// The NodeIds that are marked for being moved when dragging a Node.
-  UnmodifiableSetView<NodeIdType> get movingNodeIds => UnmodifiableSetView(_movingNodeIds);
+  UnmodifiableSetView<NodeIdType> get movingNodeIds => UnmodifiableSetView({..._movingNodeIds, ?_dragDownNodeId});
 
   /// The NodeIds that are marked for being moved when dragging a Node.
   set movingNodeIds(Set<NodeIdType> value) => _movingNodeIds = Set.from(value);
 
   @protected
   UnmodifiableSetView<NodeIdType> get inFlightNodeIds =>
-      UnmodifiableSetView(_isDraggingNodes ? Set.from(_movingNodeIds) : const {});
+      UnmodifiableSetView(_isDraggingNodes ? Set.from(movingNodeIds) : const {});
 
   @protected
   UnmodifiableSetView<EdgeIdType> get inFlightEdgeIds => UnmodifiableSetView(
-    _isDraggingNodes ? Set.from(_movingNodeIds.expand((nodeId) => getConnectingEdgeIds(nodeId))) : const {},
+    _isDraggingNodes ? Set.from(movingNodeIds.expand((nodeId) => getConnectingEdgeIds(nodeId))) : const {},
   );
 
   UnmodifiableSetView<NodeIdType> get animationTargetNodeIds =>
       UnmodifiableSetView(Set.from(_showOnScreenAnimationData?.animationTargetNodeIds ?? const {}));
 
-  Offset get movingNodeOffset => (_isDraggingNodes && _movingNodeIds.isNotEmpty)
+  Offset get movingNodeOffset => (_isDraggingNodes && movingNodeIds.isNotEmpty)
       ? (_transform.position - _startingViewportPosition) +
             ((_pointerScreenPosition - _startingPointerScreenPosition) / _transform.scale)
       : Offset.zero;
 
-  void onNodeDragDown(NodeDragDownDetails details) {
+  void onNodeDragDown(NodeDragDownDetails details, NodeIdType nodeId) {
     transform.onNodeDragDown(details);
 
     _startingViewportPosition = _transform.position;
     _startingPointerScreenPosition = details.parentSpacePosition;
     _pointerScreenPosition = details.parentSpacePosition;
+    _dragDownNodeId = nodeId;
   }
 
   void onNodeDragStart(NodeDragStartDetails details) {
@@ -155,6 +157,7 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
     final Offset dragOffset = movingNodeOffset;
 
     _isDraggingNodes = false;
+    _dragDownNodeId = null;
 
     _viewportController.notifyNodesMoved(dragOffset);
   }
@@ -172,6 +175,7 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
     markNeedsLayout();
 
     _isDraggingNodes = false;
+    _dragDownNodeId = null;
   }
 
   GraphNodeRenderObject? getNode(NodeIdType nodeId);

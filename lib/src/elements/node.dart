@@ -2,6 +2,7 @@ import "package:flutter/gestures.dart";
 import "package:flutter/widgets.dart";
 
 import "../drag_details.dart";
+import "../elements/graph_viewport.dart";
 import "../render_objects/graph_viewport_base.dart";
 import "../render_objects/node.dart";
 import "../widgets/node.dart";
@@ -16,6 +17,9 @@ class NodeElement<NodeIdType> extends SlottedRenderObjectElement<NodeWidgetSlot,
 
   @override
   GraphNodeRenderObject get renderObject => super.renderObject as GraphNodeRenderObject;
+
+  @override
+  GraphViewportNodeSlot<NodeIdType>? get slot => super.slot as GraphViewportNodeSlot<NodeIdType>?;
 
   @override
   void mount(Element? parent, Object? newSlot) {
@@ -75,7 +79,7 @@ class NodeElement<NodeIdType> extends SlottedRenderObjectElement<NodeWidgetSlot,
     final NodeDragDownDetails newDetails = viewportBase.convertDragDownDetails(details);
 
     (widget as NodeWidget).onDragDown?.call(newDetails);
-    viewportBase.onNodeDragDown(newDetails);
+    viewportBase.onNodeDragDown(newDetails, slot!.nodeId);
   }
 
   void _onDragStart(DragStartDetails details) {
