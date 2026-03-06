@@ -23,6 +23,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   const NodeWidget.custom({
     super.key,
     required this.position,
+    required this.maxWidth,
     required this.content,
     required this.background,
     this.overlay,
@@ -43,6 +44,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     Key? key,
     required Offset position,
     required String text,
+    required double maxWidth,
     NodeStyle? style,
     NodeOverlay? overlay,
     Radius borderRadius = kDefaultBorderRadius,
@@ -60,6 +62,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     return NodeWidget.custom(
       key: key,
       position: position,
+      maxWidth: maxWidth,
       content: _SimpleNodeContent(text: text, style: style),
       background: _SimpleNodeBackground(
         style: style,
@@ -84,6 +87,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   final Widget content;
   final Widget background;
   final NodeOverlay? overlay;
+  final double maxWidth;
   final Radius borderRadius;
   final Clip clipBehavior;
 
@@ -113,6 +117,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   GraphNodeRenderObject createRenderObject(BuildContext context) {
     return GraphNodeRenderObject(
       position: position,
+      maxWidth: maxWidth,
       borderRadius: borderRadius,
       clipBehavior: clipBehavior,
       overlayConfig: overlay,
@@ -128,6 +133,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   void updateRenderObject(BuildContext context, GraphNodeRenderObject renderObject) {
     renderObject
       ..position = position
+      ..maxWidth = maxWidth
       ..borderRadius = borderRadius
       ..clipBehavior = clipBehavior
       ..overlayConfig = overlay;

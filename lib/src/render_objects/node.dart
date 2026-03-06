@@ -3,7 +3,6 @@ import "dart:math";
 import "package:flutter/rendering.dart";
 import "package:flutter/widgets.dart";
 
-import "../config.dart";
 import "../node_overlay.dart";
 import "../parent_data.dart";
 import "../widgets/node.dart";
@@ -13,10 +12,12 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
     with SlottedContainerRenderObjectMixin<NodeWidgetSlot, RenderBox> {
   GraphNodeRenderObject({
     required Offset position,
+    required double maxWidth,
     required Radius borderRadius,
     required Clip clipBehavior,
     required NodeOverlayConfig? overlayConfig,
   }) : _position = position,
+       _maxWidth = maxWidth,
        _borderRadius = borderRadius,
        _clipBehavior = clipBehavior,
        _overlayConfig = overlayConfig;
@@ -29,6 +30,15 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
     if (_position == value) return;
 
     _position = value;
+    markParentNeedsLayout();
+  }
+
+  double _maxWidth;
+  double get maxWidth => _maxWidth;
+  set maxWidth(double value) {
+    if (_maxWidth == value) return;
+
+    _maxWidth = value;
     markParentNeedsLayout();
   }
 
@@ -78,9 +88,7 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
   @override
   void performLayout() {
     content.layout(
-      BoxConstraints(
-        maxWidth: Config.nodeMaxWidth, // TODO: make getter/setter for maxWidth in this RenderObject
-      ),
+      BoxConstraints(maxWidth: maxWidth),
       parentUsesSize: true,
     );
 
