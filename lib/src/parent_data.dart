@@ -15,4 +15,6 @@ class GraphViewportEdgeParentData extends ParentData {
 
   Offset get centerToCenter => endNodeCenter - startNodeCenter;
   Offset get centerToCenterBackwards => startNodeCenter - endNodeCenter;
+
+  double hitboxThickness = 40;
 }

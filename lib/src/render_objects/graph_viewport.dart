@@ -18,9 +18,11 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     required super.transform,
     required GraphViewportLayoutHelper layoutHelper,
     required double cacheExtent,
+    required double edgeHitboxThickness,
     required GraphStyle style,
   }) : _layoutHelper = layoutHelper,
        _cacheExtent = cacheExtent,
+       _edgeHitboxThickness = edgeHitboxThickness,
        _style = style;
 
   final GraphViewportLayoutHelper _layoutHelper;
@@ -54,6 +56,16 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     _style = value;
 
     markNeedsPaint();
+  }
+
+  double _edgeHitboxThickness;
+  double get edgeHitboxThickness => _edgeHitboxThickness;
+  set edgeHitboxThickness(double value) {
+    if (_edgeHitboxThickness == value) return;
+
+    _edgeHitboxThickness = value;
+
+    markNeedsLayout();
   }
 
   @override
@@ -147,7 +159,8 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
       ..startNodeBorderRadius = startNode.borderRadius
       ..endNodeCenter = endNode.positionWithDragOffset
       ..endNodeSize = endNode.size
-      ..endNodeBorderRadius = endNode.borderRadius;
+      ..endNodeBorderRadius = endNode.borderRadius
+      ..hitboxThickness;
 
     return edgeParentData;
   }

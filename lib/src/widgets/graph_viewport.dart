@@ -15,6 +15,7 @@ typedef EdgeBuilder<EdgeIdType> = EdgeWidget Function(BuildContext context, Edge
 
 class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   static const double kDefaultCacheExtent = 50.0;
+  static const double kDefaultEdgeHitboxThickness = 40.0;
 
   const GraphViewport({
     super.key,
@@ -24,6 +25,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     required this.transform,
     this.style,
     this.cacheExtent = kDefaultCacheExtent,
+    this.edgeHitboxThickness = kDefaultEdgeHitboxThickness,
     this.rebuildAllChildrenOnWidgetUpdate = true,
     this.onScaleStart,
     this.onScaleUpdate,
@@ -32,7 +34,8 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     this.onTap,
     this.onDoubleTapDown,
     this.onDoubleTap,
-  });
+  }) : assert(cacheExtent >= 0.0),
+       assert(edgeHitboxThickness >= 1.0);
 
   final GraphViewportController<NodeIdType, EdgeIdType> viewportController;
   final NodeBuilder<NodeIdType> nodeBuilder;
@@ -40,6 +43,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   final GraphViewportTransform transform;
   final GraphStyle? style;
   final double cacheExtent;
+  final double edgeHitboxThickness;
   final bool rebuildAllChildrenOnWidgetUpdate;
 
   final GestureScaleStartCallback? onScaleStart;
@@ -64,6 +68,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
       transform: transform,
       layoutHelper: context as GraphViewportElement<NodeIdType, EdgeIdType>,
       cacheExtent: cacheExtent,
+      edgeHitboxThickness: edgeHitboxThickness,
       style: effectiveStyle,
     );
   }
@@ -79,6 +84,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
       ..viewportController = viewportController
       ..transform = transform
       ..cacheExtent = cacheExtent
+      ..edgeHitboxThickness = edgeHitboxThickness
       ..style = effectiveStyle;
   }
 }

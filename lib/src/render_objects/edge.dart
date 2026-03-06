@@ -4,7 +4,6 @@ import "dart:ui";
 import "package:flutter/rendering.dart";
 import "package:path_drawing/path_drawing.dart";
 
-import "../config.dart";
 import "../style/curve_style.dart";
 import "../style/edge_style.dart";
 import "../style/line_shadow.dart";
@@ -88,7 +87,7 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     final Offset startToEnd = parentData.centerToCenter;
     final Offset endToStart = parentData.centerToCenterBackwards;
     final Offset direction = startToEnd / startToEnd.distance;
-    final Offset rotated1 = Offset(-direction.dy, direction.dx) * Config.edgeHitBoxHalfThickness;
+    final Offset rotated1 = Offset(-direction.dy, direction.dx) * parentData.hitboxThickness / 2;
     final Offset rotated2 = -rotated1;
 
     _hitTestPath = Path()

@@ -12,6 +12,7 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
   static const double kDefaultMinScale = 0.025;
   static const double kDefaultMaxScale = 5.0;
   static const double kDefaultCacheExtent = GraphViewport.kDefaultCacheExtent;
+  static const double kDefaultEdgeHitboxThickness = GraphViewport.kDefaultEdgeHitboxThickness;
 
   const GraphView({
     super.key,
@@ -20,6 +21,7 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
     this.initialScale = kDefaultInitialScale,
     this.minScale = kDefaultMinScale,
     this.maxScale = kDefaultMaxScale,
+    this.edgeHitboxThickness = kDefaultEdgeHitboxThickness,
     this.cacheExtent = kDefaultCacheExtent,
     this.interactionConfig = const InteractionConfig(),
     required this.nodeBuilder,
@@ -42,6 +44,7 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
   final double minScale;
   final double maxScale;
   final double cacheExtent;
+  final double edgeHitboxThickness;
   final InteractionConfig interactionConfig;
   final NodeBuilder<NodeIdType> nodeBuilder;
   final EdgeBuilder<EdgeIdType> edgeBuilder;
