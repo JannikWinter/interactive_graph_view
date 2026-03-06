@@ -134,17 +134,20 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
     if (overlay != null) {
       context.paintChild(
         overlay!,
-        Offset(size.width * overlayConfig!.alignmentInNode.x, size.height * overlayConfig!.alignmentInNode.y) / 2 -
-            overlay!.size.center(Offset.zero) +
-            Offset(
-                  overlay!.size.width * overlayConfig!.alignmentAroundAnchor.x,
-                  overlay!.size.height * overlayConfig!.alignmentAroundAnchor.y,
-                ) /
-                2 +
-            overlayConfig!.offset,
+        overlayPaintOffset,
       );
     }
   }
+
+  Offset get overlayPaintOffset =>
+      Offset(size.width * overlayConfig!.alignmentInNode.x, size.height * overlayConfig!.alignmentInNode.y) / 2 -
+      overlay!.size.center(Offset.zero) +
+      Offset(
+            overlay!.size.width * overlayConfig!.alignmentAroundAnchor.x,
+            overlay!.size.height * overlayConfig!.alignmentAroundAnchor.y,
+          ) /
+          2 +
+      overlayConfig!.offset;
 
   @override
   void applyPaintTransform(RenderBox child, Matrix4 transform) {
@@ -157,6 +160,13 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
 
   @override
   bool hitTest(BoxHitTestResult result, Offset position) {
+    final bool wasOverlayHit = (overlayConfig != null)
+        ? result.addWithPaintOffset(
+            offset: overlayPaintOffset,
+            position: position,
+            hitTest: (result, position) => overlay!.hitTest(result, position: position),
+          )
+        : false;
     final bool wasContentHit = result.addWithPaintOffset(
       offset: -content.size.center(Offset.zero),
       position: position,
@@ -175,6 +185,9 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
 
     if (wasSelfHit || wasBackgroundHit || wasContentHit) {
       result.add(HitTestEntry(this));
+      return true;
+    }
+    if (wasOverlayHit) {
       return true;
     }
 

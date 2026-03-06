@@ -94,6 +94,21 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
             text: nodeId,
             onDragDown: (details) => _graphViewportController.movingNodeIds = {nodeId},
             isDragEnabled: true,
+            onDragStart: (details) => print("Drag node $nodeId"),
+            overlay: NodeOverlay(
+              alignmentInNode: Alignment.bottomRight,
+              child: GestureDetector(
+                onPanStart: (details) => print("Drag node overlay $nodeId"),
+                child: Container(
+                  padding: EdgeInsets.all(1),
+                  color: Colors.black.withValues(alpha: 0.6),
+                  child: Text(
+                    "Overlay",
+                    style: TextStyle(color: Colors.white, fontSize: 10),
+                  ),
+                ),
+              ),
+            ),
           );
         },
         edgeBuilder: (context, edgeId) {
