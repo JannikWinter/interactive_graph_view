@@ -11,5 +11,6 @@ export "src/widgets/graph_viewport.dart";
 export "src/widgets/node.dart";
 export "src/style/arrow_style.dart";
 export "src/style/curve_style.dart";
+export "src/style/edge_style.dart";
 export "src/style/line_shadow.dart";
 export "src/style/line_style.dart";

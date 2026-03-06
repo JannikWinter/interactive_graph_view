@@ -1,10 +1,8 @@
+import "package:flutter/material.dart" show Theme;
 import "package:flutter/widgets.dart";
 
-import "../style/arrow_style.dart";
-import "../style/curve_style.dart";
 import "../elements/edge.dart";
-import "../style/line_shadow.dart";
-import "../style/line_style.dart";
+import "../style/edge_style.dart";
 import "../render_objects/edge.dart";
 
 class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
@@ -13,35 +11,25 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
     required this.startNodeId,
     required this.endNodeId,
     required this.text,
-    required this.color,
-    required this.lineStyle,
-    required this.curveStyle,
-    required this.arrowStyle,
+    this.style,
     this.onTap,
-    this.shadow = const [],
   });
 
   final NodeIdType startNodeId;
   final NodeIdType endNodeId;
   final String? text;
-  final Color color;
-  final LineStyle lineStyle;
-  final CurveStyle curveStyle;
-  final ArrowStyle arrowStyle;
+  final EdgeStyle? style;
   final VoidCallback? onTap;
-  final List<LineShadow> shadow;
 
   @override
   GraphEdgeRenderObject createRenderObject(BuildContext context) {
+    final EdgeStyle effectiveStyle = style ?? Theme.of(context).extension<EdgeStyle>() ?? EdgeStyle.fallback();
+
     return GraphEdgeRenderObject(
       startNodeId: startNodeId,
       endNodeId: endNodeId,
       text: text,
-      color: color,
-      lineStyle: lineStyle,
-      curveStyle: curveStyle,
-      arrowStyle: arrowStyle,
-      shadow: shadow,
+      style: effectiveStyle,
     );
   }
 
@@ -52,14 +40,12 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
 
   @override
   void updateRenderObject(BuildContext context, GraphEdgeRenderObject renderObject) {
+    final EdgeStyle effectiveStyle = style ?? Theme.of(context).extension<EdgeStyle>() ?? EdgeStyle.fallback();
+
     renderObject
       ..startNodeId = startNodeId
       ..endNodeId = endNodeId
       ..text = text
-      ..color = color
-      ..lineStyle = lineStyle
-      ..curveStyle = curveStyle
-      ..arrowStyle = arrowStyle
-      ..shadow = shadow;
+      ..style = effectiveStyle;
   }
 }

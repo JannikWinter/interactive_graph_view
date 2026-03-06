@@ -15,6 +15,15 @@ class GraphViewExampleApp extends StatelessWidget {
       title: "Graph View Demo",
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        extensions: {
+          EdgeStyle(
+            lineColor: Colors.red,
+            textStyle: TextStyle(color: Colors.green),
+            lineStyle: SolidLineStyle(thickness: 2),
+            curveStyle: StraightCurveStyle(),
+            arrowStyle: ArrowStyle(length: 20, width: 20),
+          ),
+        },
       ),
       home: const GraphViewExampleHomePage(),
     );
@@ -86,11 +95,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
           return EdgeWidget(
             startNodeId: _edges[edgeId]!.startNodeId,
             endNodeId: _edges[edgeId]!.endNodeId,
-            text: null,
-            color: Colors.red,
-            lineStyle: SolidLineStyle(thickness: 2),
-            curveStyle: StraightCurveStyle(),
-            arrowStyle: ArrowStyle(length: 20, width: 20),
+            text: edgeId,
           );
         },
       ),
