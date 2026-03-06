@@ -23,6 +23,12 @@ class GraphViewExampleApp extends StatelessWidget {
             curveStyle: StraightCurveStyle(),
             arrowStyle: ArrowStyle(length: 20, width: 20),
           ),
+          NodeStyle(
+            backgroundColor: Colors.purple,
+            textStyle: TextStyle(color: Colors.amber),
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+            borderSide: BorderSide(color: Colors.green),
+          ),
         },
       ),
       home: const GraphViewExampleHomePage(),
@@ -78,15 +84,11 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
       body: GraphView<String, String>(
         viewportController: _graphViewportController,
         nodeBuilder: (context, nodeId) {
-          return NodeWidget(
+          return NodeWidget.basic(
             position: _nodes[nodeId]!.position,
             borderRadius: Radius.circular(10),
             clipBehavior: Clip.antiAlias,
-            content: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(nodeId),
-            ),
-            background: Container(color: Colors.blue),
+            text: nodeId,
             onDragDown: (details) => _graphViewportController.movingNodeIds = {nodeId},
             isDragEnabled: true,
           );
