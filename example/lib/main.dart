@@ -16,6 +16,9 @@ class GraphViewExampleApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
         extensions: {
+          GraphStyle(
+            backgroundColor: Colors.blue,
+          ),
           EdgeStyle(
             lineColor: Colors.red,
             textStyle: TextStyle(color: Colors.green),

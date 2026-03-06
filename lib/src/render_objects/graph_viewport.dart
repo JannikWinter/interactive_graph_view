@@ -1,5 +1,4 @@
 import "package:flutter/gestures.dart";
-import "package:flutter/material.dart" show Colors;
 import "package:flutter/rendering.dart";
 import "package:flutter/widgets.dart";
 
@@ -7,6 +6,7 @@ import "../elements/graph_viewport.dart";
 import "../graph_viewport_behavior.dart";
 import "../parent_data.dart";
 import "../quad_tree.dart";
+import "../style/graph_style.dart";
 import "edge.dart";
 import "graph_element.dart";
 import "graph_viewport_base.dart";
@@ -18,8 +18,10 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     required super.transform,
     required GraphViewportLayoutHelper layoutHelper,
     required double cacheExtent,
+    required GraphStyle style,
   }) : _layoutHelper = layoutHelper,
-       _cacheExtent = cacheExtent;
+       _cacheExtent = cacheExtent,
+       _style = style;
 
   final GraphViewportLayoutHelper _layoutHelper;
 
@@ -42,6 +44,16 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     _cacheExtent = value;
 
     markNeedsLayout();
+  }
+
+  GraphStyle get style => _style;
+  GraphStyle _style;
+  set style(GraphStyle value) {
+    if (_style == value) return;
+
+    _style = value;
+
+    markNeedsPaint();
   }
 
   @override
@@ -330,7 +342,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    context.canvas.drawColor(Colors.black, BlendMode.src);
+    context.canvas.drawColor(style.backgroundColor, BlendMode.src);
 
     context.pushTransform(
       needsCompositing,
@@ -393,6 +405,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
 
   void _onTransformChanged() {
     // mark all moving nodes and edges as needing layout
+    //TODO: is it really necessary to layout all nodes and edges?
     for (final NodeIdType nodeId in inFlightNodeIds) {
       _nodes[nodeId]!.markNeedsLayout();
     }

@@ -15,3 +15,4 @@ export "src/style/edge_style.dart";
 export "src/style/line_shadow.dart";
 export "src/style/line_style.dart";
 export "src/style/node_style.dart";
+export "src/style/graph_style.dart";

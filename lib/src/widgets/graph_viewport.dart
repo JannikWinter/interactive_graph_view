@@ -1,10 +1,12 @@
 import "package:flutter/gestures.dart";
+import "package:flutter/material.dart" show Theme;
 import "package:flutter/widgets.dart";
 
 import "../elements/graph_viewport.dart";
 import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
 import "../render_objects/graph_viewport.dart";
+import "../style/graph_style.dart";
 import "edge.dart";
 import "node.dart";
 
@@ -20,6 +22,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     required this.nodeBuilder,
     required this.edgeBuilder,
     required this.transform,
+    this.style,
     this.cacheExtent = kDefaultCacheExtent,
     this.rebuildAllChildrenOnWidgetUpdate = true,
     this.onScaleStart,
@@ -35,6 +38,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   final NodeBuilder<NodeIdType> nodeBuilder;
   final EdgeBuilder<EdgeIdType> edgeBuilder;
   final GraphViewportTransform transform;
+  final GraphStyle? style;
   final double cacheExtent;
   final bool rebuildAllChildrenOnWidgetUpdate;
 
@@ -53,11 +57,14 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
 
   @override
   RenderGraphViewport<NodeIdType, EdgeIdType> createRenderObject(BuildContext context) {
+    final GraphStyle effectiveStyle = style ?? Theme.of(context).extension<GraphStyle>() ?? GraphStyle.fallback();
+
     return RenderGraphViewport<NodeIdType, EdgeIdType>(
       viewportController: viewportController,
       transform: transform,
       layoutHelper: context as GraphViewportElement<NodeIdType, EdgeIdType>,
       cacheExtent: cacheExtent,
+      style: effectiveStyle,
     );
   }
 
@@ -66,9 +73,12 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     BuildContext context,
     RenderGraphViewport<NodeIdType, EdgeIdType> renderObject,
   ) {
+    final GraphStyle effectiveStyle = style ?? Theme.of(context).extension<GraphStyle>() ?? GraphStyle.fallback();
+
     renderObject
       ..viewportController = viewportController
       ..transform = transform
-      ..cacheExtent = cacheExtent;
+      ..cacheExtent = cacheExtent
+      ..style = effectiveStyle;
   }
 }
