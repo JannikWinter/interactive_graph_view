@@ -286,13 +286,15 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
       final double textWidth = edgeLabelTextPainter.width;
       final double textHeight = edgeLabelTextPainter.height;
 
-      context.canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromCenter(center: _textPosition, width: textWidth + 15, height: textHeight + 10),
-          Radius.circular(10),
-        ),
-        Paint()..color = Config.canvasBackgroundColor.withValues(alpha: 0.8),
-      );
+      if (style.textStyle.backgroundColor != null) {
+        context.canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromCenter(center: _textPosition, width: textWidth + 15, height: textHeight + 10),
+            Radius.circular(10),
+          ),
+          Paint()..color = style.textStyle.backgroundColor!,
+        );
+      }
       edgeLabelTextPainter.paint(
         context.canvas,
         _textPosition - Offset(textWidth, textHeight) / 2,

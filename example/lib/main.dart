@@ -21,7 +21,7 @@ class GraphViewExampleApp extends StatelessWidget {
           ),
           EdgeStyle(
             lineColor: Colors.red,
-            textStyle: TextStyle(color: Colors.green),
+            textStyle: TextStyle(color: Colors.white, backgroundColor: Colors.blue.withValues(alpha: 0.8)),
             lineStyle: SolidLineStyle(thickness: 2),
             curveStyle: StraightCurveStyle(),
             arrowStyle: ArrowStyle(length: 20, width: 20),
