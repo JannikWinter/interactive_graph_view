@@ -3,14 +3,15 @@ import "package:flutter/rendering.dart";
 import "package:flutter/widgets.dart";
 
 import "../elements/graph_viewport.dart";
-import "../graph_viewport_behavior.dart";
-import "../parent_data.dart";
-import "../quad_tree.dart";
+import "../interaction/graph_viewport_behavior.dart";
 import "../style/graph_style.dart";
 import "edge.dart";
+import "edge_parent_data.dart";
 import "graph_element.dart";
 import "graph_viewport_base.dart";
 import "node.dart";
+import "node_parent_data.dart";
+import "quad_tree.dart";
 
 class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBase<NodeIdType, EdgeIdType> {
   RenderGraphViewport({

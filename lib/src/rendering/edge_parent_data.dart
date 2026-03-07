@@ -1,9 +1,5 @@
 import "package:flutter/rendering.dart";
 
-class GraphViewportNodeParentData extends ParentData {
-  Offset dragOffset = Offset.zero;
-}
-
 class GraphViewportEdgeParentData extends ParentData {
   Offset startNodeCenter = Offset.zero;
   Radius startNodeBorderRadius = Radius.zero;

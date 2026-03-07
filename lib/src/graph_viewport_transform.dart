@@ -5,11 +5,11 @@ import "dart:ui";
 import "package:flutter/scheduler.dart";
 import "package:flutter/widgets.dart";
 
-import "drag_details.dart";
-import "graph_viewport_behavior.dart";
-import "graph_visibility.dart";
-import "interaction_config.dart";
-import "util.dart";
+import "interaction/drag_details.dart";
+import "interaction/graph_viewport_behavior.dart";
+import "interaction/graph_visibility.dart";
+import "interaction/interaction_config.dart";
+import "util/extensions.dart" show NotEmptyRect;
 
 typedef TransformSettleListener = void Function(Offset position, double scale);
 

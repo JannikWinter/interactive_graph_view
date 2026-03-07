@@ -3,10 +3,10 @@ import "dart:collection";
 
 import "package:flutter/widgets.dart";
 
-import "../drag_details.dart";
-import "../graph_viewport_behavior.dart";
 import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
+import "../interaction/drag_details.dart";
+import "../interaction/graph_viewport_behavior.dart";
 import "edge.dart";
 import "node.dart";
 

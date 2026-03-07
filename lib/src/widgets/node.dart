@@ -2,11 +2,11 @@ import "package:flutter/gestures.dart";
 import "package:flutter/material.dart" show Theme;
 import "package:flutter/widgets.dart";
 
-import "../drag_details.dart";
 import "../elements/node.dart";
-import "../node_overlay.dart";
-import "../render_objects/node.dart";
+import "../interaction/drag_details.dart";
+import "../rendering/node.dart";
 import "../style/node_style.dart";
+import "node_overlay.dart";
 
 enum NodeWidgetSlot { content, background, overlay }
 

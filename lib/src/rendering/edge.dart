@@ -8,7 +8,7 @@ import "../style/curve_style.dart";
 import "../style/edge_style.dart";
 import "../style/line_shadow.dart";
 import "../style/line_style.dart";
-import "../parent_data.dart";
+import "edge_parent_data.dart";
 import "graph_element.dart";
 
 final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {

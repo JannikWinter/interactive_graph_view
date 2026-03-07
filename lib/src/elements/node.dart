@@ -1,10 +1,10 @@
 import "package:flutter/gestures.dart";
 import "package:flutter/widgets.dart";
 
-import "../drag_details.dart";
 import "../elements/graph_viewport.dart";
-import "../render_objects/graph_viewport_base.dart";
-import "../render_objects/node.dart";
+import "../interaction/drag_details.dart";
+import "../rendering/graph_viewport_base.dart";
+import "../rendering/node.dart";
 import "../widgets/node.dart";
 
 class NodeElement<NodeIdType> extends SlottedRenderObjectElement<NodeWidgetSlot, RenderBox> {

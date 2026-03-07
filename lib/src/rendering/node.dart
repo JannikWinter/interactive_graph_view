@@ -3,10 +3,10 @@ import "dart:math";
 import "package:flutter/rendering.dart";
 import "package:flutter/widgets.dart";
 
-import "../node_overlay.dart";
-import "../parent_data.dart";
 import "../widgets/node.dart";
+import "../widgets/node_overlay.dart";
 import "graph_element.dart";
+import "node_parent_data.dart";
 
 final class GraphNodeRenderObject extends GraphElementRenderObject
     with SlottedContainerRenderObjectMixin<NodeWidgetSlot, RenderBox> {

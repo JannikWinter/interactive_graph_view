@@ -2,10 +2,10 @@ import "package:flutter/gestures.dart";
 import "package:flutter/widgets.dart";
 
 import "../graph_viewport_controller.dart";
-import "../render_objects/edge.dart";
-import "../render_objects/graph_element.dart";
-import "../render_objects/graph_viewport.dart";
-import "../render_objects/node.dart";
+import "../rendering/edge.dart";
+import "../rendering/graph_element.dart";
+import "../rendering/graph_viewport.dart";
+import "../rendering/node.dart";
 import "../widgets/edge.dart";
 import "../widgets/graph_viewport.dart";
 import "../widgets/node.dart";

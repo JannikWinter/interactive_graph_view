@@ -3,7 +3,7 @@ import "package:flutter/widgets.dart";
 
 import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
-import "../interaction_config.dart";
+import "../interaction/interaction_config.dart";
 import "graph_viewport.dart";
 
 class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {

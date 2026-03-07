@@ -2,7 +2,7 @@ import "package:flutter/foundation.dart" show immutable;
 import "package:flutter/material.dart" show ThemeExtension, Colors;
 import "package:flutter/painting.dart";
 
-import "../util.dart" show Nullable;
+import "../util/nullable.dart" show Nullable;
 
 @immutable
 class NodeStyle extends ThemeExtension<NodeStyle> {

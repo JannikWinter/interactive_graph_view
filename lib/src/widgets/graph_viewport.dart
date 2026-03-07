@@ -5,7 +5,7 @@ import "package:flutter/widgets.dart";
 import "../elements/graph_viewport.dart";
 import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
-import "../render_objects/graph_viewport.dart";
+import "../rendering/graph_viewport.dart";
 import "../style/graph_style.dart";
 import "edge.dart";
 import "node.dart";

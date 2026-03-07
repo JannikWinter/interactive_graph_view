@@ -2,8 +2,8 @@ import "package:flutter/material.dart" show Theme;
 import "package:flutter/widgets.dart";
 
 import "../elements/edge.dart";
+import "../rendering/edge.dart";
 import "../style/edge_style.dart";
-import "../render_objects/edge.dart";
 
 class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
   const EdgeWidget({

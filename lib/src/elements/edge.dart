@@ -1,7 +1,7 @@
 import "package:flutter/gestures.dart";
 import "package:flutter/widgets.dart";
 
-import "../render_objects/edge.dart";
+import "../rendering/edge.dart";
 import "../widgets/edge.dart";
 
 class EdgeElement extends LeafRenderObjectElement {
