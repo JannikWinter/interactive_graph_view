@@ -77,8 +77,8 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
     _viewport!.markNeedsLayout();
   }
 
-  void notifyNodesMoved(Offset offset) {
-    _onNodesMoved?.call(movingNodeIds, offset);
+  void notifyNodesMoved(Set<NodeIdType> movedNodeIds, Offset offset) {
+    _onNodesMoved?.call(movedNodeIds, offset);
   }
 
   Future<void> showNodesOnScreen(

@@ -154,12 +154,13 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
 
     markNeedsLayout();
 
+    final Set<NodeIdType> movedNodeIds = Set.from(movingNodeIds);
     final Offset dragOffset = movingNodeOffset;
 
     _isDraggingNodes = false;
     _dragDownNodeId = null;
 
-    _viewportController.notifyNodesMoved(dragOffset);
+    _viewportController.notifyNodesMoved(movedNodeIds, dragOffset);
   }
 
   void onNodeDragCancel() {
