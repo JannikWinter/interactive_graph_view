@@ -4,6 +4,7 @@ import "package:flutter/widgets.dart";
 import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
 import "../interaction/interaction_config.dart";
+import "../style/graph_style.dart";
 import "graph_viewport.dart";
 
 class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
@@ -13,6 +14,7 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
   static const double kDefaultMaxScale = 5.0;
   static const double kDefaultCacheExtent = GraphViewport.kDefaultCacheExtent;
   static const double kDefaultEdgeHitboxThickness = GraphViewport.kDefaultEdgeHitboxThickness;
+  static const bool kDefaultRebuildAllChildrenOnWidgetUpdate = GraphViewport.kDefaultRebuildAllChildrenOnWidgetUpdate;
 
   const GraphView({
     super.key,
@@ -21,8 +23,10 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
     this.initialScale = kDefaultInitialScale,
     this.minScale = kDefaultMinScale,
     this.maxScale = kDefaultMaxScale,
-    this.edgeHitboxThickness = kDefaultEdgeHitboxThickness,
+    this.style,
     this.cacheExtent = kDefaultCacheExtent,
+    this.edgeHitboxThickness = kDefaultEdgeHitboxThickness,
+    this.rebuildAllChildrenOnWidgetUpdate = kDefaultRebuildAllChildrenOnWidgetUpdate,
     this.interactionConfig = const InteractionConfig(),
     required this.nodeBuilder,
     required this.edgeBuilder,
@@ -43,8 +47,10 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
   final double initialScale;
   final double minScale;
   final double maxScale;
+  final GraphStyle? style;
   final double cacheExtent;
   final double edgeHitboxThickness;
+  final bool rebuildAllChildrenOnWidgetUpdate;
   final InteractionConfig interactionConfig;
   final NodeBuilder<NodeIdType> nodeBuilder;
   final EdgeBuilder<EdgeIdType> edgeBuilder;
@@ -99,7 +105,10 @@ class GraphViewState<NodeIdType, EdgeIdType> extends State<GraphView<NodeIdType,
     return GraphViewport<NodeIdType, EdgeIdType>(
       viewportController: widget.viewportController,
       transform: _viewportTransform,
+      style: widget.style,
       cacheExtent: widget.cacheExtent,
+      edgeHitboxThickness: widget.edgeHitboxThickness,
+      rebuildAllChildrenOnWidgetUpdate: widget.rebuildAllChildrenOnWidgetUpdate,
       onTapDown: widget.onTapDown,
       onTap: widget.onTap,
       onDoubleTapDown: widget.onTapDown,

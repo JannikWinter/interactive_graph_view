@@ -16,6 +16,7 @@ typedef EdgeBuilder<EdgeIdType> = EdgeWidget Function(BuildContext context, Edge
 class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   static const double kDefaultCacheExtent = 50.0;
   static const double kDefaultEdgeHitboxThickness = 40.0;
+  static const bool kDefaultRebuildAllChildrenOnWidgetUpdate = true;
 
   const GraphViewport({
     super.key,
@@ -26,7 +27,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     this.style,
     this.cacheExtent = kDefaultCacheExtent,
     this.edgeHitboxThickness = kDefaultEdgeHitboxThickness,
-    this.rebuildAllChildrenOnWidgetUpdate = true,
+    this.rebuildAllChildrenOnWidgetUpdate = kDefaultRebuildAllChildrenOnWidgetUpdate,
     this.onScaleStart,
     this.onScaleUpdate,
     this.onScaleEnd,
