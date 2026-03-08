@@ -1,17 +1,4 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
-
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
-
-With this package you can display and interact with graphs while being able to apply your own custom styles to each element.
+With `interactive_graph_view` you can display and interact with graphs while being able to apply your own custom styles to each element.
 
 ## Features
 
@@ -23,7 +10,7 @@ With this package you can display and interact with graphs while being able to a
 
 ## Getting started
 
-Add this package to your pubspec.yaml file.
+Add `interactive_graph_view` to your `pubspec.yaml` file.
 
 ## Usage
 
@@ -32,7 +19,7 @@ More complex examples using more features can be found in the `example/` folder.
 
 ```dart
 import "package:flutter/material.dart";
-import "package:graph_view/graph_view.dart";
+import "package:interactive_graph_view/interactive_graph_view.dart";
 
 class ExampleNode {
   ExampleNode({required this.id, required this.position});

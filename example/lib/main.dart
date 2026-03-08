@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 
-import "package:graph_view/graph_view.dart";
+import "package:interactive_graph_view/interactive_graph_view.dart";
 
 void main() {
   runApp(const GraphViewExampleApp());
