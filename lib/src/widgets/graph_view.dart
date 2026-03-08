@@ -9,7 +9,7 @@ import "graph_viewport.dart";
 
 /// A widget for interacting with and styling a graph.
 ///
-/// Compared to [GraphViewport] (which this widget uses internally), this widget exposes a simpler interface.
+/// Compared to [GraphViewport] (which this widget uses internally), this widget exposes a simpler interface
 /// where scaling of the viewport is already handled for you.
 ///
 /// The graph's nodes and edges are added and removed through the [viewportController]
