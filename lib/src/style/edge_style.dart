@@ -7,8 +7,25 @@ import "curve_style.dart";
 import "line_shadow.dart";
 import "line_style.dart";
 
+/// The style for an [EdgeWidget].
+///
+/// A style can be applied either by supplying it directly to [EdgeWidget.new] or by supplying it through
+/// [ThemeData] - either in a [MaterialApp] or in a [Theme] widget:
+/// ```dart
+/// Theme(
+///   data: ThemeData(
+///     extensions: {
+///       // ...
+///       EdgeStyle(
+///         // ...
+///       ),
+///       // ...
+///     },
+///   )
+/// ```
 @immutable
 class EdgeStyle extends ThemeExtension<EdgeStyle> {
+  /// Constructs an edge style.
   const EdgeStyle({
     required this.lineColor,
     required this.textStyle,
@@ -18,6 +35,8 @@ class EdgeStyle extends ThemeExtension<EdgeStyle> {
     this.shadow = const [],
   });
 
+  /// Constructs a fallback edge style which is used by [EdgeWidget] when neither a style is supplied directly nor
+  /// an edge style was supplied through a [Theme] up the widget tree.
   const EdgeStyle.fallback()
     : this(
         lineColor: Colors.white,
@@ -27,13 +46,25 @@ class EdgeStyle extends ThemeExtension<EdgeStyle> {
         arrowStyle: const ArrowStyle(length: 20, width: 20),
       );
 
+  /// The color of the edge's drawn line.
   final Color lineColor;
+
+  /// The style of the edge's text.
   final TextStyle textStyle;
+
+  /// The fill style of the edge's drawn line.
   final LineStyle lineStyle;
+
+  /// The curve style of the edge's drawn line.
   final CurveStyle curveStyle;
+
+  /// The style of the edge's drawn arrow.
   final ArrowStyle arrowStyle;
+
+  /// The list of shadows applied to the edge's drawn line.
   final List<LineShadow> shadow;
 
+  /// Creates a copy of this edge style with all he given fields replaced by the non-null parameter values.
   @override
   EdgeStyle copyWith({
     Color? lineColor,

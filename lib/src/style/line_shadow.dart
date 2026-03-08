@@ -3,12 +3,21 @@ import "dart:ui" as ui show Shadow, lerpDouble;
 
 import "package:flutter/widgets.dart";
 
+/// A shadow of an [EdgeWidget]'s drawn line.
+///
+/// This is used by [EdgeStyle].
 @immutable
 final class LineShadow extends ui.Shadow {
+  /// The default value for [color] when it is not supplied to the constructor.
   static const Color kDefaultColor = Color(0xFF000000);
+
+  /// The default value for [blurRadius] when it is not supplied to the constructor.
   static const double kDefaultBlurRadius = 0.0;
+
+  /// The default value for [spreadRadius] when it is not supplied to the constructor.
   static const double kDefaultSpreadRadius = 0.0;
 
+  /// Constructs a new line shadow.
   const LineShadow({
     super.color = kDefaultColor,
     super.blurRadius = kDefaultBlurRadius,

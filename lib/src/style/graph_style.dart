@@ -2,17 +2,40 @@ import "package:flutter/foundation.dart";
 import "package:flutter/material.dart" show ThemeExtension, Colors;
 import "package:flutter/painting.dart";
 
+/// The style for a [GraphViewport] widget.
+///
+/// A style can be applied either by supplying it directly to [GraphViewport.new] or by supplying it through
+/// [ThemeData] - either in a [MaterialApp] or in a [Theme] widget:
+/// ```dart
+/// Theme(
+///   data: ThemeData(
+///     extensions: {
+///       // ...
+///       GraphStyle(
+///         // ...
+///       ),
+///       // ...
+///     },
+///   )
+/// ```
 @immutable
 class GraphStyle extends ThemeExtension<GraphStyle> {
-  const GraphStyle({required this.backgroundColor});
+  /// Constructs a graph style.
+  const GraphStyle({
+    required this.backgroundColor,
+  });
 
+  /// Constructs a fallback graph style which is used by [GraphViewport] when neither a style is supplied dirrectly nor
+  /// a graph style was supplied through a [Theme] up the widget tree.
   const GraphStyle.fallback()
     : this(
         backgroundColor: Colors.black,
       );
 
+  /// The graph's background color.
   final Color backgroundColor;
 
+  /// Creates a copy of this graph style with alle the given fields replaced by the non-null parameter values.
   @override
   GraphStyle copyWith({Color? backgroundColor}) {
     return GraphStyle(
