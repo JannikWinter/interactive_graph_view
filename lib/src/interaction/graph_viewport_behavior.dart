@@ -2,7 +2,11 @@ import "package:flutter/painting.dart";
 
 import "graph_visibility.dart";
 
-enum GraphViewportMoveBehavior { screenEdge, screenCenter }
+enum GraphViewportMoveBehavior {
+  screenEdge,
+
+  screenCenter,
+}
 
 sealed class GraphViewportZoomBehavior {
   const GraphViewportZoomBehavior();
