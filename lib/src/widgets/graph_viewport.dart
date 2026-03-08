@@ -10,14 +10,36 @@ import "../style/graph_style.dart";
 import "edge.dart";
 import "node.dart";
 
+/// The widget builder function for nodes.
+///
+/// Returns a [NodeWidget] for a supplied node ID.
 typedef NodeBuilder<NodeIdType> = NodeWidget Function(BuildContext context, NodeIdType nodeId);
+
+/// The widget builder function for edges.
+///
+/// Returns an [EdgeWidget] for a supplied edge ID.
 typedef EdgeBuilder<EdgeIdType> = EdgeWidget Function(BuildContext context, EdgeIdType edgeId);
 
+/// A widget for interacting with and styling a graph.
+///
+/// Compared to [GraphView] (which uses this widget internally), this widget gives you more flexibility, as
+/// panning and scaling is not handled for you.
+/// If you do not need to do that flexibility, [GraphView] is probably the widget you want to use instead.
+///
+/// The graph's nodes and edges are added and removed through the [viewportController]
+/// and built and styled as [NodeWidget]s and [EdgeWidget]s in the [nodeBuilder] and [edgeBuilder] respectively.
+///
+/// Nodes and edges are only identified by their IDs. The respective ID type is supplied through
+/// the generic types [NodeIdType] and [EdgeIdType].
 class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
+  /// The default value for [cacheExtent] when it is not supplied to the constructor.
   static const double kDefaultCacheExtent = 50.0;
+
+  /// The default value for [edgeHitboxThickness] when it is not supplied to the constructor.
   static const double kDefaultEdgeHitboxThickness = 40.0;
   static const bool kDefaultRebuildAllChildrenOnWidgetUpdate = true;
 
+  /// Constructs a [GraphViewport].
   const GraphViewport({
     super.key,
     required this.viewportController,
@@ -38,22 +60,124 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   }) : assert(cacheExtent >= 0.0),
        assert(edgeHitboxThickness >= 1.0);
 
+  /// {@template graph_viewport.viewport_controller}
+  /// The viewport controller through which the graph's elements are controlled programmatically.
+  /// {@endtemplate}
   final GraphViewportController<NodeIdType, EdgeIdType> viewportController;
+
+  /// {@template graph_viewport.node_builder}
+  /// The widget builder function for nodes.
+  ///
+  /// Returns a [NodeWidget] for any supplied node ID.
+  ///
+  /// This will be called only when necessary, e.g. when a node becomes visible.
+  /// The supplied edge ID always stems from the node IDs known to [GraphViewportController].
+  ///
+  /// Upon first construction of this widget, this builder will be called once for each node that was supplied to
+  /// the [GraphViewportController] to construct a quad tree that is then used to only build the
+  /// visible edges lazily.
+  /// If [rebuildAllChildrenOnWidgetUpdate] is set to `true`, all nodes are also rebuild when the widget configuration
+  /// changes.
+  /// {@endtemplate}
   final NodeBuilder<NodeIdType> nodeBuilder;
+
+  /// {@template graph_viewport.edge_builder}
+  /// The widget builder function for edges.
+  ///
+  /// Returns an [EdgeWidget] for any supplied edge ID.
+  ///
+  /// This will be called only when necessary, e.g. when an edge becomes visible.
+  /// The supplied edge ID always stems from the edge IDs known to [GraphViewportController].
+  ///
+  /// Upon first construction of this widget, this builder will be called once for each edge that was supplied to
+  /// the [GraphViewportController] to construct a quad tree that is then used to only build the
+  /// visible edges lazily.
+  /// If [rebuildAllChildrenOnWidgetUpdate] is set to `true`, all edges are also rebuild when the widget configuration
+  /// changes.
+  /// {@endtemplate}
   final EdgeBuilder<EdgeIdType> edgeBuilder;
+
+  /// The viewport transform through which the viewport's visible area is controlled programmatically.
   final GraphViewportTransform transform;
+
+  /// {@template graph_viewport.style}
+  /// The style this viewport uses.
+  ///
+  /// If no style is supplied, the viewport looks for any style up the widget tree that was supplied through a [Theme].
+  /// If no style is found, [GraphStyle.fallback] is used to construct a default fallback style.
+  /// {@endtemplate}
   final GraphStyle? style;
+
+  /// {@template graph_viewport.cache_extent}
+  /// The extent in each direction outside the visible viewport area, in which graph elements are to be displayed.
+  /// {@endtemplate}
+  ///
+  /// Defaults to [kDefaultCacheExtent].
   final double cacheExtent;
+
+  /// {@template graph_viewport.edge_hitbox_thickness}
+  /// The thickness of the gesture hitbox for all edges displayed by this GraphView.
+  /// {@endtemplate}
+  ///
+  /// Defaults to [kDefaultEdgeHitboxThickness].
+  // TODO: move to interaction config.
   final double edgeHitboxThickness;
+
+  /// {@template graph_viewport.rebuild_all_children_on_widget_update}
+  /// Whether all children should be rebuilt when this widget's configuration changes (see [Element.update]).
+  ///
+  /// This should be set to `true` when you wish to see the changes, e.g. in your [nodeBuilder] and [edgeBuilder],
+  /// on hot reload.
+  ///
+  /// Otherwise, for performance reasons, this should probably be set to false and rebuilds of nodes and edges
+  /// should be initiated through [GraphViewportController.rebuildNode] and [GraphViewportController.rebuildEdge]
+  /// respectively.
+  /// {@endtemplate}
+  ///
+  /// Defaults to [kDefaultRebuildAllChildrenOnWidgetUpdate].
   final bool rebuildAllChildrenOnWidgetUpdate;
 
-  final GestureScaleStartCallback? onScaleStart;
-  final GestureScaleUpdateCallback? onScaleUpdate;
-  final GestureScaleEndCallback? onScaleEnd;
+  /// {@template graph_viewport.on_tap_down}
+  /// This callback will be called when a TapDown gesture was registered on the viewport,
+  /// which was not registered on any child.
+  /// {@endtemplate}
   final GestureTapDownCallback? onTapDown;
+
+  /// {@template graph_viewport.on_tap}
+  /// This callback will be called when a Tap gesture was registered on the viewport,
+  /// which was not registered on any child.
+  /// {@endtemplate}
   final GestureTapCallback? onTap;
+
+  /// {@template graph_viewport.on_double_tap_down}
+  /// This callback will be called when a DoubleTapDown gesture was registered on the viewport,
+  /// which was not registered on any child.
+  /// {@endtemplate}
   final GestureTapDownCallback? onDoubleTapDown;
+
+  /// {@template graph_viewport.on_double_tap}
+  /// This callback will be called when a DoubleTap gesture was registered on the viewport,
+  /// which was not registered on any child.
+  /// {@endtemplate}
   final GestureDoubleTapCallback? onDoubleTap;
+
+  /// {@template graph_viewport.on_scale_start}
+  /// This callback will be called when a ScaleStart gesture was registered on the viewport,
+  /// which was not registered on any child.
+  /// {@endtemplate}
+  final GestureScaleStartCallback? onScaleStart;
+
+  /// {@template graph_viewport.on_scale_update}
+  /// This callback will be called when a ScaleUpdate gesture was registered on the viewport,
+  /// which was not registered on any child.
+  /// {@endtemplate}
+  final GestureScaleUpdateCallback? onScaleUpdate;
+
+  /// {@template graph_viewport.on_scale_end}
+  /// This callback will be called when a ScaleEnd gesture was registered on the viewport,
+  /// which was not registered on any child.
+  /// {@endtemplate}
+  final GestureScaleEndCallback? onScaleEnd;
 
   @override
   RenderObjectElement createElement() {

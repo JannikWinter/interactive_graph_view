@@ -8,18 +8,47 @@ import "../rendering/node.dart";
 import "../style/node_style.dart";
 import "node_overlay.dart";
 
+/// The `SlotType` [NodeWidget] (a [SlottedMultiChildRenderObjectWidget]) uses for configuring its children.
 enum NodeWidgetSlot { content, background, overlay }
 
+/// Callback for handling a DragDown gesture that was registered on a node.
 typedef GestureNodeDragDownCallback = void Function(NodeDragDownDetails details);
+
+/// Callback for handling a DragStart gesture that was registered on a node.
 typedef GestureNodeDragStartCallback = void Function(NodeDragStartDetails details);
+
+/// Callback for handling a DragUpdate gesture that was registered on a node.
 typedef GestureNodeDragUpdateCallback = void Function(NodeDragUpdateDetails details);
+
+/// Callback for handling a DragEnd gesture that was registered on a node.
 typedef GestureNodeDragEndCallback = void Function(NodeDragEndDetails details);
+
+/// Callback for handling a DragCancel gesture that was registered on a node.
 typedef GestureNodeDragCancelCallback = void Function();
 
+/// A widget for configuring, interacting with and styling a node in a graph.
+///
+/// To display this node, it should be constructed as a child of a [GraphViewport] through [GraphViewport.nodeBuilder].
+///
+/// To build a node, its ID should first be added to a [GraphViewport]'s [GraphViewport.viewportController].
 class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, RenderBox> {
+  /// The default value for [borderRadius] when it is not supplied to the constructor.
   static const Radius kDefaultBorderRadius = Radius.zero;
+
+  /// The default value for [clipBehavior] when it is not supplied to the constructor.
   static const Clip kDefaultClipBehavior = Clip.none;
 
+  /// Constructs a [NodeWidget] while giving you full customizability for the [background] and [content] widgets.
+  ///
+  /// If you want to construct a simple node, which only contains text and accepts a [NodeStyle] (and also respects
+  /// a [NodeStyle] supplied through a [Theme] up the widget tree), you probably want to use [NodeWidget.basic].
+  ///
+  /// Note that this constructor fully ignores the [NodeStyle] supplied through a [Theme] up the widget tree as you
+  /// define the [content] and [background] widgets yourself.
+  /// You can still apply the [Theme] yourself by using `Theme.of(context).extension<NodeStyle>();`.
+  ///
+  /// Also not that [borderRadius] is only automatically applied when [clipBehavior] is not [Clip.none].
+  /// Apart from that [borderRadius] is only applied to the edges connected to this node.
   const NodeWidget.custom({
     super.key,
     required this.position,
@@ -40,6 +69,14 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     this.onDragCancel,
   });
 
+  /// Constructs a [NodeWidget] from a given [text], [style] and [borderRadius].
+  ///
+  /// If you want more control over the background and content of the node, you should use [NodeWidget.custom],
+  /// where you define the widgets for [content] and [background] yourself.
+  ///
+  /// If no [style] is applied, this widget will try to find a [NodeStyle] that was applied through a [Theme] up the
+  /// widget tree.
+  /// If no style is found, [NodeStyle.fallback] is used to construct a default fallback style.
   factory NodeWidget.basic({
     Key? key,
     required Offset position,
@@ -63,8 +100,8 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
       key: key,
       position: position,
       maxWidth: maxWidth,
-      content: _SimpleNodeContent(text: text, style: style),
-      background: _SimpleNodeBackground(
+      content: _BasicNodeContent(text: text, style: style),
+      background: _BasicNodeBackground(
         style: style,
         borderRadius: borderRadius,
       ),
@@ -83,25 +120,88 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     );
   }
 
+  /// The position in the [GraphViewport] where this node will be displayed.
+  ///
+  /// The node is always centered around the position.
   final Offset position;
+
+  /// The widget used to construct the content of this node.
+  ///
+  /// This will be put in front of the [background] but behind the [overlay].
   final Widget content;
+
+  /// The widget used to construct the background of this node.
+  ///
+  /// This will be behind the [content], which will itself be behind the [overlay].
   final Widget background;
+
+  /// The overlay that will be put on top of the [background] and [content].
+  ///
+  /// The overlay is put into its own layer where it is not affected by [clipBehavior].
+  /// It can be beyond the node's bounds.
   final NodeOverlay? overlay;
+
+  /// The maximum width this node will take up.
+  ///
+  /// If the [content] or [background] are wider than [maxWidth], they are clipped depending on the value of
+  /// [clipBehavior].
+  ///
+  /// Note that [overlay] can be outside those bounds and ignores [maxWidth].
   final double maxWidth;
+
+  /// The radius of this node's border.
+  ///
+  /// This is used for correctly displaying the ends of edges (arrows).
+  ///
+  /// If [NodeWidget.basic] was used to construct this widget, [borderRadius] is also applied to the [background].
+  ///
+  /// If [NodeWidget.custom] was used instead, you need to define the borderRadius to the children yourselft.
+  ///
+  /// If [clipBehavior] was set to a value other than [Clip.none], [borderRadius] is applied to the clip region.
   final Radius borderRadius;
+
+  /// The clipping behavior.
+  ///
+  /// When this is set to a value other than [Clip.none], [background] and [content] will be clipped according to
+  /// [maxWidth] and [borderRadius].
   final Clip clipBehavior;
 
   // Tap callbacks
+
+  /// This callback will be called when a Tap gesture was registered on this node.
   final GestureTapCallback? onTap;
+
+  /// This callback will be called when a DoubleTap gesture was registered on this node.
   final GestureDoubleTapCallback? onDoubleTap;
+
+  /// This callback will be called when a LongPress gesture was registered on this node.
   final GestureLongPressCallback? onLongPress;
 
   // Drag callbacks
+
+  /// Whether this node responds to Drag gestures.
+  ///
+  /// If this is set to `true`, drag gestures will automatically be forwarded to the viewport, which moves this node
+  /// and all nodes in [GraphViewportController.movingNodeIds]. Upon ending the drag gesture,
+  /// [GraphViewportController.onNodesMoved] will be called.
+  ///
+  /// If this is set to `false`, [onDragDown], [onDragStart], [onDragUpdate], [onDragEnd] and [onDragCancel] will never
+  /// be called.
   final bool isDragEnabled;
+
+  /// This callback will be called when a DragDown gesture was registered on this node and [isDragEnabled] is `true`.
   final GestureNodeDragDownCallback? onDragDown;
+
+  /// This callback will be called when a DragStart gesture was registered on this node and [isDragEnabled] is `true`.
   final GestureNodeDragStartCallback? onDragStart;
+
+  /// This callback will be called when a DragUpdate gesture was registered on this node and [isDragEnabled] is `true`.
   final GestureNodeDragUpdateCallback? onDragUpdate;
+
+  /// This callback will be called when a DragEnd gesture was registered on this node and [isDragEnabled] is `true`.
   final GestureNodeDragEndCallback? onDragEnd;
+
+  /// This callback will be called when a DragCancel gesture was registered on this node and [isDragEnabled] is `true`.
   final GestureNodeDragCancelCallback? onDragCancel;
 
   @override
@@ -143,10 +243,22 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   Iterable<NodeWidgetSlot> get slots => NodeWidgetSlot.values;
 }
 
-class _SimpleNodeContent extends StatelessWidget {
-  const _SimpleNodeContent({required this.text, this.style});
+/// The widget that is used by [NodeWidget.basic] to construct the [NodeWidget.content] of a basic node.
+///
+/// This only uses [text] and [style].
+/// If no [style] is supplied, it looks for any style up the widget tree that was supplied through a [Theme].
+/// If no style is found, [NodeStyle.fallback] is used to construct a default fallback style.
+// TODO: make public
+class _BasicNodeContent extends StatelessWidget {
+  const _BasicNodeContent({required this.text, this.style});
 
+  /// The node's text.
   final String text;
+
+  /// The node's style.
+  ///
+  /// If no style is supplied, it looks for any style up the widget tree that was supplied through a [Theme].
+  /// If no style is found, [NodeStyle.fallback] is used to construct a default fallback style.
   final NodeStyle? style;
 
   @override
@@ -164,10 +276,22 @@ class _SimpleNodeContent extends StatelessWidget {
   }
 }
 
-class _SimpleNodeBackground extends StatelessWidget {
-  const _SimpleNodeBackground({required this.borderRadius, this.style});
+/// The widget that is used by [NodeWidget.basic] to construct the [NodeWidget.background] of a basic node.
+///
+/// This only uses [borderRadius] and [style].
+/// If no [style] is supplied, it looks for any style up the widget tree that was supplied through a [Theme].
+/// If no style is found, [NodeStyle.fallback] is used to construct a default fallback style.
+// TODO: make public
+class _BasicNodeBackground extends StatelessWidget {
+  const _BasicNodeBackground({required this.borderRadius, this.style});
 
+  /// The radius of the background's border.
   final Radius borderRadius;
+
+  /// The node's style.
+  ///
+  /// If no style is supplied, it looks for any style up the widget tree that was supplied through a [Theme].
+  /// If no style is found, [NodeStyle.fallback] is used to construct a default fallback style.
   final NodeStyle? style;
 
   @override
