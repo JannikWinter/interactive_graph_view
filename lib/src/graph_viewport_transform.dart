@@ -11,8 +11,14 @@ import "interaction/graph_visibility.dart";
 import "interaction/interaction_config.dart";
 import "util/extensions.dart" show NotEmptyRect;
 
+/// A callback for when the move of the viewport transform, that was initiated by the user, stops moving.
 typedef TransformSettleListener = void Function(Offset position, double scale);
 
+/// The transform used by a [GraphViewport].
+///
+/// The [position] and [scale] together with the size of the viewport determine, which part of the viewport is visible.
+///
+/// You can use this class to programmatically change the visible part of the viewport.
 class GraphViewportTransform extends ChangeNotifier {
   static (GraphViewportMoveBehavior?, GraphViewportZoomBehavior?) kDefaultShowInViewportBehavior(
     GraphVisibility visibility,
@@ -39,11 +45,15 @@ class GraphViewportTransform extends ChangeNotifier {
     return (moveBehavior, zoomBehavior);
   }
 
+  /// Constructs a transform at a given [initialPosition] and [initialScale].
+  ///
+  /// [minScale] must be larger than `0.0` and smaller or equal to [maxScale].
+  /// [initialScale] must be between [minScale] and [maxScale], inclusively.
   GraphViewportTransform({
     required Offset initialPosition,
     required double initialScale,
-    required this.minScale,
-    required this.maxScale,
+    required double minScale,
+    required double maxScale,
     required TickerProvider vsync,
     required this.interactionConfig,
   }) : assert(minScale > 0),
@@ -51,8 +61,11 @@ class GraphViewportTransform extends ChangeNotifier {
        assert(initialScale >= minScale && initialScale <= maxScale),
        _position = initialPosition,
        _scale = initialScale,
+       _minScale = minScale,
+       _maxScale = maxScale,
        _vsync = vsync;
 
+  /// The position at the center of the viewport.
   Offset get position => _position;
   Offset _position;
   set position(Offset value) {
@@ -81,6 +94,9 @@ class GraphViewportTransform extends ChangeNotifier {
     );
   }
 
+  /// The scale at which the viewport is displayed.
+  ///
+  /// This is always clamped to be between [minScale] and [maxScale].
   double get scale => _scale;
   double _scale;
   set scale(double value) {
@@ -98,16 +114,59 @@ class GraphViewportTransform extends ChangeNotifier {
     return clampDouble(value, minScale, maxScale);
   }
 
+  /// The configuration for the user interactions.
   InteractionConfig interactionConfig;
-  double minScale;
-  double maxScale;
 
+  /// The minimum scale that this viewport can display.
+  ///
+  /// Must be smaller or equal to [maxScale].
+  ///
+  /// [scale] will always be clamped between this and [maxScale].
+  double get minScale => _minScale;
+  double _minScale;
+  set minScale(double value) {
+    if (_minScale == value) return;
+
+    assert(value <= maxScale);
+
+    _minScale = value;
+
+    if (scale < _minScale) {
+      scale = _minScale;
+    }
+  }
+
+  /// The maximum scale that this viewport can display.
+  ///
+  /// Must be greater or equal to [minScale].
+  ///
+  /// [scale] will always be clamped between this and [minScale].
+  double get maxScale => _maxScale;
+  double _maxScale;
+  set maxScale(double value) {
+    if (_maxScale == value) return;
+
+    assert(value >= minScale);
+
+    _maxScale = value;
+
+    if (scale > _maxScale) {
+      scale = _maxScale;
+    }
+  }
+
+  /// The size of the [GraphViewport].
   Size get viewportSize => _viewportSize!;
   Size? _viewportSize;
+
+  /// Whether the [GraphViewport] has a size.
   bool get hasViewportSize => _viewportSize != null;
 
+  /// The rect that spans all children of the [GraphViewport].
   Rect get contentRect => _contentRect!;
   Rect? _contentRect;
+
+  /// Whether the [GraphViewport] has a [contentRect].
   bool get hasContentRect => _contentRect != null;
 
   late double _scaleAtScaleStart;
@@ -119,21 +178,35 @@ class GraphViewportTransform extends ChangeNotifier {
   AnimationController? _cameraMoveAnimationController;
   late Offset _edgeMoveDirection;
 
+  /// The rect of the visible part of the content, in graph space.
+  ///
+  /// {@macro graph_viewport_transform.graph_space}
   Rect get visibleRect => Rect.fromCenter(
     center: position,
     width: viewportSize.width / scale,
     height: viewportSize.height / scale,
   );
 
+  /// The transformation matrix that is internally used to transform the [GraphViewport]'s children to graph space.
+  ///
+  /// {@macro graph_viewport_transform.graph_space}
   Matrix4 get childTransformMatrix => Matrix4.identity()
     ..translateByDouble(viewportSize.width / 2, viewportSize.height / 2, 0, 1)
     ..scaleByDouble(scale, scale, scale, 1)
     ..translateByDouble(-position.dx, -position.dy, 0, 1);
 
+  /// Applies the [GraphViewport]'s dimension to this transform.
+  ///
+  /// This gets called internally during layout.
+  /// You should usually not call this method yourself.
   void applyViewportDimensions(Size size) {
     _viewportSize = size;
   }
 
+  /// Applies the dimensions of the [GraphViewport]'s content (all children and edges) to this transform.
+  ///
+  /// This gets called internally during layout.
+  /// You should usually not call this method yourself.
   void applyContentDimensions(Rect rect) {
     _contentRect = rect;
   }
@@ -323,30 +396,85 @@ class GraphViewportTransform extends ChangeNotifier {
     return tickerFuture;
   }
 
+  /// Converts a `Rect` from screen space to graph space.
+  ///
+  /// {@template graph_viewport_transform.convert_scale}
+  /// By default this uses the current scale of this transform. If you supply [scale], this will be used instead.
+  /// {@endtemplate}
+  ///
+  /// {@template graph_viewport_transform.graph_space}
+  /// "Graph space" means that the dimensions are in relation to the viewport's internal space (where the nodes and edges
+  /// live), with panning and scaling applied.
+  /// {@endtemplate}
+  ///
+  /// {@template graph_viewport_transform.parent_space}
+  /// "Parent space" means that the dimensions are in relation to the viewport's parent's space.
+  /// {@endtemplate}
   Rect toGraphSpaceRect(Rect screenSpaceRect, {double? scale}) {
     final Offset graphSpacePosition = toGraphSpacePosition(screenSpaceRect.center, scale: scale);
     final Size graphSpaceSize = toGraphSpaceSize(screenSpaceRect.size, scale: scale);
     return Rect.fromCenter(center: graphSpacePosition, width: graphSpaceSize.width, height: graphSpaceSize.height);
   }
 
+  /// Converts a `Size` from screen space to graph space.
+  ///
+  /// {@macro graph_viewport_transform.convert_scale}
+  ///
+  /// {@macro graph_viewport_transform.graph_space}
+  ///
+  /// {@macro graph_viewport_transform.parent_space}
   Size toGraphSpaceSize(Size size, {double? scale}) {
     return size / (scale ?? this.scale);
   }
 
-  Offset toGraphSpacePosition(Offset screenSpacePosition, {double? scale}) {
-    return (screenSpacePosition - viewportSize.center(Offset.zero)) / (scale ?? this.scale) + position;
+  /// Converts a **position** `Offset` from screen space to graph space.
+  ///
+  /// In contrast to [toGraphSpaceOffset] this will also take the current [GraphViewportTransform.position] into
+  /// account.
+  ///
+  /// By default this uses the current position and scale of this transform.
+  /// If you supply [position] and/or [scale], they will be used instead.
+  ///
+  /// {@macro graph_viewport_transform.graph_space}
+  ///
+  /// {@macro graph_viewport_transform.parent_space}
+  Offset toGraphSpacePosition(Offset screenSpacePosition, {Offset? position, double? scale}) {
+    return (screenSpacePosition - viewportSize.center(Offset.zero)) / (scale ?? this.scale) +
+        (position ?? this.position);
   }
 
+  /// Converts an `Offset` from screen space to graph space.
+  ///
+  /// In contrast to [toGraphSpacePosition], which does also take an `Offset` argument, this will **not** take the
+  /// current [GraphViewportTransform.position] into account.
+  ///
+  /// {@macro graph_viewport_transform.convert_scale}
+  ///
+  /// {@macro graph_viewport_transform.graph_space}
+  ///
+  /// {@macro graph_viewport_transform.parent_space}
   Offset toGraphSpaceOffset(Offset screenSpaceOffset, {double? scale}) {
     return screenSpaceOffset / (scale ?? this.scale);
   }
 
-  Offset toScreenSpacePosition(Offset graphSpacePosition, {double? scale}) {
-    return ((graphSpacePosition - position) * (scale ?? this.scale)) + viewportSize.center(Offset.zero);
+  /// Converts a **position** `Offset` from graph space to screen space.
+  ///
+  /// Not that this will also take the current [GraphViewportTransform.position] into account.
+  ///
+  /// By default this uses the current position and scale of this transform.
+  /// If you supply [position] and/or [scale], they will be used instead.
+  ///
+  /// {@macro graph_viewport_transform.graph_space}
+  ///
+  /// {@macro graph_viewport_transform.parent_space}
+  Offset toScreenSpacePosition(Offset graphSpacePosition, {Offset? position, double? scale}) {
+    return ((graphSpacePosition - (position ?? this.position)) * (scale ?? this.scale)) +
+        viewportSize.center(Offset.zero);
   }
 
   bool _isBeingScaled = false;
 
+  /// Handles the ScaleStart gesture to update [position] and [scale].
   void onScaleStart(ScaleStartDetails details) {
     _ballisticController?.stop();
     _cameraMoveAnimationController?.stop();
@@ -356,6 +484,7 @@ class GraphViewportTransform extends ChangeNotifier {
     _isBeingScaled = true;
   }
 
+  /// Handles the ScaleUpdate gesture to update [position] and [scale].
   void onScaleUpdate(ScaleUpdateDetails details) {
     final Offset graphSpaceFocalPointBefore = toGraphSpacePosition(details.localFocalPoint);
 
@@ -367,6 +496,7 @@ class GraphViewportTransform extends ChangeNotifier {
     position -= (delta + details.focalPointDelta / scale);
   }
 
+  /// Handles the ScaleEnd gesture to update [position] and [scale].
   void onScaleEnd(ScaleEndDetails details) {
     if (details.velocity.pixelsPerSecond.distance > interactionConfig.minFlingVelocity) {
       _ballisticController?.stop();
@@ -399,6 +529,7 @@ class GraphViewportTransform extends ChangeNotifier {
     _maybeNotifySettleListeners();
   }
 
+  /// Handles the DragDown gesture of a node to update [position] and [scale].
   void onNodeDragDown(NodeDragDownDetails details) {
     _ballisticController?.stop();
     _cameraMoveAnimationController?.stop();
@@ -406,8 +537,10 @@ class GraphViewportTransform extends ChangeNotifier {
     _nodeDragParentSpacePositionAtStart = details.parentSpacePosition;
   }
 
+  /// Handles the DragStart gesture of a node to update [position] and [scale].
   void onNodeDragStart(NodeDragStartDetails details) {}
 
+  /// Handles the DragUpdate gesture of a node to update [position] and [scale].
   void onNodeDragUpdate(NodeDragUpdateDetails details) {
     if (!_edgeMoveTicker.isActive &&
         (details.parentSpacePosition - _nodeDragParentSpacePositionAtStart).distance <
@@ -446,12 +579,14 @@ class GraphViewportTransform extends ChangeNotifier {
     }
   }
 
+  /// Handles the DragEnd gesture of a node to update [position] and [scale].
   void onNodeDragEnd(NodeDragEndDetails details) {
     _edgeMoveTicker.stop();
 
     _maybeNotifySettleListeners();
   }
 
+  /// Handles the DragCancecl gesture of a node to update [position] and [scale].
   void onNodeDragCancel() {
     _edgeMoveTicker.stop();
 
@@ -485,7 +620,11 @@ class GraphViewportTransform extends ChangeNotifier {
     }
   }
 
+  /// Adds a transform settle listener to this transform, which will be called when a gesture- or animation-initiated
+  /// transform movement ended.
   void addSettleListener(TransformSettleListener listener) => _settleListeners.add(listener);
+
+  /// Removes a transform settle listener from this transform, which was earlier add with [addSettleListener].
   void removeSettleListener(TransformSettleListener listener) => _settleListeners.remove(listener);
 
   void _edgeMoveTick(Duration elapsed) {
