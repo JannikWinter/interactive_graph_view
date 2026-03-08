@@ -100,8 +100,8 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
       key: key,
       position: position,
       maxWidth: maxWidth,
-      content: _BasicNodeContent(text: text, style: style),
-      background: _BasicNodeBackground(
+      content: BasicNodeContent(text: text, style: style),
+      background: BasicNodeBackground(
         style: style,
         borderRadius: borderRadius,
       ),
@@ -248,9 +248,8 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
 /// This only uses [text] and [style].
 /// If no [style] is supplied, it looks for any style up the widget tree that was supplied through a [Theme].
 /// If no style is found, [NodeStyle.fallback] is used to construct a default fallback style.
-// TODO: make public
-class _BasicNodeContent extends StatelessWidget {
-  const _BasicNodeContent({required this.text, this.style});
+class BasicNodeContent extends StatelessWidget {
+  const BasicNodeContent({super.key, required this.text, this.style});
 
   /// The node's text.
   final String text;
@@ -281,9 +280,8 @@ class _BasicNodeContent extends StatelessWidget {
 /// This only uses [borderRadius] and [style].
 /// If no [style] is supplied, it looks for any style up the widget tree that was supplied through a [Theme].
 /// If no style is found, [NodeStyle.fallback] is used to construct a default fallback style.
-// TODO: make public
-class _BasicNodeBackground extends StatelessWidget {
-  const _BasicNodeBackground({required this.borderRadius, this.style});
+class BasicNodeBackground extends StatelessWidget {
+  const BasicNodeBackground({super.key, required this.borderRadius, this.style});
 
   /// The radius of the background's border.
   final Radius borderRadius;

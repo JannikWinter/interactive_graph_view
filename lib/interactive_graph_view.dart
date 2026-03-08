@@ -17,6 +17,8 @@ export "src/widgets/graph_viewport.dart" show GraphViewport, NodeBuilder, EdgeBu
 export "src/widgets/node.dart"
     show
         NodeWidget,
+        BasicNodeBackground,
+        BasicNodeContent,
         GestureNodeDragDownCallback,
         GestureNodeDragStartCallback,
         GestureNodeDragUpdateCallback,
