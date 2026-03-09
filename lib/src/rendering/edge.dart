@@ -324,6 +324,9 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     return Rect.fromPoints(parentData.startNodeCenter, parentData.endNodeCenter);
   }
 
+  @override
+  Rect get paintBounds => semanticBounds; // TODO: include text.
+
   double? getDistanceSquaredTo(Offset position) {
     if (!_hitTestPath.contains(position)) return null;
 

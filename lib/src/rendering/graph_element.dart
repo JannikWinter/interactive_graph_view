@@ -16,9 +16,6 @@ abstract base class GraphElementRenderObject extends RenderObject {
     assert(false);
   }
 
-  @override
-  Rect get paintBounds => semanticBounds;
-
   bool hitTest(BoxHitTestResult result, Offset position);
 
   @override
