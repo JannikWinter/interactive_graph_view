@@ -6,10 +6,7 @@ import "package:flutter/scheduler.dart";
 import "package:flutter/widgets.dart";
 
 import "interaction/drag_details.dart";
-import "interaction/graph_viewport_behavior.dart";
-import "interaction/graph_visibility.dart";
 import "interaction/interaction_config.dart";
-import "util/extensions.dart" show NotEmptyRect;
 
 /// A callback for when the move of the viewport transform, that was initiated by the user, stops moving.
 typedef TransformSettleListener = void Function(Offset position, double scale);
@@ -20,31 +17,6 @@ typedef TransformSettleListener = void Function(Offset position, double scale);
 ///
 /// You can use this class to programmatically change the visible part of the viewport.
 class GraphViewportTransform extends ChangeNotifier {
-  static (GraphViewportMoveBehavior?, GraphViewportZoomBehavior?) kDefaultShowInViewportBehavior(
-    GraphVisibility visibility,
-    double scale,
-    Size paddedSize,
-    Size viewportSize,
-    Size targetSize,
-  ) {
-    final GraphViewportMoveBehavior moveBehavior = switch (visibility) {
-      GraphVisibility.fitting => GraphViewportMoveBehavior.screenCenter,
-      GraphVisibility.fullyVisibleAndInPadding => GraphViewportMoveBehavior.screenCenter,
-      GraphVisibility.fullyVisibleButNotFullyInPadding => GraphViewportMoveBehavior.screenCenter,
-      GraphVisibility.partiallyVisible => GraphViewportMoveBehavior.screenEdge,
-      GraphVisibility.notVisible => GraphViewportMoveBehavior.screenEdge,
-    };
-
-    final GraphViewportZoomBehavior? zoomBehavior;
-    if (targetSize.width > paddedSize.width || targetSize.height > paddedSize.height) {
-      zoomBehavior = GraphViewportZoomToFitBehavior();
-    } else {
-      zoomBehavior = null;
-    }
-
-    return (moveBehavior, zoomBehavior);
-  }
-
   /// Constructs a transform at a given [initialPosition] and [initialScale].
   ///
   /// [minScale] must be larger than `0.0` and smaller or equal to [maxScale].
@@ -211,148 +183,92 @@ class GraphViewportTransform extends ChangeNotifier {
     _contentRect = rect;
   }
 
-  Future<void> showInViewport({
-    required Rect targetRect_GS,
-    EdgeInsets padding = EdgeInsets.zero,
+  /// Animate this transform to show the given [targetRect] _(in graph space)_ in the center of the viewport.
+  ///
+  /// This function will try to fit the target rect exactly in the area inside [margin] and [padding]. If the current
+  /// [minScale] and [maxScale] make it impossible for the target rect to be fully fitted in the available area, it will
+  /// just be centered in it.
+  ///
+  /// [margin] defines the insets _(in screen space)_ of the viewport that are obscured by overlaying UI elements (e.g.
+  /// toolbars or sidebars). Defaults to [EdgeInsets.zero].
+  /// [padding] defines how far _(in screen space)_ from the ([margin]-adjusted) viewport edges the target rect should
+  /// be inset by. Defaults to [EdgeInsets.zero].
+  ///
+  /// [duration] and [curve] together define the animation of the movement. [duration] defaults to [Duration.zero].
+  /// [curve] defaults to [Curves.linear].
+  ///
+  /// Returns a [Future] that resolves to `true` when the target was fully reached, and `false` if the animation was
+  /// stopped prematurely - e.g. because the user initiated a drag.
+  Future<bool> showInViewport({
+    required Rect targetRect,
     EdgeInsets margin = EdgeInsets.zero,
-    GraphViewportBehaviorResolver? behavior,
-    Duration? duration,
-    Curve? curve,
+    EdgeInsets padding = EdgeInsets.zero,
+    Duration duration = Duration.zero,
+    Curve curve = Curves.linear,
   }) async {
     _ballisticController?.stop();
+    _cameraMoveAnimationController?.stop();
 
-    final Offset targetPosition_GS = targetRect_GS.center;
-    final Size targetSize_GS = targetRect_GS.size;
+    final Offset targetPosition_GS = targetRect.center;
+    final Size targetSize_GS = targetRect.size;
 
     final Rect viewportRect_SS = Rect.fromLTWH(0, 0, viewportSize.width, viewportSize.height);
     final Rect visibleViewportRect_SS = margin.deflateRect(viewportRect_SS);
     final Rect paddedViewportRect_SS = padding.deflateRect(visibleViewportRect_SS);
 
-    final Rect visibleViewportRect_GS = toGraphSpaceRect(visibleViewportRect_SS);
     final Rect paddedViewportRect_GS = toGraphSpaceRect(paddedViewportRect_SS);
 
-    final Rect visiblePartOfTargetRect_GS = visibleViewportRect_GS.intersect(targetRect_GS);
-    final Rect paddedVisiblePartOfTargetRect_GS = paddedViewportRect_GS.intersect(targetRect_GS);
-
-    const epsilon = 0.2;
-
-    final GraphVisibility actualVisibility;
-    if (scale == maxScale &&
-        targetRect_GS.left >= paddedViewportRect_GS.left - epsilon &&
-        targetRect_GS.right <= paddedViewportRect_GS.right + epsilon &&
-        targetRect_GS.top >= paddedViewportRect_GS.top - epsilon &&
-        targetRect_GS.bottom <= paddedViewportRect_GS.bottom + epsilon) {
-      // Target is as big as it can be, but still smaller than the padded viewport. So it is as fitting as it could be
-      actualVisibility = GraphVisibility.fitting;
-    } else if ((targetRect_GS.left >= paddedViewportRect_GS.left - epsilon &&
-            targetRect_GS.right <= paddedViewportRect_GS.right + epsilon &&
-            (targetRect_GS.top - paddedViewportRect_GS.top).abs() < epsilon &&
-            (targetRect_GS.bottom - paddedViewportRect_GS.bottom).abs() < epsilon) ||
-        (targetRect_GS.top >= paddedViewportRect_GS.top - epsilon &&
-            targetRect_GS.bottom <= paddedViewportRect_GS.bottom + epsilon &&
-            (targetRect_GS.left - paddedViewportRect_GS.left).abs() < epsilon &&
-            (targetRect_GS.right - paddedViewportRect_GS.right).abs() < epsilon)) {
-      actualVisibility = GraphVisibility.fitting;
-    } else if (paddedVisiblePartOfTargetRect_GS == targetRect_GS) {
-      actualVisibility = GraphVisibility.fullyVisibleAndInPadding;
-    } else if (visiblePartOfTargetRect_GS == targetRect_GS) {
-      actualVisibility = GraphVisibility.fullyVisibleButNotFullyInPadding;
-    } else if (visiblePartOfTargetRect_GS.isNotEmpty) {
-      actualVisibility = GraphVisibility.partiallyVisible;
-    } else {
-      actualVisibility = GraphVisibility.notVisible;
-    }
-
-    final GraphViewportBehaviorResolver behaviorResolver = behavior ?? kDefaultShowInViewportBehavior;
-    final (GraphViewportMoveBehavior? moveBehavior, GraphViewportZoomBehavior? zoomBehavior) = behaviorResolver(
-      actualVisibility,
-      scale,
-      paddedViewportRect_GS.size,
-      visibleViewportRect_GS.size,
-      targetSize_GS,
-    );
-
-    double newScale = _scale;
-    switch (zoomBehavior) {
-      case GraphViewportZoomToFitBehavior():
-        newScale =
-            _scale /
-            math.max(
-              targetSize_GS.width / paddedViewportRect_GS.width,
-              targetSize_GS.height / paddedViewportRect_GS.height,
-            );
-      case GraphViewportZoomToScaleBehavior(scale: final double targetScale):
-        newScale = targetScale;
-
-      case null:
-        newScale = _scale;
-    }
-    newScale = _clampScale(newScale);
-
-    final Size newPaddedViewportSize_GS = toGraphSpaceSize(
-      paddedViewportRect_SS.size,
-      scale: newScale,
+    final double newScale = _clampScale(
+      _scale /
+          math.max(
+            targetSize_GS.width / paddedViewportRect_GS.width,
+            targetSize_GS.height / paddedViewportRect_GS.height,
+          ),
     );
 
     // adjust newPosition to be in center of padded viewport instead of viewport center
     final Offset adjustment_SS = viewportRect_SS.center - paddedViewportRect_SS.center;
     final Offset adjustment_GS = toGraphSpaceOffset(adjustment_SS, scale: newScale);
 
-    Offset newPosition;
-    switch (moveBehavior) {
-      case GraphViewportMoveBehavior.screenCenter:
-        newPosition = targetPosition_GS + adjustment_GS;
+    final Offset newPosition = targetPosition_GS + adjustment_GS;
 
-      case GraphViewportMoveBehavior.screenEdge:
-        final Size clampSize_GS = Size(
-          newPaddedViewportSize_GS.width - targetRect_GS.width,
-          newPaddedViewportSize_GS.height - targetRect_GS.height,
-        );
-        final Rect clampRect_GS = Rect.fromCenter(
-          center: targetPosition_GS,
-          width: clampSize_GS.width,
-          height: clampSize_GS.height,
-        );
-
-        final double newX;
-        if (clampRect_GS.width > 0.0) {
-          newX = clampDouble(_position.dx - adjustment_GS.dx, clampRect_GS.left, clampRect_GS.right) + adjustment_GS.dx;
-        } else {
-          newX = targetPosition_GS.dx + adjustment_GS.dx;
-        }
-        final double newY;
-        if (clampRect_GS.height > 0.0) {
-          newY = clampDouble(_position.dy - adjustment_GS.dy, clampRect_GS.top, clampRect_GS.bottom) + adjustment_GS.dy;
-        } else {
-          newY = targetPosition_GS.dy + adjustment_GS.dy;
-        }
-
-        newPosition = Offset(newX, newY);
-
-      case null:
-        // keep position, don't move
-        newPosition = _position;
-    }
-
-    if (duration == null) {
+    if (duration == Duration.zero) {
       position = newPosition;
       scale = newScale;
+
+      return true;
     } else {
-      await animateTo(
+      return animateTo(
         targetPosition: newPosition,
         targetScale: newScale,
         duration: duration,
-        curve: curve ?? Curves.linear,
+        curve: curve,
       );
     }
   }
 
-  Future<void> animateTo({
+  /// Animate this transform to the given [targetPosition] _(defined in graph space)_ and given [targetScale].
+  ///
+  /// This function will animate the given position to the center of the [margin]-adjusted viewport.
+  ///
+  /// If no value is given for [scale], we just animate to the position without changing the scale.
+  ///
+  /// [margin] defines the insets _(in screen space)_ of the viewport that are obscured by overlaying UI elements (e.g.
+  /// toolbars or sidebars). Defaults to [EdgeInsets.zero].
+  ///
+  /// [duration] and [curve] together define the animation of the movement. [duration] defaults to [Duration.zero].
+  /// [curve] defaults to [Curves.linear].
+  ///
+  /// Returns a [Future] that resolves to `true` when the target was fully reached, and `false` if the animation was
+  /// stopped prematurely - e.g. because the user initiated a drag.
+  Future<bool> animateTo({
     required Offset targetPosition,
     double? targetScale,
-    required Duration duration,
+    EdgeInsets margin = EdgeInsets.zero,
+    Duration duration = Duration.zero,
     Curve curve = Curves.linear,
-  }) {
+  }) async {
+    _ballisticController?.stop();
     _cameraMoveAnimationController?.stop();
 
     final controller = AnimationController(
@@ -360,40 +276,58 @@ class GraphViewportTransform extends ChangeNotifier {
       vsync: _vsync,
     );
 
-    final Offset startPosition = _position;
-    final double startScale = _scale;
+    final Offset startPosition = position;
+    final double startScale = scale;
 
-    final Tween<double> scaleTween = Tween(begin: startScale, end: targetScale);
+    final double clampedTargetScale = _clampScale(targetScale ?? scale);
 
-    void tick() {
-      scale = scaleTween.evaluate(controller);
+    if (duration != Duration.zero) {
+      final Tween<double> scaleTween = Tween(begin: startScale, end: clampedTargetScale);
 
-      // Compute the interpolated camera position so that the target smoothly moves
-      // from startPosition to targetPosition while compensating for the current scale.
-      // The (startScale / scale) factor keeps the target visually stable during zoom,
-      // and (1 - controller.value) gradually reduces the offset until the camera
-      // aligns exactly with targetPosition at the end of the animation.
-      position = targetPosition - (targetPosition - startPosition) * (startScale / scale) * (1 - controller.value);
-    }
+      void tick() {
+        scale = scaleTween.evaluate(controller);
 
-    controller.addListener(tick);
-    final TickerFuture tickerFuture =
+        // Compute the interpolated camera position so that the target smoothly moves
+        // from startPosition to targetPosition while compensating for the current scale.
+        // The (startScale / scale) factor keeps the target visually stable during zoom,
+        // and (1 - controller.value) gradually reduces the offset until the camera
+        // aligns exactly with targetPosition at the end of the animation.
+        position = targetPosition - (targetPosition - startPosition) * (startScale / scale) * (1 - controller.value);
+      }
+
+      controller.addListener(tick);
+
+      final Completer<bool> completer = Completer();
+      unawaited(
         controller.animateTo(
-          1.0,
-          duration: duration,
-          curve: curve,
-        )..whenCompleteOrCancel(
-          () {
-            controller.dispose();
-            _cameraMoveAnimationController = null;
+            1.0,
+            duration: duration,
+            curve: curve,
+          )
+          // ignore: unawaited_futures
+          ..orCancel.then(
+            (_) => completer.complete(true),
+            onError: (err, stackTrace) => completer.complete(false),
+          )
+          ..whenCompleteOrCancel(
+            () {
+              controller.dispose();
+              _cameraMoveAnimationController = null;
 
-            _maybeNotifySettleListeners();
-          },
-        );
+              _maybeNotifySettleListeners();
+            },
+          ),
+      );
 
-    _cameraMoveAnimationController = controller;
+      _cameraMoveAnimationController = controller;
 
-    return tickerFuture;
+      return completer.future;
+    } else {
+      position = targetPosition;
+      scale = clampedTargetScale;
+
+      return true;
+    }
   }
 
   /// Converts a `Rect` from screen space to graph space.

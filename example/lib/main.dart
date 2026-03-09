@@ -51,6 +51,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
     {
       ExampleNode(id: "node1", position: Offset(-50, -50)),
       ExampleNode(id: "node2", position: Offset(50, 50)),
+      ExampleNode(id: "node3", position: Offset(500, 300)),
     },
     key: (node) => node.id,
   );
@@ -83,6 +84,22 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text("Graph View Demo"),
+        actions: [
+          IconButton(
+            onPressed: () async => print(
+              await _graphViewportController.showNodesOnScreen(
+                {"node3"},
+                margin: EdgeInsets.only(bottom: 500),
+                curve: Curves.ease,
+                duration: Duration(seconds: 3),
+              ),
+            ),
+            icon: const Icon(
+              Icons.location_searching,
+              color: Colors.white,
+            ),
+          ),
+        ],
       ),
       body: GraphView<String, String>(
         viewportController: _graphViewportController,

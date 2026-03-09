@@ -2,14 +2,6 @@ export "src/graph_viewport_controller.dart" show GraphViewportController, NodesM
 export "src/graph_viewport_transform.dart" show GraphViewportTransform, TransformSettleListener;
 export "src/interaction/drag_details.dart"
     show NodeDragDownDetails, NodeDragStartDetails, NodeDragUpdateDetails, NodeDragEndDetails;
-export "src/interaction/graph_viewport_behavior.dart"
-    show
-        GraphViewportMoveBehavior,
-        GraphViewportZoomBehavior,
-        GraphViewportZoomToFitBehavior,
-        GraphViewportZoomToScaleBehavior,
-        GraphViewportBehaviorResolver;
-export "src/interaction/graph_visibility.dart" show GraphVisibility;
 export "src/interaction/interaction_config.dart" show InteractionConfig, CameraEdgeMoveConfig;
 export "src/widgets/edge.dart" show EdgeWidget;
 export "src/widgets/graph_view.dart" show GraphView, GraphViewState;

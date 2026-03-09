@@ -6,7 +6,7 @@ import "package:flutter/widgets.dart";
 import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
 import "../interaction/drag_details.dart";
-import "../interaction/graph_viewport_behavior.dart";
+import "../rendering/graph_element.dart";
 import "edge.dart";
 import "node.dart";
 
@@ -236,6 +236,7 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
     );
 
     if (_showOnScreenAnimationData == null) return;
+    if (_isDraggingNodes) return;
 
     final Set<GraphNodeRenderObject> targetNodeRenderObjects = _showOnScreenAnimationData!.animationTargetNodeIds
         .map((nodeId) => getNode(nodeId)!)
@@ -244,92 +245,115 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
     final Rect? targetGraphSpaceRect = targetNodeRenderObjects.fold(
       null,
       (Rect? previousValue, GraphNodeRenderObject nodeRenderObject) {
-        final Offset nodePosition = nodeRenderObject.positionWithDragOffset;
-        final Size nodeSize = nodeRenderObject.size;
-        final Rect nodeRect = Rect.fromCenter(center: nodePosition, width: nodeSize.width, height: nodeSize.height);
-
-        if (previousValue == null) {
-          return nodeRect;
-        } else {
-          return previousValue.expandToInclude(nodeRect);
-        }
+        final Rect nodeRect = nodeRenderObject.paintBounds;
+        return previousValue?.expandToInclude(nodeRect) ?? nodeRect;
       },
     );
 
     if (targetGraphSpaceRect == null) return;
 
-    final completer = _showOnScreenAnimationData!.completer;
-    final padding = _showOnScreenAnimationData!.padding;
-    final margin = _showOnScreenAnimationData!.margin;
-    final behavior = _showOnScreenAnimationData!.behavior;
-    final duration = _showOnScreenAnimationData!.duration;
-    final curve = _showOnScreenAnimationData!.curve;
+    final animationData = _showOnScreenAnimationData!;
+    _showOnScreenAnimationData = null;
 
     WidgetsBinding.instance.addPostFrameCallback(
       (timeStamp) async {
         try {
-          await transform.showInViewport(
-            targetRect_GS: targetGraphSpaceRect,
-            padding: padding,
-            margin: margin,
-            behavior: behavior,
-            duration: duration,
-            curve: curve,
+          final bool finished = await transform.showInViewport(
+            targetRect: targetGraphSpaceRect,
+            margin: animationData.margin,
+            padding: animationData.padding,
+            duration: animationData.duration,
+            curve: animationData.curve,
           );
-          completer.complete();
+          animationData.completer.complete(finished);
         } catch (err) {
-          completer.completeError(err);
+          animationData.completer.completeError(err);
         }
       },
     );
-
-    _showOnScreenAnimationData = null;
   }
 
-  Future<void> showNodesOnScreen(
+  /// {@template render_graph_viewport_base.show_nodes_on_screen}
+  /// Animate the given [nodeIds] to be visible in the viewport.
+  ///
+  /// [margin] defines the insets _(in screen space)_ of the viewport that are obscured by overlaying UI elements (e.g.
+  /// toolbars or sidebars). Defaults to [EdgeInsets.zero].
+  /// [padding] defines how far _(in screen space)_ from the ([margin]-adjusted) viewport edges the target nodes should
+  /// be inset by. Defaults to [EdgeInsets.zero].
+  ///
+  /// [duration] and [curve] together define the animation of the movement. [duration] defaults to [Duration.zero].
+  /// [curve] defaults to [Curves.linear].
+  ///
+  /// Returns a [Future] that resolves to `true` when the target was fully reached, and `false` if the animation was
+  /// stopped prematurely - e.g. because the user initiated a drag.
+  /// {@endtemplate}
+  Future<bool> showNodesOnScreen(
     Set<NodeIdType> nodeIds, {
-    EdgeInsets padding = EdgeInsets.zero,
     EdgeInsets margin = EdgeInsets.zero,
-    GraphViewportBehaviorResolver? behavior,
-    Duration? duration,
-    Curve? curve,
+    EdgeInsets padding = EdgeInsets.zero,
+    Duration duration = Duration.zero,
+    Curve curve = Curves.linear,
   }) async {
-    assert(_showOnScreenAnimationData == null);
+    if (_showOnScreenAnimationData != null) {
+      _showOnScreenAnimationData!.completer.complete(false);
+    }
 
-    final Completer completer = Completer();
+    final Completer<bool> completer = Completer();
 
     _showOnScreenAnimationData = _ShowOnScreenAnimationData(
       completer: completer,
       animationTargetNodeIds: nodeIds,
       padding: padding,
       margin: margin,
-      behavior: behavior,
       duration: duration,
       curve: curve,
     );
 
     markNeedsLayout();
 
-    await completer.future;
+    return completer.future;
+  }
+
+  @override
+  void showOnScreen({
+    RenderObject? descendant,
+    Rect? rect,
+    EdgeInsets margin = EdgeInsets.zero,
+    EdgeInsets padding = EdgeInsets.zero,
+    Duration duration = Duration.zero,
+    Curve curve = Curves.linear,
+  }) {
+    if (descendant == null) {
+      return super.showOnScreen(descendant: descendant, rect: rect, duration: duration, curve: curve);
+    }
+
+    assert(descendant is GraphElementRenderObject);
+
+    transform.showInViewport(
+      targetRect: rect ?? descendant.paintBounds,
+      margin: margin,
+      padding: padding,
+      duration: duration,
+      curve: curve,
+    );
   }
 }
 
+@immutable
 class _ShowOnScreenAnimationData<NodeIdType> {
   const _ShowOnScreenAnimationData({
     required this.completer,
     required this.animationTargetNodeIds,
     required this.padding,
     required this.margin,
-    required this.behavior,
     required this.duration,
     required this.curve,
   });
 
-  final Completer completer;
+  final Completer<bool> completer;
   final Set<NodeIdType> animationTargetNodeIds;
   final EdgeInsets padding;
   final EdgeInsets margin;
-  final GraphViewportBehaviorResolver? behavior;
-  final Duration? duration;
-  final Curve? curve;
+  final Duration duration;
+  final Curve curve;
 }

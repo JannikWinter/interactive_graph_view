@@ -2,7 +2,6 @@ import "dart:collection";
 
 import "package:flutter/widgets.dart";
 
-import "interaction/graph_viewport_behavior.dart";
 import "rendering/graph_viewport_base.dart";
 
 /// This callback is called whenever nodes were dragged and that drag ended.
@@ -112,26 +111,23 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
     _onNodesMoved?.call(movedNodeIds, offset);
   }
 
-  /// Animate the given [nodeIds] to the screen.
-  Future<void> showNodesOnScreen(
+  /// {@macro render_graph_viewport_base.show_nodes_on_screen}
+  Future<bool> showNodesOnScreen(
     Set<NodeIdType> nodeIds, {
-    EdgeInsets padding = EdgeInsets.zero,
     EdgeInsets margin = EdgeInsets.zero,
-    bool zoomInToFit = false,
-    bool zoomOutToFit = true,
-    GraphViewportBehaviorResolver? behavior,
-    Duration? duration,
-    Curve? curve,
-  }) async {
-    await _viewport!.showNodesOnScreen(
-      nodeIds,
-      padding: padding,
-      margin: margin,
-      behavior: behavior,
-      duration: duration,
-      curve: curve,
-    );
-  }
+    EdgeInsets padding = EdgeInsets.zero,
+    Duration duration = Duration.zero,
+    Curve curve = Curves.linear,
+  }) => _viewport!.showNodesOnScreen(
+    nodeIds,
+    padding: padding,
+    margin: margin,
+    duration: duration,
+    curve: curve,
+  );
+
+  // TODO:
+  // Future<void> showEdgesOnScreen();
 
   /// An iterable over all node IDs managed by this controller.
   Iterable<NodeIdType> get allNodeIds => _nodeIds;

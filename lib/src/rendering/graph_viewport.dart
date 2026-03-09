@@ -3,7 +3,6 @@ import "package:flutter/rendering.dart";
 import "package:flutter/widgets.dart";
 
 import "../elements/graph_viewport.dart";
-import "../interaction/graph_viewport_behavior.dart";
 import "../style/graph_style.dart";
 import "edge.dart";
 import "edge_parent_data.dart";
@@ -446,33 +445,6 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
       ..._nodes.values.map((node) => node.toDiagnosticsNode()),
       ..._edges.values.map((edge) => edge.toDiagnosticsNode()),
     ];
-  }
-
-  @override
-  void showOnScreen({
-    RenderObject? descendant,
-    Rect? rect,
-    Duration duration = Duration.zero,
-    Curve curve = Curves.ease,
-    GraphViewportBehaviorResolver? behavior,
-    bool zoomInToFit = false,
-    bool zoomOutToFit = true,
-    EdgeInsets padding = EdgeInsets.zero,
-    EdgeInsets margin = EdgeInsets.zero,
-  }) {
-    if (descendant == null) {
-      return super.showOnScreen(descendant: descendant, rect: rect, duration: duration, curve: curve);
-    }
-
-    assert(descendant is GraphElementRenderObject);
-
-    transform.showInViewport(
-      targetRect_GS: rect ?? descendant.paintBounds,
-      duration: duration,
-      curve: curve,
-      behavior: behavior,
-      padding: padding,
-    );
   }
 
   @override
