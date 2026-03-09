@@ -250,6 +250,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
       final Set<EdgeIdType> usedEdgeIds = {
         ..._childQuadTree.getEdgeIdsInRect(visibleRect),
         ...inFlightEdgeIds,
+        ...animationTargetEdgeIds,
         ..._edgeIdsNeedingRebuild,
         ..._edgeIdsNeedingLayout,
       };

@@ -87,8 +87,8 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
         actions: [
           IconButton(
             onPressed: () async => print(
-              await _graphViewportController.showNodesOnScreen(
-                {"node3"},
+              await _graphViewportController.showEdgesOnScreen(
+                {"edge"},
                 margin: EdgeInsets.only(bottom: 500),
                 curve: Curves.ease,
                 duration: Duration(seconds: 3),

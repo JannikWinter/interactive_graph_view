@@ -126,8 +126,20 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
     curve: curve,
   );
 
-  // TODO:
-  // Future<void> showEdgesOnScreen();
+  /// {@macro render_graph_viewport_base.show_edges_on_screen}
+  Future<bool> showEdgesOnScreen(
+    Set<EdgeIdType> edgeIds, {
+    EdgeInsets margin = EdgeInsets.zero,
+    EdgeInsets padding = EdgeInsets.zero,
+    Duration duration = Duration.zero,
+    Curve curve = Curves.linear,
+  }) => _viewport!.showEdgesOnScreen(
+    edgeIds,
+    padding: padding,
+    margin: margin,
+    duration: duration,
+    curve: curve,
+  );
 
   /// An iterable over all node IDs managed by this controller.
   Iterable<NodeIdType> get allNodeIds => _nodeIds;

@@ -103,7 +103,10 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
   );
 
   UnmodifiableSetView<NodeIdType> get animationTargetNodeIds =>
-      UnmodifiableSetView(Set.from(_showOnScreenAnimationData?.animationTargetNodeIds ?? const {}));
+      UnmodifiableSetView(Set.from(_showOnScreenAnimationData?.targetNodeIds ?? const {}));
+
+  UnmodifiableSetView<EdgeIdType> get animationTargetEdgeIds =>
+      UnmodifiableSetView(Set.from(_showOnScreenAnimationData?.targetEdgeIds ?? const {}));
 
   Offset get movingNodeOffset => (_isDraggingNodes && movingNodeIds.isNotEmpty)
       ? (_transform.position - _startingViewportPosition) +
@@ -226,7 +229,7 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
     return NodeDragEndDetails();
   }
 
-  _ShowOnScreenAnimationData? _showOnScreenAnimationData;
+  _ShowOnScreenAnimationData<NodeIdType, EdgeIdType>? _showOnScreenAnimationData;
 
   @protected
   void maybeStartShowOnScreenAnimation() {
@@ -238,22 +241,23 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
     if (_showOnScreenAnimationData == null) return;
     if (_isDraggingNodes) return;
 
-    final Set<GraphNodeRenderObject> targetNodeRenderObjects = _showOnScreenAnimationData!.animationTargetNodeIds
-        .map((nodeId) => getNode(nodeId)!)
-        .toSet();
+    final animationData = _showOnScreenAnimationData!;
+    _showOnScreenAnimationData = null;
 
-    final Rect? targetGraphSpaceRect = targetNodeRenderObjects.fold(
+    final Set<GraphElementRenderObject> targetRenderObjects = {
+      ...animationData.targetNodeIds.map((nodeId) => getNode(nodeId)!),
+      ...animationData.targetEdgeIds.map((edgeId) => getEdge(edgeId)!),
+    };
+
+    final Rect? targetGraphSpaceRect = targetRenderObjects.fold(
       null,
-      (Rect? previousValue, GraphNodeRenderObject nodeRenderObject) {
-        final Rect nodeRect = nodeRenderObject.paintBounds;
-        return previousValue?.expandToInclude(nodeRect) ?? nodeRect;
+      (Rect? previousValue, GraphElementRenderObject childRenderObject) {
+        final Rect childRect = childRenderObject.paintBounds;
+        return previousValue?.expandToInclude(childRect) ?? childRect;
       },
     );
 
     if (targetGraphSpaceRect == null) return;
-
-    final animationData = _showOnScreenAnimationData!;
-    _showOnScreenAnimationData = null;
 
     WidgetsBinding.instance.addPostFrameCallback(
       (timeStamp) async {
@@ -302,7 +306,49 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
 
     _showOnScreenAnimationData = _ShowOnScreenAnimationData(
       completer: completer,
-      animationTargetNodeIds: nodeIds,
+      targetNodeIds: nodeIds,
+
+      padding: padding,
+      margin: margin,
+      duration: duration,
+      curve: curve,
+    );
+
+    markNeedsLayout();
+
+    return completer.future;
+  }
+
+  /// {@template render_graph_viewport_base.show_edges_on_screen}
+  /// Animate the given [edgeIds] to be visible in the viewport.
+  ///
+  /// [margin] defines the insets _(in screen space)_ of the viewport that are obscured by overlaying UI elements (e.g.
+  /// toolbars or sidebars). Defaults to [EdgeInsets.zero].
+  /// [padding] defines how far _(in screen space)_ from the ([margin]-adjusted) viewport edges the target edges should
+  /// be inset by. Defaults to [EdgeInsets.zero].
+  ///
+  /// [duration] and [curve] together define the animation of the movement. [duration] defaults to [Duration.zero].
+  /// [curve] defaults to [Curves.linear].
+  ///
+  /// Returns a [Future] that resolves to `true` when the target was fully reached, and `false` if the animation was
+  /// stopped prematurely - e.g. because the user initiated a drag.
+  /// {@endtemplate}
+  Future<bool> showEdgesOnScreen(
+    Set<EdgeIdType> edgeIds, {
+    EdgeInsets margin = EdgeInsets.zero,
+    EdgeInsets padding = EdgeInsets.zero,
+    Duration duration = Duration.zero,
+    Curve curve = Curves.linear,
+  }) async {
+    if (_showOnScreenAnimationData != null) {
+      _showOnScreenAnimationData!.completer.complete(false);
+    }
+
+    final Completer<bool> completer = Completer();
+
+    _showOnScreenAnimationData = _ShowOnScreenAnimationData(
+      completer: completer,
+      targetEdgeIds: edgeIds,
       padding: padding,
       margin: margin,
       duration: duration,
@@ -340,10 +386,11 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
 }
 
 @immutable
-class _ShowOnScreenAnimationData<NodeIdType> {
+class _ShowOnScreenAnimationData<NodeIdType, EdgeIdType> {
   const _ShowOnScreenAnimationData({
     required this.completer,
-    required this.animationTargetNodeIds,
+    this.targetNodeIds = const {},
+    this.targetEdgeIds = const {},
     required this.padding,
     required this.margin,
     required this.duration,
@@ -351,7 +398,8 @@ class _ShowOnScreenAnimationData<NodeIdType> {
   });
 
   final Completer<bool> completer;
-  final Set<NodeIdType> animationTargetNodeIds;
+  final Set<NodeIdType> targetNodeIds;
+  final Set<EdgeIdType> targetEdgeIds;
   final EdgeInsets padding;
   final EdgeInsets margin;
   final Duration duration;
