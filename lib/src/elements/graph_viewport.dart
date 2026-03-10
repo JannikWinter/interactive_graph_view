@@ -126,7 +126,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   Element _buildNode(NodeIdType nodeId) {
     final GraphViewportNodeSlot newNodeSlot = GraphViewportNodeSlot(nodeId);
     final NodeWidget newNodeWidget = _nodeBuilder(this, nodeId);
-    final Element? oldNodeElement = _nodes[nodeId] ?? _lastNodes[nodeId];
+    final Element? oldNodeElement = _nodes[nodeId];
     final Element newNodeElement = updateChild(oldNodeElement, newNodeWidget, newNodeSlot)!;
 
     return newNodeElement;
@@ -135,7 +135,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   Element _buildEdge(EdgeIdType edgeId) {
     final GraphViewportEdgeSlot newEdgeSlot = GraphViewportEdgeSlot(edgeId);
     final EdgeWidget newEdgeWidget = _edgeBuilder(this, edgeId);
-    final Element? oldEdgeElement = _edges[edgeId] ?? _lastEdges[edgeId];
+    final Element? oldEdgeElement = _edges[edgeId];
     final Element newEdgeElement = updateChild(oldEdgeElement, newEdgeWidget, newEdgeSlot)!;
 
     return newEdgeElement;
