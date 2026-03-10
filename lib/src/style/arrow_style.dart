@@ -24,12 +24,19 @@ final class ArrowStyle {
     );
   }
 
-  ArrowStyle lerp(ArrowStyle? other, double t) {
-    if (other is! ArrowStyle) return this;
+  static ArrowStyle? lerp(ArrowStyle? a, ArrowStyle? b, double t) {
+    if (identical(a, b)) {
+      return a;
+    }
+
+    final double lengthA = a?.length ?? 0;
+    final double widthA = a?.width ?? 0;
+    final double lengthB = b?.length ?? 0;
+    final double widthB = b?.width ?? 0;
 
     return ArrowStyle(
-      length: lerpDouble(length, other.length, t)!,
-      width: lerpDouble(width, other.width, t)!,
+      length: lerpDouble(lengthA, lengthB, t)!,
+      width: lerpDouble(widthA, widthB, t)!,
     );
   }
 }

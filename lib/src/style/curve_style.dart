@@ -6,10 +6,14 @@
 sealed class CurveStyle {
   const CurveStyle();
 
-  CurveStyle lerp(CurveStyle? other, double t) {
-    switch (this) {
+  static CurveStyle? lerp(CurveStyle? a, CurveStyle? b, double t) {
+    if (identical(a, b)) {
+      return a;
+    }
+
+    switch (a ?? b!) {
       case StraightCurveStyle():
-        return this;
+        return a ?? b!;
     }
   }
 }

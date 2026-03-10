@@ -3,7 +3,6 @@ import "package:flutter/rendering.dart";
 import "package:flutter/widgets.dart";
 
 import "../elements/graph_viewport.dart";
-import "../style/graph_style.dart";
 import "edge.dart";
 import "edge_parent_data.dart";
 import "graph_element.dart";
@@ -19,11 +18,11 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     required GraphViewportLayoutHelper layoutHelper,
     required double cacheExtent,
     required double edgeHitboxThickness,
-    required GraphStyle style,
+    required Color backgroundColor,
   }) : _layoutHelper = layoutHelper,
        _cacheExtent = cacheExtent,
        _edgeHitboxThickness = edgeHitboxThickness,
-       _style = style;
+       _backgroundColor = backgroundColor;
 
   final GraphViewportLayoutHelper _layoutHelper;
 
@@ -48,12 +47,12 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     markNeedsLayout();
   }
 
-  GraphStyle get style => _style;
-  GraphStyle _style;
-  set style(GraphStyle value) {
-    if (_style == value) return;
+  Color get backgroundColor => _backgroundColor;
+  Color _backgroundColor;
+  set backgroundColor(Color value) {
+    if (_backgroundColor == value) return;
 
-    _style = value;
+    _backgroundColor = value;
 
     markNeedsPaint();
   }
@@ -356,7 +355,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    context.canvas.drawColor(style.backgroundColor, BlendMode.src);
+    context.canvas.drawColor(backgroundColor, BlendMode.src);
 
     context.pushTransform(
       needsCompositing,

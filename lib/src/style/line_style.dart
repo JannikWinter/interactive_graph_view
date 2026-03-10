@@ -9,10 +9,12 @@ sealed class LineStyle {
   /// The thickness of the edge's drawn line.
   final double thickness;
 
-  LineStyle lerp(LineStyle? other, double t) {
-    if (other is! LineStyle) return this;
+  static LineStyle? lerp(LineStyle? a, LineStyle? b, double t) {
+    if (identical(a, b)) {
+      return a;
+    }
 
-    final (double thicknessA, double dashSizeA, double gapSizeA) = switch (this) {
+    final (double? thicknessA, double? dashSizeA, double? gapSizeA) = switch (a) {
       SolidLineStyle(thickness: final double thickness) => (thickness, 5, 0),
       DashedLineStyle(
         thickness: final double thickness,
@@ -25,8 +27,9 @@ sealed class LineStyle {
         thickness,
         gapSize,
       ),
+      null => (null, null, null),
     };
-    final (double thicknessB, double dashSizeB, double gapSizeB) = switch (other) {
+    final (double? thicknessB, double? dashSizeB, double? gapSizeB) = switch (b) {
       SolidLineStyle(thickness: final double thickness) => (thickness, 5, 0),
       DashedLineStyle(
         thickness: final double thickness,
@@ -39,6 +42,7 @@ sealed class LineStyle {
         thickness,
         gapSize,
       ),
+      null => (null, null, null),
     };
 
     return DashedLineStyle(

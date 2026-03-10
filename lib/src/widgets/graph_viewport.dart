@@ -101,10 +101,13 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   final GraphViewportTransform transform;
 
   /// {@template graph_viewport.style}
-  /// The style this viewport uses.
+  /// This viewport's own style.
   ///
-  /// If no style is supplied, the viewport looks for any style up the widget tree that was supplied through a [Theme].
-  /// If no style is found, [GraphStyle.fallback] is used to construct a default fallback style.
+  /// To style this widget, we will search for a non-null value for each [GraphStyle]-property. The applied
+  /// `GraphStyle`s are searched in the following order:
+  /// 1. this [style].
+  /// 2. the graph style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
+  /// 3. [GraphStyle.fallback] which will have a fallback value for every property.
   /// {@endtemplate}
   final GraphStyle? style;
 
@@ -186,7 +189,9 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
 
   @override
   RenderGraphViewport<NodeIdType, EdgeIdType> createRenderObject(BuildContext context) {
-    final GraphStyle effectiveStyle = style ?? Theme.of(context).extension<GraphStyle>() ?? GraphStyle.fallback();
+    final GraphStyle? themeStyle = Theme.of(context).extension<GraphStyle>();
+    final GraphStyle fallbackStyle = GraphStyle.fallback();
+    final GraphStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
 
     return RenderGraphViewport<NodeIdType, EdgeIdType>(
       viewportController: viewportController,
@@ -194,7 +199,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
       layoutHelper: context as GraphViewportElement<NodeIdType, EdgeIdType>,
       cacheExtent: cacheExtent,
       edgeHitboxThickness: edgeHitboxThickness,
-      style: effectiveStyle,
+      backgroundColor: effectiveStyle.backgroundColor!,
     );
   }
 
@@ -203,13 +208,15 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     BuildContext context,
     RenderGraphViewport<NodeIdType, EdgeIdType> renderObject,
   ) {
-    final GraphStyle effectiveStyle = style ?? Theme.of(context).extension<GraphStyle>() ?? GraphStyle.fallback();
+    final GraphStyle? themeStyle = Theme.of(context).extension<GraphStyle>();
+    final GraphStyle fallbackStyle = GraphStyle.fallback();
+    final GraphStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
 
     renderObject
       ..viewportController = viewportController
       ..transform = transform
       ..cacheExtent = cacheExtent
       ..edgeHitboxThickness = edgeHitboxThickness
-      ..style = effectiveStyle;
+      ..backgroundColor = effectiveStyle.backgroundColor!;
   }
 }

@@ -2,6 +2,7 @@ import "package:flutter/foundation.dart";
 import "package:flutter/material.dart" show ThemeExtension, Colors;
 import "package:flutter/painting.dart";
 
+import "../util/nullable.dart";
 import "arrow_style.dart";
 import "curve_style.dart";
 import "line_shadow.dart";
@@ -27,60 +28,70 @@ import "line_style.dart";
 class EdgeStyle extends ThemeExtension<EdgeStyle> {
   /// Constructs an edge style.
   const EdgeStyle({
-    required this.lineColor,
-    required this.textStyle,
-    required this.lineStyle,
-    required this.curveStyle,
-    required this.arrowStyle,
-    this.shadow = const [],
+    this.lineColor,
+    this.textStyle = const TextStyle(),
+    this.textBackgroundColor,
+    this.lineStyle,
+    this.curveStyle,
+    this.arrowStyle,
+    this.shadow,
   });
 
   /// Constructs a fallback edge style which is used by [EdgeWidget] when neither a style is supplied directly nor
   /// an edge style was supplied through a [Theme] up the widget tree.
-  const EdgeStyle.fallback()
+  EdgeStyle.fallback()
     : this(
         lineColor: Colors.white,
-        textStyle: const TextStyle(color: Colors.white),
-        lineStyle: const SolidLineStyle(thickness: 4),
+        textStyle: TextStyle(color: Colors.white),
+        textBackgroundColor: Colors.black.withValues(alpha: 0.8),
+        lineStyle: const SolidLineStyle(thickness: 3),
         curveStyle: const StraightCurveStyle(),
         arrowStyle: const ArrowStyle(length: 20, width: 20),
+        shadow: const [],
       );
 
   /// The color of the edge's drawn line.
-  final Color lineColor;
+  final Color? lineColor;
 
   /// The style of the edge's text.
   final TextStyle textStyle;
 
+  /// The background color of the edge's text.
+  ///
+  /// Set this to [Colors.transparent] if there should be no background.
+  final Color? textBackgroundColor;
+
   /// The fill style of the edge's drawn line.
-  final LineStyle lineStyle;
+  final LineStyle? lineStyle;
 
   /// The curve style of the edge's drawn line.
-  final CurveStyle curveStyle;
+  final CurveStyle? curveStyle;
 
   /// The style of the edge's drawn arrow.
-  final ArrowStyle arrowStyle;
+  final ArrowStyle? arrowStyle;
 
   /// The list of shadows applied to the edge's drawn line.
-  final List<LineShadow> shadow;
+  final List<LineShadow>? shadow;
 
   /// Creates a copy of this edge style with all he given fields replaced by the non-null parameter values.
   @override
   EdgeStyle copyWith({
-    Color? lineColor,
+    Nullable<Color>? lineColor,
     TextStyle? textStyle,
-    LineStyle? lineStyle,
-    CurveStyle? curveStyle,
-    ArrowStyle? arrowStyle,
-    List<LineShadow>? shadow,
+    Nullable<Color>? textBackgroundColor,
+    Nullable<LineStyle>? lineStyle,
+    Nullable<CurveStyle>? curveStyle,
+    Nullable<ArrowStyle>? arrowStyle,
+    Nullable<List<LineShadow>>? shadow,
   }) {
     return EdgeStyle(
-      lineColor: lineColor ?? this.lineColor,
+      lineColor: (lineColor != null) ? lineColor.value : this.lineColor,
       textStyle: textStyle ?? this.textStyle,
-      lineStyle: lineStyle ?? this.lineStyle,
-      curveStyle: curveStyle ?? this.curveStyle,
-      arrowStyle: arrowStyle ?? this.arrowStyle,
-      shadow: List.from(shadow ?? this.shadow),
+      textBackgroundColor: (textBackgroundColor != null) ? textBackgroundColor.value : this.textBackgroundColor,
+      lineStyle: (lineStyle != null) ? lineStyle.value : this.lineStyle,
+      curveStyle: (curveStyle != null) ? curveStyle.value : this.curveStyle,
+      arrowStyle: (arrowStyle != null) ? arrowStyle.value : this.arrowStyle,
+      shadow: (shadow != null) ? ((shadow.value != null) ? List.from(shadow.value!) : null) : this.shadow,
     );
   }
 
@@ -90,12 +101,36 @@ class EdgeStyle extends ThemeExtension<EdgeStyle> {
       return this;
     }
     return EdgeStyle(
-      lineColor: Color.lerp(lineColor, other.lineColor, t)!,
+      lineColor: Color.lerp(lineColor, other.lineColor, t),
       textStyle: TextStyle.lerp(textStyle, other.textStyle, t)!,
-      lineStyle: lineStyle.lerp(other.lineStyle, t),
-      curveStyle: curveStyle.lerp(other.curveStyle, t),
-      arrowStyle: arrowStyle.lerp(other.arrowStyle, t),
-      shadow: LineShadow.lerpList(shadow, other.shadow, t)!,
+      textBackgroundColor: Color.lerp(textBackgroundColor, other.textBackgroundColor, t),
+      lineStyle: LineStyle.lerp(lineStyle, other.lineStyle, t),
+      curveStyle: CurveStyle.lerp(curveStyle, other.curveStyle, t),
+      arrowStyle: ArrowStyle.lerp(arrowStyle, other.arrowStyle, t),
+      shadow: LineShadow.lerpList(shadow, other.shadow, t),
+    );
+  }
+
+  /// Returns a new edge style that is a combination of this style and the given [other] style.
+  ///
+  /// The null properties of the given [other] edge style are replaced with the non-null properties of this edge style.
+  /// The [other] style _inherits_ the properties of this style. Another way to think of it is that the "missing"
+  /// properties of the [other] style are _filled_ by the properties of this style.
+  ///
+  /// If the given edge style is null, returns this edge style.
+  EdgeStyle merge(EdgeStyle? other) {
+    if (identical(this, other) || other == null) {
+      return this;
+    }
+
+    return copyWith(
+      lineColor: (other.lineColor != null) ? Nullable(other.lineColor) : null,
+      textStyle: textStyle.merge(other.textStyle),
+      textBackgroundColor: (other.textBackgroundColor != null) ? Nullable(other.textBackgroundColor) : null,
+      lineStyle: (other.lineStyle != null) ? Nullable(other.lineStyle) : null,
+      curveStyle: (other.curveStyle != null) ? Nullable(other.curveStyle) : null,
+      arrowStyle: (other.arrowStyle != null) ? Nullable(other.arrowStyle) : null,
+      shadow: (other.shadow != null) ? Nullable(other.shadow) : null,
     );
   }
 }

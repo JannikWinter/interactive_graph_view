@@ -38,10 +38,13 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
   /// The text can be styled with [EdgeStyle.textStyle].
   final String? text;
 
-  /// The style this edge uses.
+  /// This edge's own style.
   ///
-  /// If no style is supplied, it looks for any style up the widget tree that was supplied through a [Theme].
-  /// If no style is found, [EdgeStyle.fallback] is used to construct a default fallback style.
+  /// To style this widget, we will search for a non-null value for each [EdgeStyle]-property. The applied `EdgeStyle`s
+  /// are searched in the following order:
+  /// 1. this [style].
+  /// 2. the edge style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
+  /// 3. [EdgeStyle.fallback] which will have a fallback value for every property.
   final EdgeStyle? style;
 
   /// This callback will be called when a Tap gesture was registered on this edge.
@@ -52,13 +55,21 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
 
   @override
   GraphEdgeRenderObject createRenderObject(BuildContext context) {
-    final EdgeStyle effectiveStyle = style ?? Theme.of(context).extension<EdgeStyle>() ?? EdgeStyle.fallback();
+    final EdgeStyle? themeStyle = Theme.of(context).extension<EdgeStyle>();
+    final EdgeStyle fallbackStyle = EdgeStyle.fallback();
+    final EdgeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
 
     return GraphEdgeRenderObject(
       startNodeId: startNodeId,
       endNodeId: endNodeId,
       text: text,
-      style: effectiveStyle,
+      arrowStyle: effectiveStyle.arrowStyle!,
+      lineStyle: effectiveStyle.lineStyle!,
+      curveStyle: effectiveStyle.curveStyle!,
+      textStyle: effectiveStyle.textStyle,
+      textBackgroundColor: effectiveStyle.textBackgroundColor!,
+      color: effectiveStyle.lineColor!,
+      shadow: effectiveStyle.shadow!,
     );
   }
 
@@ -69,12 +80,20 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
 
   @override
   void updateRenderObject(BuildContext context, GraphEdgeRenderObject renderObject) {
-    final EdgeStyle effectiveStyle = style ?? Theme.of(context).extension<EdgeStyle>() ?? EdgeStyle.fallback();
+    final EdgeStyle? themeStyle = Theme.of(context).extension<EdgeStyle>();
+    final EdgeStyle fallbackStyle = EdgeStyle.fallback();
+    final EdgeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
 
     renderObject
       ..startNodeId = startNodeId
       ..endNodeId = endNodeId
       ..text = text
-      ..style = effectiveStyle;
+      ..arrowStyle = effectiveStyle.arrowStyle!
+      ..lineStyle = effectiveStyle.lineStyle!
+      ..curveStyle = effectiveStyle.curveStyle!
+      ..textStyle = effectiveStyle.textStyle
+      ..textBackgroundColor = effectiveStyle.textBackgroundColor!
+      ..color = effectiveStyle.lineColor!
+      ..shadow = effectiveStyle.shadow!;
   }
 }

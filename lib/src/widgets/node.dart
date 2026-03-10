@@ -1,5 +1,5 @@
 import "package:flutter/gestures.dart";
-import "package:flutter/material.dart" show Theme;
+import "package:flutter/material.dart" show Theme, ThemeData;
 import "package:flutter/widgets.dart";
 
 import "../elements/node.dart";
@@ -41,14 +41,15 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   /// Constructs a [NodeWidget] while giving you full customizability for the [background] and [content] widgets.
   ///
   /// If you want to construct a simple node, which only contains text and accepts a [NodeStyle] (and also respects
-  /// a [NodeStyle] supplied through a [Theme] up the widget tree), you probably want to use [NodeWidget.basic].
+  /// a [NodeStyle] supplied through the closest [Theme] up the widget tree), you probably want to use
+  /// [NodeWidget.basic].
   ///
-  /// Note that this constructor fully ignores the [NodeStyle] supplied through a [Theme] up the widget tree as you
-  /// define the [content] and [background] widgets yourself.
+  /// Note that this constructor fully ignores the [NodeStyle] supplied by the closest [Theme] up the widget tree as the
+  /// [content] and [background] widgets are defined by you.
   /// You can still apply the [Theme] yourself by using `Theme.of(context).extension<NodeStyle>();`.
   ///
-  /// Also not that [borderRadius] is only automatically applied when [clipBehavior] is not [Clip.none].
-  /// Apart from that [borderRadius] is only applied to the edges connected to this node.
+  /// Also note that [borderRadius] is only automatically applied when [clipBehavior] is not [Clip.none].
+  /// Apart from that, [borderRadius] is only applied to the edges connected to this node.
   const NodeWidget.custom({
     super.key,
     required this.position,
@@ -69,14 +70,17 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     this.onDragCancel,
   });
 
-  /// Constructs a [NodeWidget] from a given [text], [style] and [borderRadius].
+  /// Constructs a [NodeWidget] at a given [position] with given [text], [style], [overlay], [maxWidth] and
+  /// [borderRadius].
   ///
   /// If you want more control over the background and content of the node, you should use [NodeWidget.custom],
   /// where you define the widgets for [content] and [background] yourself.
   ///
-  /// If no [style] is applied, this widget will try to find a [NodeStyle] that was applied through a [Theme] up the
-  /// widget tree.
-  /// If no style is found, [NodeStyle.fallback] is used to construct a default fallback style.
+  /// To style this widget, we will search for a non-null value for each [NodeStyle]-property. The applied `NodeStyle`s
+  /// are searched in the following order:
+  /// 1. the given [style].
+  /// 2. the node style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
+  /// 3. [NodeStyle.fallback] which will have a fallback value for every property.
   factory NodeWidget.basic({
     Key? key,
     required Offset position,
@@ -246,30 +250,41 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
 /// The widget that is used by [NodeWidget.basic] to construct the [NodeWidget.content] of a basic node.
 ///
 /// This only uses [text] and [style].
-/// If no [style] is supplied, it looks for any style up the widget tree that was supplied through a [Theme].
-/// If no style is found, [NodeStyle.fallback] is used to construct a default fallback style.
+///
+/// To style this widget, we will search for a non-null value for each [NodeStyle]-property. The applied `NodeStyle`s
+/// are searched in the following order:
+/// 1. the given [style].
+/// 2. the node style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
+/// 3. [NodeStyle.fallback] which will have a fallback value for every property.
 class BasicNodeContent extends StatelessWidget {
   const BasicNodeContent({super.key, required this.text, this.style});
 
   /// The node's text.
   final String text;
 
-  /// The node's style.
+  /// The node's own style.
   ///
-  /// If no style is supplied, it looks for any style up the widget tree that was supplied through a [Theme].
-  /// If no style is found, [NodeStyle.fallback] is used to construct a default fallback style.
+  /// To style this widget, we will search for a non-null value for each [NodeStyle]-property. The applied `NodeStyle`s
+  /// are searched in the following order:
+  /// 1. this [style].
+  /// 2. the node style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
+  /// 3. [NodeStyle.fallback] which will have a fallback value for every property.
   final NodeStyle? style;
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement correct merging of style components
-    final NodeStyle effectiveStyle = style ?? Theme.of(context).extension<NodeStyle>() ?? NodeStyle.fallback();
+    final NodeStyle? themeStyle = Theme.of(context).extension<NodeStyle>();
+    final NodeStyle fallbackStyle = NodeStyle.fallback();
+    final NodeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+
+    final EdgeInsets effectivePadding = effectiveStyle.padding!;
+    final TextStyle effectiveTextStyle = DefaultTextStyle.of(context).style.merge(effectiveStyle.textStyle);
 
     return Padding(
-      padding: effectiveStyle.padding,
+      padding: effectivePadding,
       child: Text(
         text,
-        style: effectiveStyle.textStyle,
+        style: effectiveTextStyle,
       ),
     );
   }
@@ -278,29 +293,40 @@ class BasicNodeContent extends StatelessWidget {
 /// The widget that is used by [NodeWidget.basic] to construct the [NodeWidget.background] of a basic node.
 ///
 /// This only uses [borderRadius] and [style].
-/// If no [style] is supplied, it looks for any style up the widget tree that was supplied through a [Theme].
-/// If no style is found, [NodeStyle.fallback] is used to construct a default fallback style.
+///
+/// To style this widget, we will search for a non-null value for each [NodeStyle]-property. The applied `NodeStyle`s
+/// are searched in the following order:
+/// 1. the given [style].
+/// 2. the node style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
+/// 3. [NodeStyle.fallback] which will have a fallback value for every property.
 class BasicNodeBackground extends StatelessWidget {
   const BasicNodeBackground({super.key, required this.borderRadius, this.style});
 
   /// The radius of the background's border.
   final Radius borderRadius;
 
-  /// The node's style.
+  /// The node's own style.
   ///
-  /// If no style is supplied, it looks for any style up the widget tree that was supplied through a [Theme].
-  /// If no style is found, [NodeStyle.fallback] is used to construct a default fallback style.
+  /// To style this widget, we will search for a non-null value for each [NodeStyle]-property. The applied `NodeStyle`s
+  /// are searched in the following order:
+  /// 1. this [style].
+  /// 2. the node style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
+  /// 3. [NodeStyle.fallback] which will have a fallback value for every property.
   final NodeStyle? style;
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement correct merging of style components
-    final NodeStyle effectiveStyle = style ?? Theme.of(context).extension<NodeStyle>() ?? NodeStyle.fallback();
+    final NodeStyle? themeStyle = Theme.of(context).extension<NodeStyle>();
+    final NodeStyle fallbackStyle = NodeStyle.fallback();
+    final NodeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+
+    final Color effectiveBackgroundColor = effectiveStyle.backgroundColor!;
+    final BorderSide effectiveBorderSide = effectiveStyle.borderSide!;
 
     return Container(
       decoration: BoxDecoration(
-        color: effectiveStyle.backgroundColor,
-        border: effectiveStyle.borderSide != null ? Border.fromBorderSide(effectiveStyle.borderSide!) : null,
+        color: effectiveBackgroundColor,
+        border: Border.fromBorderSide(effectiveBorderSide),
         borderRadius: BorderRadius.all(borderRadius),
       ),
     );

@@ -2,7 +2,7 @@ import "package:flutter/foundation.dart" show immutable;
 import "package:flutter/material.dart" show ThemeExtension, Colors;
 import "package:flutter/painting.dart";
 
-import "../util/nullable.dart" show Nullable;
+import "../util/nullable.dart";
 
 /// The style for a [NodeWidget].
 ///
@@ -29,50 +29,50 @@ import "../util/nullable.dart" show Nullable;
 class NodeStyle extends ThemeExtension<NodeStyle> {
   /// Constructs a node style.
   const NodeStyle({
-    required this.textStyle,
-    this.padding = const EdgeInsets.all(8.0),
-    required this.backgroundColor,
+    this.textStyle = const TextStyle(),
+    this.padding,
+    this.backgroundColor,
     this.borderSide,
   });
 
-  /// Constructs a fallback node style which is used by [NodeWidget.basic] (and [BasicNodeBackground] and
-  /// [BasicNodeContent]) when neither a style is supplied directly nor a `NodeStyle` was supplied through a [Theme]
-  /// up the widget tree.
+  /// Constructs a fallback node style.
+  ///
+  /// This is used by [NodeWidget.basic] (and [BasicNodeBackground] and [BasicNodeContent]) when neither a style is
+  /// supplied directly nor a `NodeStyle` was supplied through a [Theme] up the widget tree.
   const NodeStyle.fallback()
     : this(
-        textStyle: const TextStyle(color: Colors.white),
+        textStyle: const TextStyle(),
+        padding: const EdgeInsets.all(6.0),
         backgroundColor: Colors.blue,
+        borderSide: const BorderSide(style: BorderStyle.none),
       );
 
   /// The text style for the text of the node.
   final TextStyle textStyle;
 
   /// The padding applied to the text of the node.
-  final EdgeInsets padding;
+  final EdgeInsets? padding;
 
   /// The node's background color
-  final Color backgroundColor;
+  final Color? backgroundColor;
 
   /// The `BorderSide` applied to all sides of the border.
   ///
-  /// Supply `null` if there should not be a border.
+  /// Supply a `BoderSide` with `style` set to [BorderStyle.none], if there should not be a border.
   final BorderSide? borderSide;
 
   /// Creates a copy of this node style with all the given fields replaced by the non-null parameter values.
-  ///
-  /// If you want to replace [borderSide] in the copy, supply `Nullable(value)`, where value can also be null
-  /// (see [Nullable]).
   @override
   NodeStyle copyWith({
     TextStyle? textStyle,
-    EdgeInsets? padding,
-    Color? backgroundColor,
+    Nullable<EdgeInsets>? padding,
+    Nullable<Color>? backgroundColor,
     Nullable<BorderSide>? borderSide,
   }) {
     return NodeStyle(
       textStyle: textStyle ?? this.textStyle,
-      padding: padding ?? this.padding,
-      backgroundColor: backgroundColor ?? this.backgroundColor,
+      padding: (padding != null) ? padding.value : this.padding,
+      backgroundColor: (backgroundColor != null) ? backgroundColor.value : this.backgroundColor,
       borderSide: (borderSide != null) ? borderSide.value : this.borderSide,
     );
   }
@@ -85,13 +85,33 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
 
     return NodeStyle(
       textStyle: TextStyle.lerp(textStyle, other.textStyle, t)!,
-      padding: EdgeInsets.lerp(padding, other.padding, t)!,
-      backgroundColor: Color.lerp(backgroundColor, other.backgroundColor, t)!,
+      padding: EdgeInsets.lerp(padding, other.padding, t),
+      backgroundColor: Color.lerp(backgroundColor, other.backgroundColor, t),
       borderSide: BorderSide.lerp(
-        borderSide ?? const BorderSide(width: 0),
-        other.borderSide ?? const BorderSide(width: 0),
+        borderSide ?? const BorderSide(style: BorderStyle.none),
+        other.borderSide ?? const BorderSide(style: BorderStyle.none),
         t,
       ),
+    );
+  }
+
+  /// Returns a new node style that is a combination of this style and the given [other] style.
+  ///
+  /// The null properties of the given [other] node style are replaced with the non-null properties of this node style.
+  /// The [other] style _inherits_ the properties of this style. Another way to think of it is that the "missing"
+  /// properties of the [other] style are _filled_ by the properties of this style.
+  ///
+  /// If the given node style is null, returns this node style.
+  NodeStyle merge(NodeStyle? other) {
+    if (identical(this, other) || other == null) {
+      return this;
+    }
+
+    return copyWith(
+      textStyle: textStyle.merge(other.textStyle),
+      padding: (other.padding != null) ? Nullable(other.padding) : null,
+      backgroundColor: (other.backgroundColor != null) ? Nullable(other.backgroundColor) : null,
+      borderSide: (other.borderSide != null) ? Nullable(other.borderSide) : null,
     );
   }
 }

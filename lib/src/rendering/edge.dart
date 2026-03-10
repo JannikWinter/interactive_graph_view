@@ -1,11 +1,14 @@
+import "dart:collection";
 import "dart:math";
 import "dart:ui";
 
+import "package:flutter/foundation.dart";
+import "package:flutter/material.dart" show Colors;
 import "package:flutter/rendering.dart";
 import "package:path_drawing/path_drawing.dart";
 
+import "../style/arrow_style.dart";
 import "../style/curve_style.dart";
-import "../style/edge_style.dart";
 import "../style/line_shadow.dart";
 import "../style/line_style.dart";
 import "edge_parent_data.dart";
@@ -18,11 +21,23 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     required NodeIdType startNodeId,
     required NodeIdType endNodeId,
     required String? text,
-    required EdgeStyle style,
+    required ArrowStyle arrowStyle,
+    required CurveStyle curveStyle,
+    required LineStyle lineStyle,
+    required TextStyle textStyle,
+    required Color textBackgroundColor,
+    required Color color,
+    required List<LineShadow> shadow,
   }) : _startNodeId = startNodeId,
        _endNodeId = endNodeId,
        _text = text,
-       _style = style;
+       _arrowStyle = arrowStyle,
+       _curveStyle = curveStyle,
+       _lineStyle = lineStyle,
+       _textStyle = textStyle,
+       _textBackgroundColor = textBackgroundColor,
+       _color = color,
+       _shadow = shadow;
 
   NodeIdType _startNodeId;
   NodeIdType get startNodeId => _startNodeId;
@@ -53,13 +68,67 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     markNeedsPaint();
   }
 
-  EdgeStyle get style => _style;
-  EdgeStyle _style;
-  set style(EdgeStyle value) {
-    if (_style == value) return;
+  ArrowStyle get arrowStyle => _arrowStyle;
+  ArrowStyle _arrowStyle;
+  set arrowStyle(ArrowStyle value) {
+    if (_arrowStyle == value) return;
 
-    _style = value;
+    _arrowStyle = value;
     markNeedsLayout();
+  }
+
+  CurveStyle get curveStyle => _curveStyle;
+  CurveStyle _curveStyle;
+  set curveStyle(CurveStyle value) {
+    if (_curveStyle == value) return;
+
+    _curveStyle = value;
+    markNeedsLayout();
+  }
+
+  LineStyle get lineStyle => _lineStyle;
+  LineStyle _lineStyle;
+  set lineStyle(LineStyle value) {
+    if (_lineStyle == value) return;
+
+    _lineStyle = value;
+    markNeedsLayout();
+  }
+
+  TextStyle get textStyle => _textStyle;
+  TextStyle _textStyle;
+  set textStyle(TextStyle value) {
+    if (_textStyle == value) return;
+
+    _textStyle = value;
+    markNeedsPaint();
+  }
+
+  Color get textBackgroundColor => _textBackgroundColor;
+  Color _textBackgroundColor;
+  set textBackgroundColor(Color value) {
+    if (_textBackgroundColor == value) return;
+
+    _textBackgroundColor = value;
+    markNeedsPaint();
+  }
+
+  Color get color => _color;
+  Color _color;
+  set color(Color value) {
+    if (_color == value) return;
+
+    _color = value;
+    markNeedsPaint();
+  }
+
+  UnmodifiableListView<LineShadow> get shadow => UnmodifiableListView(_shadow);
+  List<LineShadow> _shadow;
+  set shadow(List<LineShadow> value) {
+    if (listEquals(_shadow, value)) return;
+
+    _shadow = List.from(value);
+    markNeedsPaint();
   }
 
   late Path _hitTestPath;
@@ -100,11 +169,11 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
 
     _arrowPath = Path()
       ..moveTo(0, 0)
-      ..lineTo(-style.arrowStyle.length, -style.arrowStyle.width / 2)
-      ..lineTo(-style.arrowStyle.length, style.arrowStyle.width / 2)
+      ..lineTo(-arrowStyle.length, -arrowStyle.width / 2)
+      ..lineTo(-arrowStyle.length, arrowStyle.width / 2)
       ..close();
 
-    switch (style.curveStyle) {
+    switch (curveStyle) {
       case StraightCurveStyle():
         {
           final double lineSlope = (startToEnd.dy / startToEnd.dx).abs();
@@ -204,7 +273,7 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
 
           final Offset startBorderToEndBorder = lineEndAtNodeBorder - lineStartAtNodeBorder;
           final Offset lineEndWithoutArrow =
-              _arrowPosition - (startBorderToEndBorder / startBorderToEndBorder.distance) * style.arrowStyle.length;
+              _arrowPosition - (startBorderToEndBorder / startBorderToEndBorder.distance) * arrowStyle.length;
 
           _textPosition = lineStartAtNodeBorder + startBorderToEndBorder / 2;
 
@@ -218,7 +287,7 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
       //   {}
     }
 
-    switch (style.lineStyle) {
+    switch (lineStyle) {
       case DashedLineStyle(dashSize: final double dashSize, gapSize: final double gapSize):
         _linePath = dashPath(
           _basicLinePath,
@@ -247,7 +316,7 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     context.canvas.save();
     context.canvas.translate(offset.dx, offset.dy);
 
-    for (final LineShadow shadow in style.shadow) {
+    for (final LineShadow shadow in shadow) {
       context.canvas.drawPath(
         _linePath,
         shadow.toPaint(),
@@ -263,20 +332,20 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
       _linePath,
       Paint()
         ..style = PaintingStyle.stroke
-        ..color = style.lineColor
-        ..strokeWidth = style.lineStyle.thickness,
+        ..color = color
+        ..strokeWidth = lineStyle.thickness,
     );
 
     _paintArrow(
       context.canvas,
-      Paint()..color = style.lineColor,
+      Paint()..color = color,
     );
 
     if (text != null) {
       final TextPainter edgeLabelTextPainter = TextPainter(
         text: TextSpan(
           text: text,
-          style: style.textStyle,
+          style: textStyle,
         ),
         textDirection: TextDirection.ltr,
       );
@@ -285,13 +354,13 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
       final double textWidth = edgeLabelTextPainter.width;
       final double textHeight = edgeLabelTextPainter.height;
 
-      if (style.textStyle.backgroundColor != null) {
+      if (textBackgroundColor != Colors.transparent) {
         context.canvas.drawRRect(
           RRect.fromRectAndRadius(
             Rect.fromCenter(center: _textPosition, width: textWidth + 15, height: textHeight + 10),
             Radius.circular(10),
           ),
-          Paint()..color = style.textStyle.backgroundColor!,
+          Paint()..color = textBackgroundColor,
         );
       }
       edgeLabelTextPainter.paint(
