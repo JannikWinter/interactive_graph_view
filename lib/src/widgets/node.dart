@@ -32,33 +32,32 @@ typedef GestureNodeDragCancelCallback = void Function();
 ///
 /// To build a node, its ID should first be added to a [GraphViewport]'s [GraphViewport.viewportController].
 class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, RenderBox> {
-  /// The default value for [borderRadius] when it is not supplied to the constructor.
-  static const Radius kDefaultBorderRadius = Radius.zero;
-
-  /// The default value for [clipBehavior] when it is not supplied to the constructor.
-  static const Clip kDefaultClipBehavior = Clip.none;
-
-  /// Constructs a [NodeWidget] while giving you full customizability for the [background] and [content] widgets.
+  /// Constructs a [NodeWidget] at a given [position] while giving you full customizability for the [content],
+  /// [background] and [overlay] widgets.
   ///
-  /// If you want to construct a simple node, which only contains text and accepts a [NodeStyle] (and also respects
-  /// a [NodeStyle] supplied through the closest [Theme] up the widget tree), you probably want to use
+  /// If you just want to construct a simple node, which only requires a text, you probably want to use
   /// [NodeWidget.basic].
   ///
-  /// Note that this constructor fully ignores the [NodeStyle] supplied by the closest [Theme] up the widget tree as the
-  /// [content] and [background] widgets are defined by you.
-  /// You can still apply the [Theme] yourself by using `Theme.of(context).extension<NodeStyle>();`.
+  /// Note that only the following [NodeStyle]-properties are applied when using this constructor:
+  /// - [NodeStyle.maxWidth] will be used for wrapping the content.
+  /// - [NodeStyle.clipBehavior], if not [Clip.none], will clip [content] and [background] according to
+  /// [NodeStyle.borderRadius].
+  /// - [NodeStyle.borderRadius] will be used for correctly displaying an edge's arrow near the corner of this node.
   ///
-  /// Also note that [borderRadius] is only automatically applied when [clipBehavior] is not [Clip.none].
-  /// Apart from that, [borderRadius] is only applied to the edges connected to this node.
+  /// The other properties would apply to [content] and [background], which you define yourself.
+  ///
+  /// To apply the style for this widget, we will search for a non-null value for each [NodeStyle]-property. The applied
+  /// `NodeStyle`s are searched in the following order:
+  /// 1. the given [style].
+  /// 2. the node style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
+  /// 3. [NodeStyle.fallback] which will have a fallback value for every property.
   const NodeWidget.custom({
     super.key,
     required this.position,
-    required this.maxWidth,
     required this.content,
     required this.background,
     this.overlay,
-    this.borderRadius = kDefaultBorderRadius,
-    this.clipBehavior = kDefaultClipBehavior,
+    this.style,
     this.onTap,
     this.onDoubleTap,
     this.onLongPress,
@@ -70,14 +69,13 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     this.onDragCancel,
   });
 
-  /// Constructs a [NodeWidget] at a given [position] with given [text], [style], [overlay], [maxWidth] and
-  /// [borderRadius].
+  /// Constructs a [NodeWidget] at a given [position] with given [text], [style] and optional [overlay].
   ///
-  /// If you want more control over the background and content of the node, you should use [NodeWidget.custom],
+  /// If you want more control over the content and background of the node, you should use [NodeWidget.custom],
   /// where you define the widgets for [content] and [background] yourself.
   ///
-  /// To style this widget, we will search for a non-null value for each [NodeStyle]-property. The applied `NodeStyle`s
-  /// are searched in the following order:
+  /// To apply the style for this widget, we will search for a non-null value for each [NodeStyle]-property. The applied
+  /// `NodeStyle`s are searched in the following order:
   /// 1. the given [style].
   /// 2. the node style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
   /// 3. [NodeStyle.fallback] which will have a fallback value for every property.
@@ -85,11 +83,8 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     Key? key,
     required Offset position,
     required String text,
-    required double maxWidth,
-    NodeStyle? style,
     NodeOverlay? overlay,
-    Radius borderRadius = kDefaultBorderRadius,
-    Clip clipBehavior = kDefaultClipBehavior,
+    NodeStyle? style,
     GestureTapCallback? onTap,
     GestureDoubleTapCallback? onDoubleTap,
     GestureLongPressCallback? onLongPress,
@@ -103,15 +98,10 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     return NodeWidget.custom(
       key: key,
       position: position,
-      maxWidth: maxWidth,
       content: BasicNodeContent(text: text, style: style),
-      background: BasicNodeBackground(
-        style: style,
-        borderRadius: borderRadius,
-      ),
+      background: BasicNodeBackground(style: style),
       overlay: overlay,
-      borderRadius: borderRadius,
-      clipBehavior: clipBehavior,
+      style: style,
       onTap: onTap,
       onDoubleTap: onDoubleTap,
       onLongPress: onLongPress,
@@ -145,30 +135,14 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   /// It can be beyond the node's bounds.
   final NodeOverlay? overlay;
 
-  /// The maximum width this node will take up.
+  /// This node's own style.
   ///
-  /// If the [content] or [background] are wider than [maxWidth], they are clipped depending on the value of
-  /// [clipBehavior].
-  ///
-  /// Note that [overlay] can be outside those bounds and ignores [maxWidth].
-  final double maxWidth;
-
-  /// The radius of this node's border.
-  ///
-  /// This is used for correctly displaying the ends of edges (arrows).
-  ///
-  /// If [NodeWidget.basic] was used to construct this widget, [borderRadius] is also applied to the [background].
-  ///
-  /// If [NodeWidget.custom] was used instead, you need to define the borderRadius to the children yourselft.
-  ///
-  /// If [clipBehavior] was set to a value other than [Clip.none], [borderRadius] is applied to the clip region.
-  final Radius borderRadius;
-
-  /// The clipping behavior.
-  ///
-  /// When this is set to a value other than [Clip.none], [background] and [content] will be clipped according to
-  /// [maxWidth] and [borderRadius].
-  final Clip clipBehavior;
+  /// To apply the style for this widget, we will search for a non-null value for each [NodeStyle]-property. The applied
+  /// `NodeStyle`s are searched in the following order:
+  /// 1. this [style].
+  /// 2. the node style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
+  /// 3. [NodeStyle.fallback] which will have a fallback value for every property.
+  final NodeStyle? style;
 
   // Tap callbacks
 
@@ -219,12 +193,16 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
 
   @override
   GraphNodeRenderObject createRenderObject(BuildContext context) {
+    final NodeStyle? themeStyle = Theme.of(context).extension<NodeStyle>();
+    final NodeStyle fallbackStyle = NodeStyle.fallback();
+    final NodeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+
     return GraphNodeRenderObject(
       position: position,
-      maxWidth: maxWidth,
-      borderRadius: borderRadius,
-      clipBehavior: clipBehavior,
       overlayConfig: overlay,
+      maxWidth: effectiveStyle.maxWidth!,
+      borderRadius: effectiveStyle.borderRadius!,
+      clipBehavior: effectiveStyle.clipBehavior!,
     );
   }
 
@@ -235,12 +213,16 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
 
   @override
   void updateRenderObject(BuildContext context, GraphNodeRenderObject renderObject) {
+    final NodeStyle? themeStyle = Theme.of(context).extension<NodeStyle>();
+    final NodeStyle fallbackStyle = NodeStyle.fallback();
+    final NodeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+
     renderObject
       ..position = position
-      ..maxWidth = maxWidth
-      ..borderRadius = borderRadius
-      ..clipBehavior = clipBehavior
-      ..overlayConfig = overlay;
+      ..overlayConfig = overlay
+      ..maxWidth = effectiveStyle.maxWidth!
+      ..borderRadius = effectiveStyle.borderRadius!
+      ..clipBehavior = effectiveStyle.clipBehavior!;
   }
 
   @override
@@ -249,10 +231,10 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
 
 /// The widget that is used by [NodeWidget.basic] to construct the [NodeWidget.content] of a basic node.
 ///
-/// This only uses [text] and [style].
+/// This only uses [NodeStyle.padding] and [NodeStyle.textStyle] of [style].
 ///
-/// To style this widget, we will search for a non-null value for each [NodeStyle]-property. The applied `NodeStyle`s
-/// are searched in the following order:
+/// To apply the style for this widget, we will search for a non-null value for each [NodeStyle]-property. The applied
+/// `NodeStyle`s are searched in the following order:
 /// 1. the given [style].
 /// 2. the node style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
 /// 3. [NodeStyle.fallback] which will have a fallback value for every property.
@@ -264,8 +246,8 @@ class BasicNodeContent extends StatelessWidget {
 
   /// The node's own style.
   ///
-  /// To style this widget, we will search for a non-null value for each [NodeStyle]-property. The applied `NodeStyle`s
-  /// are searched in the following order:
+  /// To apply the style for this widget, we will search for a non-null value for each [NodeStyle]-property. The applied
+  /// `NodeStyle`s are searched in the following order:
   /// 1. this [style].
   /// 2. the node style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
   /// 3. [NodeStyle.fallback] which will have a fallback value for every property.
@@ -292,23 +274,20 @@ class BasicNodeContent extends StatelessWidget {
 
 /// The widget that is used by [NodeWidget.basic] to construct the [NodeWidget.background] of a basic node.
 ///
-/// This only uses [borderRadius] and [style].
+/// This only uses [NodeStyle.backgroundColor], [NodeStyle.borderSide] and [NodeStyle.borderRadius] from [style].
 ///
-/// To style this widget, we will search for a non-null value for each [NodeStyle]-property. The applied `NodeStyle`s
-/// are searched in the following order:
+/// To apply the style for this widget, we will search for a non-null value for each [NodeStyle]-property. The applied
+/// `NodeStyle`s are searched in the following order:
 /// 1. the given [style].
 /// 2. the node style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
 /// 3. [NodeStyle.fallback] which will have a fallback value for every property.
 class BasicNodeBackground extends StatelessWidget {
-  const BasicNodeBackground({super.key, required this.borderRadius, this.style});
-
-  /// The radius of the background's border.
-  final Radius borderRadius;
+  const BasicNodeBackground({super.key, this.style});
 
   /// The node's own style.
   ///
-  /// To style this widget, we will search for a non-null value for each [NodeStyle]-property. The applied `NodeStyle`s
-  /// are searched in the following order:
+  /// To apply the style for this widget, we will search for a non-null value for each [NodeStyle]-property. The applied
+  /// `NodeStyle`s are searched in the following order:
   /// 1. this [style].
   /// 2. the node style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
   /// 3. [NodeStyle.fallback] which will have a fallback value for every property.
@@ -322,12 +301,13 @@ class BasicNodeBackground extends StatelessWidget {
 
     final Color effectiveBackgroundColor = effectiveStyle.backgroundColor!;
     final BorderSide effectiveBorderSide = effectiveStyle.borderSide!;
+    final Radius effectiveBorderRadius = effectiveStyle.borderRadius!;
 
     return Container(
       decoration: BoxDecoration(
         color: effectiveBackgroundColor,
         border: Border.fromBorderSide(effectiveBorderSide),
-        borderRadius: BorderRadius.all(borderRadius),
+        borderRadius: BorderRadius.all(effectiveBorderRadius),
       ),
     );
   }

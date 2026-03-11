@@ -40,8 +40,8 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
 
   /// This edge's own style.
   ///
-  /// To style this widget, we will search for a non-null value for each [EdgeStyle]-property. The applied `EdgeStyle`s
-  /// are searched in the following order:
+  /// To apply the style for this widget, we will search for a non-null value for each [EdgeStyle]-property. The applied
+  /// `EdgeStyle`s are searched in the following order:
   /// 1. this [style].
   /// 2. the edge style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
   /// 3. [EdgeStyle.fallback] which will have a fallback value for every property.

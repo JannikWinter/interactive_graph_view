@@ -106,9 +106,11 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
         nodeBuilder: (context, nodeId) {
           return NodeWidget.basic(
             position: _nodes[nodeId]!.position,
-            maxWidth: 400,
-            borderRadius: Radius.circular(10),
-            clipBehavior: Clip.antiAlias,
+            style: NodeStyle(
+              maxWidth: 400,
+              borderRadius: Radius.circular(10),
+              clipBehavior: Clip.antiAlias,
+            ),
             text: nodeId,
             onDragDown: (details) => _graphViewportController.movingNodeIds = {nodeId},
             isDragEnabled: true,

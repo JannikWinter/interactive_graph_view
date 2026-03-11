@@ -103,8 +103,8 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// {@template graph_viewport.style}
   /// This viewport's own style.
   ///
-  /// To style this widget, we will search for a non-null value for each [GraphStyle]-property. The applied
-  /// `GraphStyle`s are searched in the following order:
+  /// To apply the style for this widget, we will search for a non-null value for each [GraphStyle]-property. The
+  /// applied `GraphStyle`s are searched in the following order:
   /// 1. this [style].
   /// 2. the graph style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
   /// 3. [GraphStyle.fallback] which will have a fallback value for every property.

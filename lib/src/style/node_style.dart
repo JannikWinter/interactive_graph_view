@@ -1,3 +1,5 @@
+import "dart:ui";
+
 import "package:flutter/foundation.dart" show immutable;
 import "package:flutter/material.dart" show ThemeExtension, Colors;
 import "package:flutter/painting.dart";
@@ -6,10 +8,10 @@ import "../util/nullable.dart";
 
 /// The style for a [NodeWidget].
 ///
-/// Note that this will will only be applied when using [BasicNodeBackground] and [BasicNodeBackground], e.g. by
-/// using [NodeWidget.basic]..
+/// Note that some properties will not apply when using [NodeWidget.custom]. For more information, see
+/// [NodeWidget.custom] and [NodeWidget.basic].
 ///
-/// A style can be applied either by supplying it directly to [NodeWidget.basic] or by supplying it through
+/// A style can be applied either by supplying it directly to the constructor of [NodeWidget] or by supplying it through
 /// [ThemeData] - either in a [MaterialApp] or in a [Theme] widget:
 /// ```dart
 /// Theme(
@@ -23,8 +25,6 @@ import "../util/nullable.dart";
 ///     },
 ///   )
 /// ```
-///
-/// Note that this will not be used when constructing a node through [NodeWidget.custom].
 @immutable
 class NodeStyle extends ThemeExtension<NodeStyle> {
   /// Constructs a node style.
@@ -33,6 +33,9 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
     this.padding,
     this.backgroundColor,
     this.borderSide,
+    this.maxWidth,
+    this.clipBehavior,
+    this.borderRadius,
   });
 
   /// Constructs a fallback node style.
@@ -45,6 +48,9 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
         padding: const EdgeInsets.all(6.0),
         backgroundColor: Colors.blue,
         borderSide: const BorderSide(style: BorderStyle.none),
+        maxWidth: 400,
+        clipBehavior: Clip.none,
+        borderRadius: Radius.zero,
       );
 
   /// The text style for the text of the node.
@@ -53,13 +59,28 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
   /// The padding applied to the text of the node.
   final EdgeInsets? padding;
 
-  /// The node's background color
+  /// The node's background color.
   final Color? backgroundColor;
 
   /// The `BorderSide` applied to all sides of the border.
   ///
   /// Supply a `BoderSide` with `style` set to [BorderStyle.none], if there should not be a border.
   final BorderSide? borderSide;
+
+  /// The maximum width the node is allowed to take before the content wraps.
+  ///
+  /// If the content or background of the node overflows this maximum width, it will be clipped according to
+  /// [clipBehavior].
+  final double? maxWidth;
+
+  /// The node's clipping behavior.
+  ///
+  /// If the content or background of the node overflows this maximum width, it will be clipped according to
+  /// this value.
+  final Clip? clipBehavior;
+
+  /// The node's border radius applied to each corner.
+  final Radius? borderRadius;
 
   /// Creates a copy of this node style with all the given fields replaced by the non-null parameter values.
   @override
@@ -68,12 +89,18 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
     Nullable<EdgeInsets>? padding,
     Nullable<Color>? backgroundColor,
     Nullable<BorderSide>? borderSide,
+    Nullable<double>? maxWidth,
+    Nullable<Clip>? clipBehavior,
+    Nullable<Radius>? borderRadius,
   }) {
     return NodeStyle(
       textStyle: textStyle ?? this.textStyle,
       padding: (padding != null) ? padding.value : this.padding,
       backgroundColor: (backgroundColor != null) ? backgroundColor.value : this.backgroundColor,
       borderSide: (borderSide != null) ? borderSide.value : this.borderSide,
+      maxWidth: (maxWidth != null) ? maxWidth.value : this.maxWidth,
+      clipBehavior: (clipBehavior != null) ? clipBehavior.value : this.clipBehavior,
+      borderRadius: (borderRadius != null) ? borderRadius.value : null,
     );
   }
 
@@ -92,6 +119,9 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
         other.borderSide ?? const BorderSide(style: BorderStyle.none),
         t,
       ),
+      maxWidth: lerpDouble(maxWidth, other.maxWidth, t),
+      clipBehavior: (t < 0.5) ? clipBehavior : other.clipBehavior,
+      borderRadius: Radius.lerp(borderRadius, other.borderRadius, t),
     );
   }
 
@@ -112,6 +142,9 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
       padding: (other.padding != null) ? Nullable(other.padding) : null,
       backgroundColor: (other.backgroundColor != null) ? Nullable(other.backgroundColor) : null,
       borderSide: (other.borderSide != null) ? Nullable(other.borderSide) : null,
+      maxWidth: (other.maxWidth != null) ? Nullable(other.maxWidth) : null,
+      clipBehavior: (other.clipBehavior != null) ? Nullable(other.clipBehavior) : null,
+      borderRadius: (other.borderRadius != null) ? Nullable(other.borderRadius) : null,
     );
   }
 }
