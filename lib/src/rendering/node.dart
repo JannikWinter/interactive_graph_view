@@ -167,7 +167,20 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
   Rect get semanticBounds => Rect.fromCenter(center: positionWithDragOffset, width: size.width, height: size.height);
 
   @override
-  Rect get paintBounds => semanticBounds; // TODO: include overlay.
+  Rect get paintBounds {
+    if (overlay == null) {
+      return semanticBounds;
+    } else {
+      final Offset overlayLeftTop = positionWithDragOffset + overlayPaintOffset;
+      final Rect overlayBounds = Rect.fromLTWH(
+        overlayLeftTop.dx,
+        overlayLeftTop.dy,
+        overlay!.size.width,
+        overlay!.size.height,
+      );
+      return semanticBounds.expandToInclude(overlayBounds);
+    }
+  }
 
   @override
   bool hitTest(BoxHitTestResult result, Offset position) {
