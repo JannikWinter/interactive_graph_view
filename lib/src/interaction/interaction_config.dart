@@ -10,12 +10,16 @@ class InteractionConfig {
   /// The default value for [scrollToScaleMultiplier] when no value is supplied to the constructor.
   static const double kDefaultScrollToScaleMultiplier = 1 / 15.0;
 
+  /// The default value for [edgeHitboxThickness] when it is not supplied to the constructor.
+  static const double kDefaultEdgeHitboxThickness = 40.0;
+
   /// Constructs an interction config from the given [minFlingVelocity] and [cameraEdgeMoveConfig].
   const InteractionConfig({
     this.minFlingVelocity = kDefaultMinFlingVelocity,
     this.scrollToScaleMultiplier = kDefaultScrollToScaleMultiplier,
+    this.edgeHitboxThickness = kDefaultEdgeHitboxThickness,
     this.cameraEdgeMoveConfig = const CameraEdgeMoveConfig(),
-  });
+  }) : assert(edgeHitboxThickness >= 1.0);
 
   /// The minimum velocity a scale end gesture must have in order to start a fling animation.
   ///
@@ -29,6 +33,11 @@ class InteractionConfig {
 
   /// {@macro camera_edge_move_config}
   final CameraEdgeMoveConfig cameraEdgeMoveConfig;
+
+  /// The thickness of the gesture hitbox for all edges.
+  ///
+  /// Defaults to [kDefaultEdgeHitboxThickness].
+  final double edgeHitboxThickness;
 
   @override
   bool operator ==(covariant InteractionConfig other) {

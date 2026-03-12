@@ -124,7 +124,6 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// {@endtemplate}
   ///
   /// Defaults to [kDefaultEdgeHitboxThickness].
-  // TODO: move to interaction config.
   final double edgeHitboxThickness;
 
   /// {@template graph_viewport.rebuild_all_children_on_widget_update}
