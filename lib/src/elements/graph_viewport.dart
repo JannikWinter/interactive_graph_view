@@ -163,7 +163,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     _nodeBuilder = widget.nodeBuilder;
     _edgeBuilder = widget.edgeBuilder;
 
-    _scaleRecognizer = ScaleGestureRecognizer(debugOwner: this);
+    _scaleRecognizer = ScaleGestureRecognizer(debugOwner: this, trackpadScrollCausesScale: true);
     _scaleRecognizer.onStart = widget.onScaleStart;
     _scaleRecognizer.onUpdate = widget.onScaleUpdate;
     _scaleRecognizer.onEnd = widget.onScaleEnd;
@@ -178,6 +178,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
 
     renderObject.onPointerDown = _handlePointerDown;
     renderObject.onPointerPanZoomStart = _handlePointerPanZoomStart;
+    renderObject.onPointerSignal = _handlePointerSignal;
 
     _buildAllNodes();
     _buildAllEdges();
@@ -204,6 +205,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
 
     renderObject.onPointerDown = _handlePointerDown;
     renderObject.onPointerPanZoomStart = _handlePointerPanZoomStart;
+    renderObject.onPointerSignal = _handlePointerSignal;
 
     if (newWidget.rebuildAllChildrenOnWidgetUpdate) {
       _buildAllNodes();
@@ -277,5 +279,15 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     _scaleRecognizer.addPointerPanZoom(event);
     _tapRecognizer.addPointerPanZoom(event);
     _doubleTapRecognizer.addPointerPanZoom(event);
+  }
+
+  void _handlePointerSignal(PointerSignalEvent event) {
+    GestureBinding.instance.pointerSignalResolver.register(
+      event,
+      (PointerSignalEvent event) {
+        final GraphViewport widget = this.widget as GraphViewport;
+        widget.onPointerSignal?.call(event);
+      },
+    );
   }
 }

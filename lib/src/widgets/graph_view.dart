@@ -60,6 +60,7 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
     this.onScaleStart,
     this.onScaleUpdate,
     this.onScaleEnd,
+    this.onPointerSignal,
   }) : assert(minScale > 0),
        assert(maxScale >= minScale),
        assert(initialScale >= minScale && initialScale <= maxScale);
@@ -147,6 +148,9 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
   /// {@macro graph_viewport.on_scale_end}
   final GestureScaleEndCallback? onScaleEnd;
 
+  /// {@macro graph_viewport.on_pointer_signal}
+  final void Function(PointerSignalEvent event)? onPointerSignal;
+
   @override
   State<GraphView<NodeIdType, EdgeIdType>> createState() => GraphViewState<NodeIdType, EdgeIdType>();
 }
@@ -215,6 +219,10 @@ class GraphViewState<NodeIdType, EdgeIdType> extends State<GraphView<NodeIdType,
         _onScaleEnd(details);
         widget.onScaleEnd?.call(details);
       },
+      onPointerSignal: (event) {
+        _onPointerSignal(event);
+        widget.onPointerSignal?.call(event);
+      },
     );
   }
 
@@ -232,5 +240,9 @@ class GraphViewState<NodeIdType, EdgeIdType> extends State<GraphView<NodeIdType,
 
   void _onTransformSettled(Offset position, double scale) {
     widget.onTransformSettled?.call(position, scale);
+  }
+
+  void _onPointerSignal(PointerSignalEvent event) {
+    _viewportTransform.onPointerSignal(event);
   }
 }

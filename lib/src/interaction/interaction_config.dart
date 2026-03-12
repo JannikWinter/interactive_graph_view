@@ -7,9 +7,13 @@ class InteractionConfig {
   /// The default value for [minFlingVelocity] when no value is supplied to the constructor.
   static const double kDefaultMinFlingVelocity = 50.0;
 
+  /// The default value for [scrollToScaleMultiplier] when no value is supplied to the constructor.
+  static const double kDefaultScrollToScaleMultiplier = 1 / 15.0;
+
   /// Constructs an interction config from the given [minFlingVelocity] and [cameraEdgeMoveConfig].
   const InteractionConfig({
     this.minFlingVelocity = kDefaultMinFlingVelocity,
+    this.scrollToScaleMultiplier = kDefaultScrollToScaleMultiplier,
     this.cameraEdgeMoveConfig = const CameraEdgeMoveConfig(),
   });
 
@@ -17,6 +21,11 @@ class InteractionConfig {
   ///
   /// Defaults to [kDefaultMinFlingVelocity].
   final double minFlingVelocity;
+
+  /// The multiplier that is applied to the scroll delta before it updates the scale.
+  ///
+  /// Defaults to [kDefaultScrollToScaleMultiplier].
+  final double scrollToScaleMultiplier;
 
   /// {@macro camera_edge_move_config}
   final CameraEdgeMoveConfig cameraEdgeMoveConfig;

@@ -57,6 +57,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     this.onTap,
     this.onDoubleTapDown,
     this.onDoubleTap,
+    this.onPointerSignal,
   }) : assert(cacheExtent >= 0.0),
        assert(edgeHitboxThickness >= 1.0);
 
@@ -181,6 +182,11 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// which was not registered on any child.
   /// {@endtemplate}
   final GestureScaleEndCallback? onScaleEnd;
+
+  /// {@template graph_viewport.on_pointer_signal}
+  /// This callback will be called when a pointer signal event, e.g. a scroll event, was registered on the viewport.
+  /// {@endtemplate}
+  final void Function(PointerSignalEvent event)? onPointerSignal;
 
   @override
   RenderObjectElement createElement() {

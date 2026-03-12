@@ -496,14 +496,15 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
 
   PointerDownEventListener? onPointerDown;
   PointerPanZoomStartEventListener? onPointerPanZoomStart;
+  PointerSignalEventListener? onPointerSignal;
 
   @override
   void handleEvent(PointerEvent event, covariant HitTestEntry<HitTestTarget> entry) {
-    if (event is PointerDownEvent) {
-      onPointerDown?.call(event);
-    }
-    if (event is PointerPanZoomStartEvent) {
-      onPointerPanZoomStart?.call(event);
-    }
+    return switch (event) {
+      PointerDownEvent() => onPointerDown?.call(event),
+      PointerPanZoomStartEvent() => onPointerPanZoomStart?.call(event),
+      PointerSignalEvent() => onPointerSignal?.call(event),
+      _ => null,
+    };
   }
 }

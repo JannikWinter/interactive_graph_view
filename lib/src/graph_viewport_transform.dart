@@ -2,6 +2,7 @@ import "dart:async";
 import "dart:math" as math;
 import "dart:ui";
 
+import "package:flutter/gestures.dart";
 import "package:flutter/scheduler.dart";
 import "package:flutter/widgets.dart";
 
@@ -425,9 +426,9 @@ class GraphViewportTransform extends ChangeNotifier {
     scale = _scaleAtScaleStart * details.scale;
 
     final Offset graphSpaceFocalPointAfter = toGraphSpacePosition(details.localFocalPoint);
-    final Offset delta = graphSpaceFocalPointAfter - graphSpaceFocalPointBefore;
+    final Offset graphSpaceFocalPointDelta = graphSpaceFocalPointAfter - graphSpaceFocalPointBefore;
 
-    position -= (delta + details.focalPointDelta / scale);
+    position -= (graphSpaceFocalPointDelta + details.focalPointDelta / scale);
   }
 
   /// Handles the ScaleEnd gesture to update [position] and [scale].
@@ -461,6 +462,20 @@ class GraphViewportTransform extends ChangeNotifier {
 
     _isBeingScaled = false;
     _maybeNotifySettleListeners();
+  }
+
+  /// Handles PointerSignal events to update [scale], e.g. because of a PointerScroll event.
+  void onPointerSignal(PointerSignalEvent event) {
+    if (event is PointerScrollEvent) {
+      final Offset graphSpaceFocalPointBefore = toGraphSpacePosition(event.localPosition);
+
+      scale -= scale / (event.scrollDelta.dy * interactionConfig.scrollToScaleMultiplier);
+
+      final Offset graphSpaceFocalPointAfter = toGraphSpacePosition(event.localPosition);
+      final Offset graphSpaceFocalPointDelta = graphSpaceFocalPointAfter - graphSpaceFocalPointBefore;
+
+      position -= graphSpaceFocalPointDelta;
+    }
   }
 
   /// Handles the DragDown gesture of a node to update [position] and [scale].
