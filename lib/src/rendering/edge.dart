@@ -37,7 +37,9 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
        _textStyle = textStyle,
        _textBackgroundColor = textBackgroundColor,
        _color = color,
-       _shadow = shadow;
+       _shadow = shadow {
+    _recreateTextPainter();
+  }
 
   NodeIdType _startNodeId;
   NodeIdType get startNodeId => _startNodeId;
@@ -57,6 +59,21 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     markParentNeedsLayout();
   }
 
+  TextPainter? _textPainter;
+  void _recreateTextPainter() {
+    if (text != null) {
+      _textPainter = TextPainter(
+        text: TextSpan(
+          text: text,
+          style: textStyle,
+        ),
+        textDirection: TextDirection.ltr,
+      );
+    } else {
+      _textPainter = null;
+    }
+  }
+
   String? get text => _text;
   String? _text;
   set text(String? value) {
@@ -65,7 +82,8 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     }
 
     _text = value;
-    markNeedsPaint();
+    _recreateTextPainter();
+    markNeedsLayout();
   }
 
   ArrowStyle get arrowStyle => _arrowStyle;
@@ -101,7 +119,8 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     if (_textStyle == value) return;
 
     _textStyle = value;
-    markNeedsPaint();
+    _recreateTextPainter();
+    markNeedsLayout();
   }
 
   Color get textBackgroundColor => _textBackgroundColor;
@@ -158,6 +177,10 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     final Offset direction = startToEnd / startToEnd.distance;
     final Offset rotated1 = Offset(-direction.dy, direction.dx) * parentData.hitboxThickness / 2;
     final Offset rotated2 = -rotated1;
+
+    if (_textPainter != null) {
+      _textPainter!.layout();
+    }
 
     _hitTestPath = Path()
       ..moveTo(startNodeCenter.dx, startNodeCenter.dy)
@@ -341,18 +364,9 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
       Paint()..color = color,
     );
 
-    if (text != null) {
-      final TextPainter edgeLabelTextPainter = TextPainter(
-        text: TextSpan(
-          text: text,
-          style: textStyle,
-        ),
-        textDirection: TextDirection.ltr,
-      );
-      edgeLabelTextPainter.layout();
-
-      final double textWidth = edgeLabelTextPainter.width;
-      final double textHeight = edgeLabelTextPainter.height;
+    if (_textPainter != null) {
+      final double textWidth = _textPainter!.width;
+      final double textHeight = _textPainter!.height;
 
       if (textBackgroundColor != Colors.transparent) {
         context.canvas.drawRRect(
@@ -363,7 +377,7 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
           Paint()..color = textBackgroundColor,
         );
       }
-      edgeLabelTextPainter.paint(
+      _textPainter!.paint(
         context.canvas,
         _textPosition - Offset(textWidth, textHeight) / 2,
       );
@@ -394,7 +408,18 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
   }
 
   @override
-  Rect get paintBounds => semanticBounds; // TODO: include text.
+  Rect get paintBounds {
+    if (_textPainter == null) {
+      return semanticBounds;
+    } else {
+      final Rect textBounds = Rect.fromCenter(
+        center: _textPosition,
+        width: _textPainter!.width,
+        height: _textPainter!.height,
+      );
+      return semanticBounds.expandToInclude(textBounds);
+    }
+  }
 
   double? getDistanceSquaredTo(Offset position) {
     if (!_hitTestPath.contains(position)) return null;
