@@ -418,7 +418,6 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
 
   void _onTransformChanged() {
     // mark all moving nodes and edges as needing layout
-    //TODO: is it really necessary to layout all nodes and edges?
     for (final NodeIdType nodeId in inFlightNodeIds) {
       _nodes[nodeId]!.markNeedsLayout();
     }
