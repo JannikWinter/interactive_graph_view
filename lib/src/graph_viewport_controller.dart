@@ -1,5 +1,3 @@
-import "dart:collection";
-
 import "package:flutter/widgets.dart";
 
 import "rendering/graph_viewport_base.dart";
@@ -51,8 +49,8 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   ///
   /// When the drag gesture on a node ended, the [NodesMovedCallback] (supplied in [GraphViewportController.new])
   /// will be called.
-  UnmodifiableSetView<NodeIdType> get movingNodeIds => _viewport!.movingNodeIds;
-  set movingNodeIds(Set<NodeIdType> value) => _viewport!.movingNodeIds = value;
+  Set<NodeIdType> get movingNodeIds => _viewport!.movingNodeIds;
+  set movingNodeIds(Set<NodeIdType> value) => _viewport!.movingNodeIds = Set.from(value);
 
   /// Mark a node for rebuilding.
   ///
