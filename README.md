@@ -1,26 +1,43 @@
-With `interactive_graph_view` you can display and interact with graphs while being able to apply your own custom styles to each element.
+`interactive_graph_view` is a performant rendering library for displaying and manipulating custom-defined graph structures through a simple and intuitive API, that gives you maximum control over the graph's look and feel.  
+It was designed from the ground up to be fully integrated with flutter's architecture.
+
 
 ## Features
 
-- each child is only built when necessary
-- viewport panning and scaling
-- node dragging
-- custom styling per element
-- fully integrated with flutter's architecture
+- Custom graph viewport, node and edge widgets
+- Children arre built lazily (only when necessary)
+- Built-in panning, scaling and scrolling of the viewport
+- Built-in dragging of one or multiple nodes
+- Custom styling
+- Flutter `Theme` integration
+- Intuitive API
+- Graph-structure-agnnostic: You can define your own types and classes for the graph-structure - the package only knows of the IDs 
 
 ## Getting started
 
-Add `interactive_graph_view` to your `pubspec.yaml` file.
+1. Add this package to your `pubspec.yaml` file:
+```bash
+$ flutter pub add interactive_graph_view
+```
+
+2. Import it:
+```dart
+import "package:interactive_graph_view/interactive_graph_view.dart";
+```
 
 ## Usage
 
 This is a simple example for displaying 2 nodes and a connecting edge. You can also drag each node around.
-More complex examples using more features can be found in the `example/` folder.
+More complex examples using more features can be found in the `examples/` folder.
 
 ```dart
 import "package:flutter/material.dart";
 import "package:interactive_graph_view/interactive_graph_view.dart";
 
+// [ExampleNode] and [ExampleEdge] are custom defined types - you have all the freedom
+// to define your own graph structure.
+// The viewport never knows of these classes. It is just important, that nodes and edges
+// can be identified by an ID and you tell the viewport about those.
 class ExampleNode {
   ExampleNode({required this.id, required this.position});
 
@@ -73,6 +90,10 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
     },
     key: (edge) => edge.id,
   );
+
+  // With the [GraphViewportController] you can modify the graph - e.g. add or remove a node.
+  // The generic type parameters (<String, String>) define the type of the node IDs and edge IDs,
+  // which are both using [String].
   late final GraphViewportController<String, String> _graphViewportController;
 
   @override
@@ -97,13 +118,17 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
       appBar: AppBar(
         title: Text("Graph View Demo"),
       ),
+      
+      // [GraphView] constructs the viewport and already gives you built-in panning, scaling,
+      // scrolling and dragging of nodes.
+      // Just like in the [GraphViewportController], the generic type parameters (<String, String>)
+      // define the type of the node IDs and edge IDs, which are both using [String].
       body: GraphView<String, String>(
         viewportController: _graphViewportController,
         nodeBuilder: (context, nodeId) {
           return NodeWidget.basic(
             position: _nodes[nodeId]!.position,
             text: nodeId,
-            maxWidth: 400,
             isDragEnabled: true,
           );
         },
@@ -123,7 +148,8 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
 ## Additional information
 
 You are welcome to contribute to this package!
-If you run into bugs or need a feature that is not yet implemented, just open an issue on GitHub.
+
+If you've got a feature request or run into a bug, please do not hesitate to open an issue in the GitHub repository. 😊
 
 ## License
 
