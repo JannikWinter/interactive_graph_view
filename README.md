@@ -28,7 +28,7 @@ import "package:interactive_graph_view/interactive_graph_view.dart";
 ## Usage
 
 This is a simple example for displaying 2 nodes and a connecting edge. You can also drag each node around.
-More complex examples using more features can be found in the `examples/` folder.
+More complex examples using more features can be found in the [`examples` folder](examples/).
 
 ```dart
 import "package:flutter/material.dart";
@@ -154,3 +154,25 @@ If you've got a feature request or run into a bug, please do not hesitate to ope
 ## License
 
 This package is under the [MPL 2.0 License](https://www.mozilla.org/en-US/MPL/2.0/).
+
+## Examples
+
+In the [`examples` folder](examples/) there are multiple examples that you can use to get a grasp of how to use this package:
+
+### Minimal example
+
+[`examples/minimal.dart`](examples/minimal.dart)
+
+This is a minimal example that will only show two nodes and an edge connecting them.  
+You can pan and scale the viewport, but you can not move the nodes themselves.  
+This will use the package's default style for viewport, nodes and edges.
+
+![Minimal example image](images/example_minimal.png "Minimal example")
+
+### Example with node selection and group move
+
+[`examples/selection_and_group_move.dart`](examples/selection_and_group_move.dart)
+
+This example shows you how you can implement selection of nodes and then being able to move them all at the same time.
+
+![Selection and group move example animation](images/selection_and_group_move.gif "Selection and group move example")

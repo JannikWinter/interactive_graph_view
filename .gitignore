@@ -29,3 +29,9 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 /build/
 /coverage/
+
+
+# Ignore everything in /examples/
+/examples/*
+# But not .dart files
+!/examples/*.dart
