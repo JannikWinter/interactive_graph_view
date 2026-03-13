@@ -139,12 +139,12 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
 
     return copyWith(
       textStyle: textStyle.merge(other.textStyle),
-      padding: (other.padding != null) ? Nullable(other.padding) : null,
-      backgroundColor: (other.backgroundColor != null) ? Nullable(other.backgroundColor) : null,
-      borderSide: (other.borderSide != null) ? Nullable(other.borderSide) : null,
-      maxWidth: (other.maxWidth != null) ? Nullable(other.maxWidth) : null,
-      clipBehavior: (other.clipBehavior != null) ? Nullable(other.clipBehavior) : null,
-      borderRadius: (other.borderRadius != null) ? Nullable(other.borderRadius) : null,
+      padding: Nullable((other.padding != null) ? other.padding : padding),
+      backgroundColor: Nullable((other.backgroundColor != null) ? other.backgroundColor : backgroundColor),
+      borderSide: Nullable((other.borderSide != null) ? other.borderSide : borderSide),
+      maxWidth: Nullable((other.maxWidth != null) ? other.maxWidth : maxWidth),
+      clipBehavior: Nullable((other.clipBehavior != null) ? other.clipBehavior : clipBehavior),
+      borderRadius: Nullable((other.borderRadius != null) ? other.borderRadius : borderRadius),
     );
   }
 }

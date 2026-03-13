@@ -69,7 +69,7 @@ class GraphStyle extends ThemeExtension<GraphStyle> {
     }
 
     return copyWith(
-      backgroundColor: (other.backgroundColor != null) ? Nullable(other.backgroundColor) : null,
+      backgroundColor: Nullable((other.backgroundColor != null) ? other.backgroundColor : backgroundColor),
     );
   }
 }

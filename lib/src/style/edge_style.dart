@@ -124,13 +124,15 @@ class EdgeStyle extends ThemeExtension<EdgeStyle> {
     }
 
     return copyWith(
-      lineColor: (other.lineColor != null) ? Nullable(other.lineColor) : null,
+      lineColor: Nullable((other.lineColor != null) ? other.lineColor : lineColor),
       textStyle: textStyle.merge(other.textStyle),
-      textBackgroundColor: (other.textBackgroundColor != null) ? Nullable(other.textBackgroundColor) : null,
-      lineStyle: (other.lineStyle != null) ? Nullable(other.lineStyle) : null,
-      curveStyle: (other.curveStyle != null) ? Nullable(other.curveStyle) : null,
-      arrowStyle: (other.arrowStyle != null) ? Nullable(other.arrowStyle) : null,
-      shadow: (other.shadow != null) ? Nullable(other.shadow) : null,
+      textBackgroundColor: Nullable(
+        (other.textBackgroundColor != null) ? other.textBackgroundColor : textBackgroundColor,
+      ),
+      lineStyle: Nullable((other.lineStyle != null) ? other.lineStyle : lineStyle),
+      curveStyle: Nullable((other.curveStyle != null) ? other.curveStyle : curveStyle),
+      arrowStyle: Nullable((other.arrowStyle != null) ? other.arrowStyle : arrowStyle),
+      shadow: Nullable((other.shadow != null) ? other.shadow : shadow),
     );
   }
 }
