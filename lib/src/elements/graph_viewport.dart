@@ -2,9 +2,12 @@ import "package:flutter/gestures.dart";
 import "package:flutter/widgets.dart";
 
 import "../graph_viewport_controller.dart";
+import "../graph_viewport_transform.dart";
+import "../interaction/tap_details.dart";
 import "../rendering/edge.dart";
 import "../rendering/graph_element.dart";
 import "../rendering/graph_viewport.dart";
+import "../rendering/graph_viewport_base.dart";
 import "../rendering/node.dart";
 import "../widgets/edge.dart";
 import "../widgets/graph_viewport.dart";
@@ -169,12 +172,11 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     _scaleRecognizer.onEnd = widget.onScaleEnd;
 
     _tapRecognizer = TapGestureRecognizer(debugOwner: this);
-    _tapRecognizer.onTapDown = widget.onTapDown;
-    _tapRecognizer.onTap = widget.onTap;
+    _tapRecognizer.onTapDown = (widget.onTapDown != null) ? _onTapDown : null;
+    _tapRecognizer.onTap = (widget.onTap != null) ? _onTap : null;
 
     _doubleTapRecognizer = DoubleTapGestureRecognizer(debugOwner: this);
-    _doubleTapRecognizer.onDoubleTapDown = widget.onDoubleTapDown;
-    _doubleTapRecognizer.onDoubleTap = widget.onDoubleTap;
+    _doubleTapRecognizer.onDoubleTap = (widget.onDoubleTap != null) ? _onDoubleTap : null;
 
     renderObject.onPointerDown = _handlePointerDown;
     renderObject.onPointerPanZoomStart = _handlePointerPanZoomStart;
@@ -197,11 +199,10 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     _scaleRecognizer.onUpdate = newWidget.onScaleUpdate;
     _scaleRecognizer.onEnd = newWidget.onScaleEnd;
 
-    _tapRecognizer.onTapDown = newWidget.onTapDown;
-    _tapRecognizer.onTap = newWidget.onTap;
+    _tapRecognizer.onTapDown = (newWidget.onTapDown != null) ? _onTapDown : null;
+    _tapRecognizer.onTap = (newWidget.onTap != null) ? _onTap : null;
 
-    _doubleTapRecognizer.onDoubleTapDown = newWidget.onDoubleTapDown;
-    _doubleTapRecognizer.onDoubleTap = newWidget.onDoubleTap;
+    _doubleTapRecognizer.onDoubleTap = (newWidget.onDoubleTap != null) ? _onDoubleTap : null;
 
     renderObject.onPointerDown = _handlePointerDown;
     renderObject.onPointerPanZoomStart = _handlePointerPanZoomStart;
@@ -289,5 +290,24 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
         widget.onPointerSignal?.call(event);
       },
     );
+  }
+
+  void _onTapDown(TapDownDetails details) {
+    final GraphViewportTransform viewportTransform = RenderGraphViewportBase.of(renderObject).transform;
+    final GraphViewportTapDownDetails newDetails = GraphViewportTapDownDetails(
+      globalPosition: details.globalPosition,
+      localPosition: details.localPosition,
+      graphPosition: viewportTransform.toGraphSpacePosition(details.localPosition),
+    );
+
+    (widget as GraphViewport).onTapDown?.call(newDetails);
+  }
+
+  void _onTap() {
+    (widget as GraphViewport).onTap?.call();
+  }
+
+  void _onDoubleTap() {
+    (widget as GraphViewport).onDoubleTap?.call();
   }
 }

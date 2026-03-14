@@ -5,10 +5,20 @@ import "package:flutter/widgets.dart";
 import "../elements/graph_viewport.dart";
 import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
+import "../interaction/tap_details.dart";
 import "../rendering/graph_viewport.dart";
 import "../style/graph_style.dart";
 import "edge.dart";
 import "node.dart";
+
+/// Callback for handling a TapDown gesture that was registered on the viewport.
+typedef GestureGraphViewportTapDownCallback = void Function(GraphViewportTapDownDetails details);
+
+/// Callback for handling a Tap gesture that was registered on the viewport.
+typedef GestureGraphViewportTapCallback = void Function();
+
+/// Callback for handling a DoubleTap gesture that was registered on the viewport.
+typedef GestureGraphViewportDoubleTapCallback = void Function();
 
 /// The widget builder function for nodes.
 ///
@@ -55,7 +65,6 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     this.onScaleEnd,
     this.onTapDown,
     this.onTap,
-    this.onDoubleTapDown,
     this.onDoubleTap,
     this.onPointerSignal,
   }) : assert(cacheExtent >= 0.0),
@@ -144,25 +153,19 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// This callback will be called when a TapDown gesture was registered on the viewport,
   /// which was not registered on any child.
   /// {@endtemplate}
-  final GestureTapDownCallback? onTapDown;
+  final GestureGraphViewportTapDownCallback? onTapDown;
 
   /// {@template graph_viewport.on_tap}
   /// This callback will be called when a Tap gesture was registered on the viewport,
   /// which was not registered on any child.
   /// {@endtemplate}
-  final GestureTapCallback? onTap;
-
-  /// {@template graph_viewport.on_double_tap_down}
-  /// This callback will be called when a DoubleTapDown gesture was registered on the viewport,
-  /// which was not registered on any child.
-  /// {@endtemplate}
-  final GestureTapDownCallback? onDoubleTapDown;
+  final GestureGraphViewportTapCallback? onTap;
 
   /// {@template graph_viewport.on_double_tap}
   /// This callback will be called when a DoubleTap gesture was registered on the viewport,
   /// which was not registered on any child.
   /// {@endtemplate}
-  final GestureDoubleTapCallback? onDoubleTap;
+  final GestureGraphViewportDoubleTapCallback? onDoubleTap;
 
   /// {@template graph_viewport.on_scale_start}
   /// This callback will be called when a ScaleStart gesture was registered on the viewport,

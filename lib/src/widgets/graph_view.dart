@@ -53,7 +53,6 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
     this.onTransformSettled,
     this.onTapDown,
     this.onTap,
-    this.onDoubleTapDown,
     this.onDoubleTap,
     this.onScaleStart,
     this.onScaleUpdate,
@@ -120,16 +119,13 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
   final TransformSettleListener? onTransformSettled;
 
   /// {@macro graph_viewport.on_tap_down}
-  final GestureTapDownCallback? onTapDown;
+  final GestureGraphViewportTapDownCallback? onTapDown;
 
   /// {@macro graph_viewport.on_tap}
-  final GestureTapCallback? onTap;
-
-  /// {@macro graph_viewport.on_double_tap_down}
-  final GestureTapDownCallback? onDoubleTapDown;
+  final GestureGraphViewportTapCallback? onTap;
 
   /// {@macro graph_viewport.on_double_tap}
-  final GestureDoubleTapCallback? onDoubleTap;
+  final GestureGraphViewportDoubleTapCallback? onDoubleTap;
 
   /// {@macro graph_viewport.on_scale_start}
   final GestureScaleStartCallback? onScaleStart;
@@ -195,7 +191,6 @@ class GraphViewState<NodeIdType, EdgeIdType> extends State<GraphView<NodeIdType,
       rebuildAllChildrenOnWidgetUpdate: widget.rebuildAllChildrenOnWidgetUpdate,
       onTapDown: widget.onTapDown,
       onTap: widget.onTap,
-      onDoubleTapDown: widget.onTapDown,
       onDoubleTap: widget.onDoubleTap,
       nodeBuilder: widget.nodeBuilder,
       edgeBuilder: widget.edgeBuilder,
