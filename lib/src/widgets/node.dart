@@ -131,7 +131,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
 
   /// The overlay that will be put on top of the [background] and [content].
   ///
-  /// The overlay is put into its own layer where it is not affected by [clipBehavior].
+  /// The overlay is put into its own layer where it is not affected by [NodeStyle.clipBehavior].
   /// It can be beyond the node's bounds.
   final NodeOverlay? overlay;
 
