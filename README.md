@@ -29,7 +29,7 @@ import "package:interactive_graph_view/interactive_graph_view.dart";
 ## Usage
 
 This is a simple example for displaying 2 nodes and a connecting edge. You can also drag each node around.
-More complex examples using more features can be found in the [`examples` folder](examples/).
+More complex examples using more features can be found in the [`example` folder](example/).
 
 ```dart
 import "package:flutter/material.dart";
@@ -148,33 +148,33 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
 
 ## Examples
 
-In the [`examples` folder](examples/) there are multiple examples that you can use to get a grasp of how to use this package:
+In the [`example` folder](example/) there are multiple examples that you can use to get a grasp of how to use this package:
 
 ### Minimal example
 
-[`examples/minimal.dart`](examples/minimal.dart)
+[`example/minimal.dart`](example/minimal.dart)
 
 This is a minimal example that will only display two nodes and an edge connecting them.  
 You can pan and scale the viewport, but you can not move the nodes themselves.  
 This will use the package's default style for viewport, nodes and edges.
 
-![Minimal example image](images/examples/minimal.png "Minimal example")
+![Minimal example image](images/example/minimal.png "Minimal example")
 
 ### Node selection and group move
 
-[`examples/selection_and_group_move.dart`](examples/selection_and_group_move.dart)
+[`example/selection_and_group_move.dart`](example/selection_and_group_move.dart)
 
 This example shows you how you can implement selection of nodes and then being able to move them all at the same time.
 
-![Selection and group move example animation](images/examples/selection_and_group_move.gif "Selection and group move example")
+![Selection and group move example animation](images/example/selection_and_group_move.gif "Selection and group move example")
 
 ### Styling and Themes
 
-[`examples/styling_and_themes`](examples/styling_and_themes.dart)
+[`example/styling_and_themes`](example/styling_and_themes.dart)
 
 This example demonstrates the usage of styles: Both, in combination with [ThemeData] and as inline styles.
 
-![Styling and themes example image](images/examples/styling_and_themes.png "Styling and themes example")
+![Styling and themes example image](images/example/styling_and_themes.png "Styling and themes example")
 
 ## Contributing
 
