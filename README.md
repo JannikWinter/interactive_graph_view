@@ -145,16 +145,6 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
 }
 ```
 
-## Additional information
-
-You are welcome to contribute to this package!
-
-If you've got a feature request or run into a bug, please do not hesitate to open an issue in the GitHub repository. 😊
-
-## License
-
-This package is under the [MPL 2.0 License](https://www.mozilla.org/en-US/MPL/2.0/).
-
 ## Examples
 
 In the [`examples` folder](examples/) there are multiple examples that you can use to get a grasp of how to use this package:
@@ -163,16 +153,34 @@ In the [`examples` folder](examples/) there are multiple examples that you can u
 
 [`examples/minimal.dart`](examples/minimal.dart)
 
-This is a minimal example that will only show two nodes and an edge connecting them.  
+This is a minimal example that will only display two nodes and an edge connecting them.  
 You can pan and scale the viewport, but you can not move the nodes themselves.  
 This will use the package's default style for viewport, nodes and edges.
 
-![Minimal example image](images/example_minimal.png "Minimal example")
+![Minimal example image](images/examples/minimal.png "Minimal example")
 
-### Example with node selection and group move
+### Node selection and group move
 
 [`examples/selection_and_group_move.dart`](examples/selection_and_group_move.dart)
 
 This example shows you how you can implement selection of nodes and then being able to move them all at the same time.
 
-![Selection and group move example animation](images/selection_and_group_move.gif "Selection and group move example")
+![Selection and group move example animation](images/examples/selection_and_group_move.gif "Selection and group move example")
+
+### Styling and Themes
+
+[`examples/styling_and_themes`](examples/styling_and_themes.dart)
+
+This example demonstrates the usage of styles: Both, in combination with [ThemeData] and as inline styles.
+
+![Styling and themes example image](images/examples/styling_and_themes.png "Styling and themes example")
+
+## Contributing
+
+You are welcome to contribute to this package!
+
+If you've got a feature request or run into a bug, please do not hesitate to open an issue in the GitHub repository. 😊
+
+## License
+
+This package is under the [MPL 2.0 License](https://www.mozilla.org/en-US/MPL/2.0/).
