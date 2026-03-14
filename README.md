@@ -1,6 +1,7 @@
-`interactive_graph_view` is a performant rendering library for displaying and manipulating custom-defined graph structures through a simple and intuitive API, that gives you maximum control over the graph's look and feel.  
+A performant rendering library for displaying and manipulating custom-defined graph structures through a simple and intuitive API, that gives you maximum control over the graph's look and feel.  
 It was designed from the ground up to be fully integrated with flutter's architecture.
 
+![Preview Image](images/preview.png "Preview")
 
 ## Features
 
