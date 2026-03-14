@@ -355,22 +355,29 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    context.canvas.drawColor(backgroundColor, BlendMode.src);
-
-    context.pushTransform(
+    context.pushClipRect(
       needsCompositing,
       offset,
-      transform.childTransformMatrix,
+      paintBounds,
       (context, offset) {
-        // _childQuadTree.debugPaint(context, offset);
+        context.canvas.drawColor(backgroundColor, BlendMode.src);
 
-        for (final GraphEdgeRenderObject edge in _edges.values) {
-          context.paintChild(edge, offset);
-        }
+        context.pushTransform(
+          needsCompositing,
+          offset,
+          transform.childTransformMatrix,
+          (context, offset) {
+            // _childQuadTree.debugPaint(context, offset);
 
-        for (final GraphNodeRenderObject node in _nodes.values) {
-          context.paintChild(node, offset);
-        }
+            for (final GraphEdgeRenderObject edge in _edges.values) {
+              context.paintChild(edge, offset);
+            }
+
+            for (final GraphNodeRenderObject node in _nodes.values) {
+              context.paintChild(node, offset);
+            }
+          },
+        );
       },
     );
   }
