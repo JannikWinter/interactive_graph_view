@@ -1,5 +1,5 @@
 name: interactive_graph_view
-description: "A performant rendering library for displaying and manipulating custom-defined graph structures through a simple and intuitive API with maximum control over the graph's look and feel."
+description: "A performant rendering library for displaying and manipulating custom-defined graph structures through a simple API with maximum control over the graph's look and feel."
 version: 0.0.0
 repository: https://github.com/JannikWinter/interactive_graph_view
 
