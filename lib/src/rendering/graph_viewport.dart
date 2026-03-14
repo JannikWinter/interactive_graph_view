@@ -90,17 +90,21 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   @protected
   @override
   void markNodeNeedsLayout(NodeIdType nodeId) {
-    if (!_nodes.containsKey(nodeId)) return;
-    _nodeIdsNeedingLayout.add(nodeId);
-    _nodes[nodeId]!.markNeedsLayout();
+    if (_nodes.containsKey(nodeId)) {
+      _nodeIdsNeedingLayout.add(nodeId);
+      _nodes[nodeId]!.markNeedsLayout();
+    }
+    markNeedsLayout();
   }
 
   @protected
   @override
   void markEdgeNeedsLayout(EdgeIdType edgeId) {
-    if (!_edges.containsKey(edgeId)) return;
-    _edgeIdsNeedingLayout.add(edgeId);
-    _edges[edgeId]!.markNeedsLayout();
+    if (_edges.containsKey(edgeId)) {
+      _edgeIdsNeedingLayout.add(edgeId);
+      _edges[edgeId]!.markNeedsLayout();
+    }
+    markNeedsLayout();
   }
 
   @override
