@@ -1,6 +1,7 @@
 import "dart:async";
 import "dart:collection";
 
+import "package:flutter/rendering.dart" show PipelineOwner;
 import "package:flutter/widgets.dart";
 
 import "../graph_viewport_controller.dart";
@@ -43,8 +44,22 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
     required GraphViewportController<NodeIdType, EdgeIdType> viewportController,
     required GraphViewportTransform transform,
   }) : _viewportController = viewportController,
-       _transform = transform {
+       _transform = transform;
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+
     _viewportController.onAttach(this);
+  }
+
+  @override
+  void detach() {
+    super.detach();
+
+    if (_viewportController.isAttached) {
+      _viewportController.onDetach(this);
+    }
   }
 
   GraphViewportController<NodeIdType, EdgeIdType> get viewportController => _viewportController;
