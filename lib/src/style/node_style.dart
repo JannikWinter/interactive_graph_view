@@ -100,7 +100,7 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
       borderSide: (borderSide != null) ? borderSide.value : this.borderSide,
       maxWidth: (maxWidth != null) ? maxWidth.value : this.maxWidth,
       clipBehavior: (clipBehavior != null) ? clipBehavior.value : this.clipBehavior,
-      borderRadius: (borderRadius != null) ? borderRadius.value : null,
+      borderRadius: (borderRadius != null) ? borderRadius.value : this.borderRadius,
     );
   }
 
