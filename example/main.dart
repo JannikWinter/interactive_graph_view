@@ -1,6 +1,7 @@
 import "dart:math";
 
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 
 import "package:interactive_graph_view/interactive_graph_view.dart";
 
@@ -52,14 +53,6 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
 
   final Set<String> _selectedNodeIds = {};
 
-  void _toggleNodeSelection(String nodeId) {
-    if (_selectedNodeIds.contains(nodeId)) {
-      _selectedNodeIds.remove(nodeId);
-    } else {
-      _selectedNodeIds.add(nodeId);
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -84,78 +77,234 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Graph View Demo")),
-      body: GraphView<String, String>(
-        viewportController: _graphViewportController,
-        onTapDown: (details) {
-          _tapDownPosition = details.graphPosition;
-        },
-        onTap: () {
-          _clearSelection();
-        },
-        onDoubleTap: () {
-          // Create a new node when double tapping on an empty spot.
-          final String newNodeId = _createNode(_tapDownPosition);
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: GraphView<String, String>(
+              viewportController: _graphViewportController,
+              onTapDown: (details) {
+                _tapDownPosition = details.graphPosition;
+              },
+              onTap: () {
+                _clearSelection();
+              },
+              onDoubleTap: () {
+                // Create a new node when double tapping on an empty spot.
+                final String newNodeId = _createNode(_tapDownPosition);
 
-          // Create a new edge from each currently selected node to
-          // the newly created node.
-          for (final String selectedNodeId in _selectedNodeIds) {
-            _createEdge(selectedNodeId, newNodeId);
-          }
+                // Create a new edge from each currently selected node to
+                // the newly created node.
+                for (final String selectedNodeId in _selectedNodeIds) {
+                  _createEdge(selectedNodeId, newNodeId);
+                }
 
-          // Clear the selection.
-          _clearSelection();
-        },
-        nodeBuilder: (context, nodeId) {
-          final bool isSelected = _selectedNodeIds.contains(nodeId);
-          return NodeWidget.basic(
-            position: _nodes[nodeId]!.position,
-            text: nodeId,
-            style: isSelected
-                ? NodeStyle(
-                    borderSide: BorderSide(color: Colors.red, width: 2.0),
-                  )
-                : null,
+                // Clear the selection.
+                _clearSelection();
+              },
+              nodeBuilder: (context, nodeId) {
+                final bool isSelected = _selectedNodeIds.contains(nodeId);
+                final ExampleNode node = _nodes[nodeId]!;
 
-            // Only enable dragging if the node is selected.
-            isDragEnabled: isSelected,
+                return NodeWidget.basic(
+                  position: node.position,
+                  text: node.text,
+                  style:
+                      (isSelected
+                              ? NodeStyle(
+                                  borderSide: BorderSide(
+                                    color: Colors.red,
+                                    width: 2.0,
+                                  ),
+                                )
+                              : NodeStyle())
+                          .merge(node.style),
 
-            onTap: () {
-              // Toggle the selection state.
-              _toggleNodeSelection(nodeId);
+                  // Only enable dragging if the node is selected.
+                  isDragEnabled: isSelected,
 
-              // Rebuild this node with the new selection state applied.
-              _graphViewportController.rebuildNode(nodeId);
+                  onTap: () {
+                    // Toggle the selection state.
+                    _toggleNodeSelection(nodeId);
 
-              // Tell the viewport, which nodes should move when dragging a drag-enabled node.
-              _graphViewportController.movingNodeIds = _selectedNodeIds;
-            },
-            onDoubleTap: () {
-              // Create an edge from each currently selected node to this node.
+                    // Rebuild this node with the new selection state applied.
+                    _graphViewportController.rebuildNode(nodeId);
 
-              // Do not create edges if the node is source and target.
-              if (_selectedNodeIds.contains(nodeId)) return;
-              // Do not create edges if no node is selected.
-              if (_selectedNodeIds.isEmpty) return;
+                    // Tell the viewport, which nodes should move when dragging a drag-enabled node.
+                    _graphViewportController.movingNodeIds = _selectedNodeIds;
+                  },
+                  onDoubleTap: () {
+                    // Create an edge from each currently selected node to this node.
 
-              // Create the edges.
-              for (final String selectedNodeId in _selectedNodeIds) {
-                _createEdge(selectedNodeId, nodeId);
-              }
+                    // Do not create edges if the node is source and target.
+                    if (_selectedNodeIds.contains(nodeId)) return;
+                    // Do not create edges if no node is selected.
+                    if (_selectedNodeIds.isEmpty) return;
 
-              // Clear selection.
-              _clearSelection();
-            },
-          );
-        },
-        edgeBuilder: (context, edgeId) {
-          return EdgeWidget(
-            startNodeId: _edges[edgeId]!.startNodeId,
-            endNodeId: _edges[edgeId]!.endNodeId,
-            text: null,
-          );
-        },
+                    // Create the edges.
+                    for (final String selectedNodeId in _selectedNodeIds) {
+                      _createEdge(selectedNodeId, nodeId);
+                    }
+
+                    // Clear selection.
+                    _clearSelection();
+                  },
+                );
+              },
+              edgeBuilder: (context, edgeId) {
+                final ExampleEdge edge = _edges[edgeId]!;
+
+                return EdgeWidget(
+                  startNodeId: edge.startNodeId,
+                  endNodeId: edge.endNodeId,
+                  text: null,
+                );
+              },
+            ),
+          ),
+          SizedBox(
+            width: MediaQuery.sizeOf(context).width / 5,
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Builder(
+                  builder: (context) {
+                    if (_selectedNodeIds.length != 1) {
+                      return Center(
+                        child: Text(
+                          "Please select a single node to change its properties",
+                        ),
+                      );
+                    }
+
+                    final String nodeId = _selectedNodeIds.single;
+                    final ExampleNode node = _nodes[nodeId]!;
+
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Text("Node $nodeId"),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: "Text",
+                          ),
+                          initialValue: node.text,
+                          onChanged: (value) {
+                            node.text = value;
+                            _graphViewportController.rebuildNode(nodeId);
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<Color>(
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: "BackgroundColor",
+                          ),
+                          items: [
+                            DropdownMenuItem(child: Text("None")),
+                            ...[
+                              Colors.black,
+                              Colors.white,
+                              ...Colors.primaries,
+                            ].map(
+                              (color) => DropdownMenuItem(
+                                value: color,
+                                child: Container(
+                                  color: color,
+                                  child: Text(
+                                    "#${color.toARGB32().toRadixString(16)}",
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                          initialValue: node.style.backgroundColor,
+                          onChanged: (value) {
+                            node.style = node.style.copyWith(
+                              backgroundColor: Nullable(value),
+                            );
+                            _graphViewportController.rebuildNode(nodeId);
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<Color>(
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: "Text Color",
+                          ),
+                          items: [
+                            DropdownMenuItem(child: Text("None")),
+                            ...[
+                              Colors.black,
+                              Colors.white,
+                              ...Colors.primaries,
+                            ].map(
+                              (color) => DropdownMenuItem(
+                                value: color,
+                                child: Container(
+                                  color: color,
+                                  child: Text(
+                                    "#${color.toARGB32().toRadixString(16)}",
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                          initialValue: node.style.textStyle.color,
+                          onChanged: (value) {
+                            node.style = node.style.copyWith(
+                              textStyle: node.style.textStyle.copyWith(
+                                color: value,
+                              ),
+                            );
+                            _graphViewportController.rebuildNode(nodeId);
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: "Border radius",
+                          ),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          initialValue: (node.style.borderRadius != null)
+                              ? node.style.borderRadius!.x.toInt().toString()
+                              : "",
+                          onChanged: (value) {
+                            node.style = node.style.copyWith(
+                              borderRadius: Nullable(
+                                value.isEmpty ? null : Radius.circular(double.parse(value)),
+                              ),
+                            );
+                            _graphViewportController.rebuildNode(nodeId);
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  void _toggleNodeSelection(String nodeId) {
+    if (_selectedNodeIds.contains(nodeId)) {
+      _selectedNodeIds.remove(nodeId);
+    } else {
+      _selectedNodeIds.add(nodeId);
+    }
+
+    // Trigger rebuild to update the properties panel
+    setState(() {});
   }
 
   void _clearSelection() {
@@ -163,6 +312,9 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
       _graphViewportController.rebuildNode(selectedNodeId);
     }
     _selectedNodeIds.clear();
+
+    // Trigger rebuild to update the properties panel
+    setState(() {});
   }
 
   String _createNode(Offset position) {
@@ -196,11 +348,22 @@ String _newRandomId({int length = 8}) {
 }
 
 class ExampleNode {
-  ExampleNode({String? id, required this.position}) : id = id ?? _newRandomId();
+  ExampleNode({
+    String? id,
+    required this.position,
+    String? text,
+    NodeStyle? style,
+  }) : id = id ?? _newRandomId(),
+       style = style ?? const NodeStyle() {
+    this.text = text ?? this.id;
+  }
 
   final String id;
 
   Offset position;
+
+  late String text;
+  NodeStyle style;
 }
 
 class ExampleEdge {
