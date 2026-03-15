@@ -124,14 +124,12 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
                   isDragEnabled: isSelected,
 
                   onTap: () {
+                    // Select this node, unselect all others.
+                    _singleSelectNode(nodeId);
+                  },
+                  onLongPress: () {
                     // Toggle the selection state.
                     _toggleNodeSelection(nodeId);
-
-                    // Rebuild this node with the new selection state applied.
-                    _graphViewportController.rebuildNode(nodeId);
-
-                    // Tell the viewport, which nodes should move when dragging a drag-enabled node.
-                    _graphViewportController.movingNodeIds = _selectedNodeIds;
                   },
                   onDoubleTap: () {
                     // Create an edge from each currently selected node to this node.
@@ -181,6 +179,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
                     final ExampleNode node = _nodes[nodeId]!;
 
                     return Column(
+                      key: ValueKey("property-panel-$nodeId"),
                       mainAxisAlignment: MainAxisAlignment.start,
                       mainAxisSize: MainAxisSize.max,
                       children: [
@@ -305,6 +304,17 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
 
     // Trigger rebuild to update the properties panel
     setState(() {});
+
+    // Tell the viewport, which nodes should move when dragging a drag-enabled node.
+    _graphViewportController.movingNodeIds = _selectedNodeIds;
+  }
+
+  void _singleSelectNode(String nodeId) {
+    _clearSelection();
+    _selectedNodeIds.add(nodeId);
+
+    // Tell the viewport, which nodes should move when dragging a drag-enabled node.
+    _graphViewportController.movingNodeIds = _selectedNodeIds;
   }
 
   void _clearSelection() {
@@ -315,6 +325,9 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
 
     // Trigger rebuild to update the properties panel
     setState(() {});
+
+    // Tell the viewport, which nodes should move when dragging a drag-enabled node.
+    _graphViewportController.movingNodeIds = _selectedNodeIds;
   }
 
   String _createNode(Offset position) {
