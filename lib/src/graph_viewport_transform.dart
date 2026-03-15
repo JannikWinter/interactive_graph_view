@@ -211,28 +211,28 @@ class GraphViewportTransform extends ChangeNotifier {
     _ballisticController?.stop();
     _cameraMoveAnimationController?.stop();
 
-    final Offset targetPosition_GS = targetRect.center;
-    final Size targetSize_GS = targetRect.size;
+    final Offset targetPositionGS = targetRect.center;
+    final Size targetSizeGS = targetRect.size;
 
-    final Rect viewportRect_SS = Rect.fromLTWH(0, 0, viewportSize.width, viewportSize.height);
-    final Rect visibleViewportRect_SS = margin.deflateRect(viewportRect_SS);
-    final Rect paddedViewportRect_SS = padding.deflateRect(visibleViewportRect_SS);
+    final Rect viewportRectSS = Rect.fromLTWH(0, 0, viewportSize.width, viewportSize.height);
+    final Rect visibleViewportRectSS = margin.deflateRect(viewportRectSS);
+    final Rect paddedViewportRectSS = padding.deflateRect(visibleViewportRectSS);
 
-    final Rect paddedViewportRect_GS = toGraphSpaceRect(paddedViewportRect_SS);
+    final Rect paddedViewportRectGS = toGraphSpaceRect(paddedViewportRectSS);
 
     final double newScale = _clampScale(
       _scale /
           math.max(
-            targetSize_GS.width / paddedViewportRect_GS.width,
-            targetSize_GS.height / paddedViewportRect_GS.height,
+            targetSizeGS.width / paddedViewportRectGS.width,
+            targetSizeGS.height / paddedViewportRectGS.height,
           ),
     );
 
     // adjust newPosition to be in center of padded viewport instead of viewport center
-    final Offset adjustment_SS = viewportRect_SS.center - paddedViewportRect_SS.center;
-    final Offset adjustment_GS = toGraphSpaceOffset(adjustment_SS, scale: newScale);
+    final Offset adjustmentSS = viewportRectSS.center - paddedViewportRectSS.center;
+    final Offset adjustmentGS = toGraphSpaceOffset(adjustmentSS, scale: newScale);
 
-    final Offset newPosition = targetPosition_GS + adjustment_GS;
+    final Offset newPosition = targetPositionGS + adjustmentGS;
 
     if (duration == Duration.zero) {
       position = newPosition;
