@@ -79,8 +79,8 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
 
   Offset _startingViewportPosition = Offset.zero;
 
-  Offset _startingPointerScreenPosition = Offset.zero;
-  Offset _pointerScreenPosition = Offset.zero;
+  Offset _startingPointerViewportPosition = Offset.zero;
+  Offset _pointerViewportPosition = Offset.zero;
 
   bool _isDraggingNodes = false;
 
@@ -110,42 +110,40 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
 
   Offset get movingNodeOffset => (_isDraggingNodes && movingNodeIds.isNotEmpty)
       ? (_transform.position - _startingViewportPosition) +
-            ((_pointerScreenPosition - _startingPointerScreenPosition) / _transform.scale)
+            ((_pointerViewportPosition - _startingPointerViewportPosition) / _transform.scale)
       : Offset.zero;
 
-  void onNodeDragDown(NodeDragDownDetails details, NodeIdType nodeId) {
+  void onNodeDragDown(GraphViewportDragDownDetails details, NodeIdType nodeId) {
     transform.onNodeDragDown(details);
 
     _startingViewportPosition = _transform.position;
-    _startingPointerScreenPosition = details.parentSpacePosition;
-    _pointerScreenPosition = details.parentSpacePosition;
+    _startingPointerViewportPosition = details.viewportPosition;
+    _pointerViewportPosition = details.viewportPosition;
     _dragDownNodeId = nodeId;
   }
 
-  void onNodeDragStart(NodeDragStartDetails details) {
+  void onNodeDragStart(GraphViewportDragStartDetails details) {
     transform.onNodeDragStart(details);
 
     _isDraggingNodes = true;
   }
 
-  void onNodeDragUpdate(NodeDragUpdateDetails details) {
+  void onNodeDragUpdate(GraphViewportDragUpdateDetails details) {
     transform.onNodeDragUpdate(details);
 
-    if (details.hasMoved) {
-      _pointerScreenPosition = details.parentSpacePosition;
+    _pointerViewportPosition = details.viewportPosition;
 
-      for (final NodeIdType nodeId in inFlightNodeIds) {
-        markNodeNeedsLayout(nodeId);
-      }
-      for (final EdgeIdType edgeId in inFlightEdgeIds) {
-        markEdgeNeedsLayout(edgeId);
-      }
-
-      markNeedsLayout();
+    for (final NodeIdType nodeId in inFlightNodeIds) {
+      markNodeNeedsLayout(nodeId);
     }
+    for (final EdgeIdType edgeId in inFlightEdgeIds) {
+      markEdgeNeedsLayout(edgeId);
+    }
+
+    markNeedsLayout();
   }
 
-  void onNodeDragEnd(NodeDragEndDetails details) {
+  void onNodeDragEnd(GraphViewportDragEndDetails details) {
     transform.onNodeDragEnd(details);
 
     for (final NodeIdType nodeId in inFlightNodeIds) {
@@ -200,33 +198,6 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
     final translation = getTransformTo(null).getTranslation();
 
     return Offset(translation.x, translation.y);
-  }
-
-  NodeDragDownDetails convertDragDownDetails(DragDownDetails details) {
-    return NodeDragDownDetails(
-      parentSpacePosition: details.globalPosition - globalPaintOffset,
-      graphSpacePosition: details.localPosition,
-    );
-  }
-
-  NodeDragStartDetails convertDragStartDetails(DragStartDetails details) {
-    return NodeDragStartDetails(
-      parentSpacePosition: details.globalPosition - globalPaintOffset,
-      graphSpacePosition: details.localPosition,
-    );
-  }
-
-  NodeDragUpdateDetails convertDragUpdateDetails(DragUpdateDetails details) {
-    return NodeDragUpdateDetails(
-      parentSpacePosition: details.globalPosition - globalPaintOffset,
-      graphSpacePosition: details.localPosition,
-      parentSpaceDelta: details.delta / transform.scale,
-      graphSpaceDelta: details.delta,
-    );
-  }
-
-  NodeDragEndDetails convertDragEndDetails(DragEndDetails details) {
-    return NodeDragEndDetails();
   }
 
   _ShowOnScreenAnimationData<NodeIdType, EdgeIdType>? _showOnScreenAnimationData;

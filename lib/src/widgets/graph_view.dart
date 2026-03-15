@@ -3,7 +3,9 @@ import "package:flutter/widgets.dart";
 
 import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
+import "../interaction/gesture_callbacks.dart";
 import "../interaction/interaction_config.dart";
+import "../interaction/scale_details.dart";
 import "../style/graph_style.dart";
 import "graph_viewport.dart";
 
@@ -128,13 +130,13 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
   final GestureGraphViewportDoubleTapCallback? onDoubleTap;
 
   /// {@macro graph_viewport.on_scale_start}
-  final GestureScaleStartCallback? onScaleStart;
+  final GestureGraphViewportScaleStartCallback? onScaleStart;
 
   /// {@macro graph_viewport.on_scale_update}
-  final GestureScaleUpdateCallback? onScaleUpdate;
+  final GestureGraphViewportScaleUpdateCallback? onScaleUpdate;
 
   /// {@macro graph_viewport.on_scale_end}
-  final GestureScaleEndCallback? onScaleEnd;
+  final GestureGraphViewportScaleEndCallback? onScaleEnd;
 
   /// {@macro graph_viewport.on_pointer_signal}
   final void Function(PointerSignalEvent event)? onPointerSignal;
@@ -213,15 +215,16 @@ class GraphViewState<NodeIdType, EdgeIdType> extends State<GraphView<NodeIdType,
     );
   }
 
-  void _onScaleStart(ScaleStartDetails details) {
+  // TODO: move to viewport element
+  void _onScaleStart(GraphViewportScaleStartDetails details) {
     _viewportTransform.onScaleStart(details);
   }
 
-  void _onScaleUpdate(ScaleUpdateDetails details) {
+  void _onScaleUpdate(GraphViewportScaleUpdateDetails details) {
     _viewportTransform.onScaleUpdate(details);
   }
 
-  void _onScaleEnd(ScaleEndDetails details) {
+  void _onScaleEnd(GraphViewportScaleEndDetails details) {
     _viewportTransform.onScaleEnd(details);
   }
 

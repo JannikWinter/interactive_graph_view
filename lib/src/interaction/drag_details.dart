@@ -1,76 +1,94 @@
 import "dart:ui";
 
-/// The drag details used when a DragDown gesture was registered on a node.
-class NodeDragDownDetails {
-  const NodeDragDownDetails({
-    required this.parentSpacePosition,
-    required this.graphSpacePosition,
+import "gesture_details.dart";
+
+/// The drag details used when a DragDown gesture was registered inside a [GraphViewport].
+class GraphViewportDragDownDetails implements GraphViewportPositionedGestureDetails {
+  /// Creates tap down details.
+  const GraphViewportDragDownDetails({
+    required this.globalPosition,
+    required this.viewportPosition,
+    required this.graphPosition,
   });
 
-  /// {@macro node_drag_details.parent_space_position}
-  final Offset parentSpacePosition;
+  /// {@macro gesture_details.global_position}
+  @override
+  final Offset globalPosition;
 
-  /// {@macro node_drag_details.graph_space_position}
-  final Offset graphSpacePosition;
+  /// {@macro gesture_details.viewport_position}
+  @override
+  final Offset viewportPosition;
+
+  /// {@macro gesture_details.graph_position}
+  @override
+  final Offset graphPosition;
 }
 
-/// The drag details used when a DragStart gesture was registered on a node.
-class NodeDragStartDetails {
-  const NodeDragStartDetails({
-    required this.parentSpacePosition,
-    required this.graphSpacePosition,
+/// The drag details used when a DragStart gesture was registered inside a [GraphViewport].
+class GraphViewportDragStartDetails implements GraphViewportPositionedGestureDetails {
+  /// Creates drag start details.
+  const GraphViewportDragStartDetails({
+    required this.globalPosition,
+    required this.viewportPosition,
+    required this.graphPosition,
   });
 
-  /// {@macro node_drag_details.parent_space_position}
-  final Offset parentSpacePosition;
+  /// {@macro gesture_details.global_position}
+  @override
+  final Offset globalPosition;
 
-  /// {@macro node_drag_details.graph_space_position}
-  final Offset graphSpacePosition;
+  /// {@macro gesture_details.viewport_position}
+  @override
+  final Offset viewportPosition;
+
+  /// {@macro gesture_details.graph_position}
+  @override
+  final Offset graphPosition;
 }
 
-/// The drag details used when a DragUpdate gesture was registered on a node.
-class NodeDragUpdateDetails {
-  const NodeDragUpdateDetails({
-    required this.parentSpacePosition,
-    required this.graphSpacePosition,
-    required this.parentSpaceDelta,
-    required this.graphSpaceDelta,
+/// The drag details used when a DragUpdate gesture was registered inside a [GraphViewport].
+class GraphViewportDragUpdateDetails implements GraphViewportPositionedGestureDetails {
+  /// Creates drag update details.
+  const GraphViewportDragUpdateDetails({
+    required this.globalPosition,
+    required this.viewportPosition,
+    required this.graphPosition,
+    required this.viewportDelta,
+    required this.graphDelta,
   });
 
-  /// {@template node_drag_details.parent_space_position}
-  /// The position in parent space where this drag happened.
-  /// {@endtemplate}
-  ///
-  /// {@template node_drag_details.parent_space}
-  /// "Parent space" means that the Offset is in relation to the parent widget of the [GraphViewport].
-  /// {@endtemplate}
-  final Offset parentSpacePosition;
+  /// {@macro gesture_details.global_position}
+  @override
+  final Offset globalPosition;
 
-  /// {@template node_drag_details.graph_space_position}
-  /// The position in graph space where this drag happened.
-  /// {@endtemplate}
-  ///
-  /// {@template node_drag_details.graph_space}
-  /// "Graph space" means that the Offset is in relation to the [GraphViewport]'s internal space with panning and
-  /// scaling applied.
-  /// {@endtemplate}
-  final Offset graphSpacePosition;
+  /// {@macro gesture_details.viewport_position}
+  @override
+  final Offset viewportPosition;
 
-  /// The distance for this specific DragUpdate gesture that the input was moved - in parent space.
-  ///
-  /// {@macro node_drag_details.parent_space}
-  final Offset parentSpaceDelta;
+  /// {@macro gesture_details.graph_position}
+  @override
+  final Offset graphPosition;
 
-  /// The distance for this specific DragUpdate gesture that the input was moved - in parent space.
+  /// The amount the pointer has moved in the coordinate space of the viewport since the previous update.
   ///
-  /// {@macro node_drag_details.graph_space}
-  final Offset graphSpaceDelta;
+  /// This **does not** take the viewport scaling into account.
+  ///
+  /// See also:
+  /// * [graphDelta] which is the [viewportDelta] transformed to the coordinate space of the viewport-content, **with**
+  ///   scaling applied.
+  final Offset viewportDelta;
 
-  bool get hasMoved => graphSpaceDelta != Offset.zero;
-  bool get hasNotMoved => graphSpaceDelta == Offset.zero;
+  /// The amount the pointer has moved in the coordinate space of the viewport-content since the previous update.
+  ///
+  /// This **does** take the viewport scaling into account.
+  ///
+  /// See also:
+  /// * [viewportDelta] which is the delta in the coordinate space of the viewport, **without** scaling applied.
+  final Offset graphDelta;
 }
 
-/// The drag details used when a DraggEnd gesture was registered on a node.
-class NodeDragEndDetails {
-  const NodeDragEndDetails();
+/// The drag details used when a DragEnd gesture was registered inside a [GraphViewport].
+class GraphViewportDragEndDetails {
+  /// Creates drag end details.
+  const GraphViewportDragEndDetails();
 }

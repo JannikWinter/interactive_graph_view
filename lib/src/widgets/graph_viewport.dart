@@ -5,20 +5,11 @@ import "package:flutter/widgets.dart";
 import "../elements/graph_viewport.dart";
 import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
-import "../interaction/tap_details.dart";
+import "../interaction/gesture_callbacks.dart";
 import "../rendering/graph_viewport.dart";
 import "../style/graph_style.dart";
 import "edge.dart";
 import "node.dart";
-
-/// Callback for handling a TapDown gesture that was registered on the viewport.
-typedef GestureGraphViewportTapDownCallback = void Function(GraphViewportTapDownDetails details);
-
-/// Callback for handling a Tap gesture that was registered on the viewport.
-typedef GestureGraphViewportTapCallback = void Function();
-
-/// Callback for handling a DoubleTap gesture that was registered on the viewport.
-typedef GestureGraphViewportDoubleTapCallback = void Function();
 
 /// The widget builder function for nodes.
 ///
@@ -171,19 +162,19 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// This callback will be called when a ScaleStart gesture was registered on the viewport,
   /// which was not registered on any child.
   /// {@endtemplate}
-  final GestureScaleStartCallback? onScaleStart;
+  final GestureGraphViewportScaleStartCallback? onScaleStart;
 
   /// {@template graph_viewport.on_scale_update}
   /// This callback will be called when a ScaleUpdate gesture was registered on the viewport,
   /// which was not registered on any child.
   /// {@endtemplate}
-  final GestureScaleUpdateCallback? onScaleUpdate;
+  final GestureGraphViewportScaleUpdateCallback? onScaleUpdate;
 
   /// {@template graph_viewport.on_scale_end}
   /// This callback will be called when a ScaleEnd gesture was registered on the viewport,
   /// which was not registered on any child.
   /// {@endtemplate}
-  final GestureScaleEndCallback? onScaleEnd;
+  final GestureGraphViewportScaleEndCallback? onScaleEnd;
 
   /// {@template graph_viewport.on_pointer_signal}
   /// This callback will be called when a pointer signal event, e.g. a scroll event, was registered on the viewport.

@@ -1,7 +1,10 @@
 import "package:flutter/gestures.dart";
 import "package:flutter/widgets.dart";
 
+import "../graph_viewport_transform.dart";
+import "../interaction/tap_details.dart";
 import "../rendering/edge.dart";
+import "../rendering/graph_viewport_base.dart";
 import "../widgets/edge.dart";
 
 class EdgeElement extends LeafRenderObjectElement {
@@ -19,7 +22,8 @@ class EdgeElement extends LeafRenderObjectElement {
     final EdgeWidget widget = this.widget as EdgeWidget;
 
     _tapRecognizer = TapGestureRecognizer(debugOwner: this);
-    _tapRecognizer.onTap = widget.onTap;
+    _tapRecognizer.onTapDown = (widget.onTapDown != null) ? _onTapDown : null;
+    _tapRecognizer.onTap = (widget.onTap != null) ? _onTap : null;
 
     renderObject.onPointerDown = _handlePointerDown;
     renderObject.onPointerPanZoomStart = _handlePointerPanZoomStart;
@@ -38,5 +42,22 @@ class EdgeElement extends LeafRenderObjectElement {
 
   void _handlePointerPanZoomStart(PointerPanZoomStartEvent event) {
     _tapRecognizer.addPointerPanZoom(event);
+  }
+
+  void _onTapDown(TapDownDetails details) {
+    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
+    final GraphViewportTransform viewportTransform = viewportBase.transform;
+    final Offset viewportPosition = details.globalPosition - viewportBase.globalPaintOffset;
+    final GraphViewportTapDownDetails newDetails = GraphViewportTapDownDetails(
+      globalPosition: details.globalPosition,
+      viewportPosition: viewportPosition,
+      graphPosition: viewportTransform.toGraphSpacePosition(viewportPosition),
+    );
+
+    (widget as EdgeWidget).onTapDown?.call(newDetails);
+  }
+
+  void _onTap() {
+    (widget as EdgeWidget).onTap?.call();
   }
 }

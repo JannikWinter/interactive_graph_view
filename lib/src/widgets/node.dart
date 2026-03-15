@@ -1,30 +1,14 @@
-import "package:flutter/gestures.dart";
 import "package:flutter/material.dart" show Theme, ThemeData;
 import "package:flutter/widgets.dart";
 
 import "../elements/node.dart";
-import "../interaction/drag_details.dart";
+import "../interaction/gesture_callbacks.dart";
 import "../rendering/node.dart";
 import "../style/node_style.dart";
 import "node_overlay.dart";
 
 /// The `SlotType` [NodeWidget] (a [SlottedMultiChildRenderObjectWidget]) uses for configuring its children.
 enum NodeWidgetSlot { content, background, overlay }
-
-/// Callback for handling a DragDown gesture that was registered on a node.
-typedef GestureNodeDragDownCallback = void Function(NodeDragDownDetails details);
-
-/// Callback for handling a DragStart gesture that was registered on a node.
-typedef GestureNodeDragStartCallback = void Function(NodeDragStartDetails details);
-
-/// Callback for handling a DragUpdate gesture that was registered on a node.
-typedef GestureNodeDragUpdateCallback = void Function(NodeDragUpdateDetails details);
-
-/// Callback for handling a DragEnd gesture that was registered on a node.
-typedef GestureNodeDragEndCallback = void Function(NodeDragEndDetails details);
-
-/// Callback for handling a DragCancel gesture that was registered on a node.
-typedef GestureNodeDragCancelCallback = void Function();
 
 /// A widget for configuring, interacting with and styling a node in a graph.
 ///
@@ -58,6 +42,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     required this.background,
     this.overlay,
     this.style,
+    this.onTapDown,
     this.onTap,
     this.onDoubleTap,
     this.onLongPress,
@@ -85,15 +70,16 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     required String text,
     NodeOverlay? overlay,
     NodeStyle? style,
+    GestureGraphViewportTapDownCallback? onTapDown,
     GestureTapCallback? onTap,
-    GestureDoubleTapCallback? onDoubleTap,
-    GestureLongPressCallback? onLongPress,
+    GestureGraphViewportDoubleTapCallback? onDoubleTap,
+    GestureGraphViewportLongPressCallback? onLongPress,
     required bool isDragEnabled,
-    GestureNodeDragDownCallback? onDragDown,
-    GestureNodeDragStartCallback? onDragStart,
-    GestureNodeDragUpdateCallback? onDragUpdate,
-    GestureNodeDragEndCallback? onDragEnd,
-    GestureNodeDragCancelCallback? onDragCancel,
+    GestureGraphViewportDragDownCallback? onDragDown,
+    GestureGraphViewportDragStartCallback? onDragStart,
+    GestureGraphViewportDragUpdateCallback? onDragUpdate,
+    GestureGraphViewportDragEndCallback? onDragEnd,
+    GestureGraphViewportDragCancelCallback? onDragCancel,
   }) {
     return NodeWidget.custom(
       key: key,
@@ -102,6 +88,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
       background: BasicNodeBackground(style: style),
       overlay: overlay,
       style: style,
+      onTapDown: onTapDown,
       onTap: onTap,
       onDoubleTap: onDoubleTap,
       onLongPress: onLongPress,
@@ -144,16 +131,17 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   /// 3. [NodeStyle.fallback] which will have a fallback value for every property.
   final NodeStyle? style;
 
-  // Tap callbacks
+  /// This callback will be called when a TapDown gesture was registered on this node.
+  final GestureGraphViewportTapDownCallback? onTapDown;
 
   /// This callback will be called when a Tap gesture was registered on this node.
-  final GestureTapCallback? onTap;
+  final GestureGraphViewportTapCallback? onTap;
 
   /// This callback will be called when a DoubleTap gesture was registered on this node.
-  final GestureDoubleTapCallback? onDoubleTap;
+  final GestureGraphViewportDoubleTapCallback? onDoubleTap;
 
   /// This callback will be called when a LongPress gesture was registered on this node.
-  final GestureLongPressCallback? onLongPress;
+  final GestureGraphViewportLongPressCallback? onLongPress;
 
   // Drag callbacks
 
@@ -168,19 +156,19 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   final bool isDragEnabled;
 
   /// This callback will be called when a DragDown gesture was registered on this node and [isDragEnabled] is `true`.
-  final GestureNodeDragDownCallback? onDragDown;
+  final GestureGraphViewportDragDownCallback? onDragDown;
 
   /// This callback will be called when a DragStart gesture was registered on this node and [isDragEnabled] is `true`.
-  final GestureNodeDragStartCallback? onDragStart;
+  final GestureGraphViewportDragStartCallback? onDragStart;
 
   /// This callback will be called when a DragUpdate gesture was registered on this node and [isDragEnabled] is `true`.
-  final GestureNodeDragUpdateCallback? onDragUpdate;
+  final GestureGraphViewportDragUpdateCallback? onDragUpdate;
 
   /// This callback will be called when a DragEnd gesture was registered on this node and [isDragEnabled] is `true`.
-  final GestureNodeDragEndCallback? onDragEnd;
+  final GestureGraphViewportDragEndCallback? onDragEnd;
 
   /// This callback will be called when a DragCancel gesture was registered on this node and [isDragEnabled] is `true`.
-  final GestureNodeDragCancelCallback? onDragCancel;
+  final GestureGraphViewportDragCancelCallback? onDragCancel;
 
   @override
   Widget? childForSlot(NodeWidgetSlot slot) {

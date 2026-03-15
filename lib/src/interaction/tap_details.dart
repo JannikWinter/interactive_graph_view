@@ -1,40 +1,25 @@
 import "dart:ui" show Offset;
 
-/// The tap details used when a tap occured on a [GraphViewport].
-class GraphViewportTapDownDetails {
-  /// Constructs new tap down details.
+import "gesture_details.dart";
+
+/// The tap details used when a tap occured inside a [GraphViewport].
+class GraphViewportTapDownDetails implements GraphViewportPositionedGestureDetails {
+  /// Creates tap down details.
   const GraphViewportTapDownDetails({
     required this.globalPosition,
-    required this.localPosition,
+    required this.viewportPosition,
     required this.graphPosition,
   });
 
-  /// The global position at which the pointer contacted the screen.
-  ///
-  /// See also:
-  /// * [localPosition], which is the [globalPosition] transformed to the coordinate space of the viewport **without**
-  ///   panning and scaling applied.
-  /// * [graphPosition], which is the [globalPosition] transformed to the coordinate space of the viewport-content,
-  ///   **with** panning and scaling applied.
+  /// {@macro gesture_details.global_position}
+  @override
   final Offset globalPosition;
 
-  /// The position in the coordinate space of the viewport at which the pointer contacted the screen.
-  ///
-  /// This **does not** take panning and scaling of the viewport into account.
-  ///
-  /// See also:
-  /// * [globalPosition], which is the global position at which the pointer contacted the screen.
-  /// * [graphPosition], which is the [globalPosition] transformed to the coordinate space of the viewport-content,
-  ///   **with** panning and scaling applied.
-  final Offset localPosition;
+  /// {@macro gesture_details.local_position}
+  @override
+  final Offset viewportPosition;
 
-  /// The position in the coordinate space of the viewport-content at which the pointer contacted the screen.
-  ///
-  /// This **does** take panning and scaling of the viewport into account.
-  ///
-  /// See also:
-  /// * [globalPosition], which is the global position at which the pointer contacted the screen.
-  /// * [localPosition], which is the [globalPosition] transformed to the coordinate space of the viewport **without**
-  ///   panning and scaling applied.
+  /// {@macro gesture_details.graph_position}
+  @override
   final Offset graphPosition;
 }

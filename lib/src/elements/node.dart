@@ -1,11 +1,13 @@
 import "package:flutter/gestures.dart";
 import "package:flutter/widgets.dart";
 
-import "../elements/graph_viewport.dart";
+import "../graph_viewport_transform.dart";
 import "../interaction/drag_details.dart";
+import "../interaction/tap_details.dart";
 import "../rendering/graph_viewport_base.dart";
 import "../rendering/node.dart";
 import "../widgets/node.dart";
+import "graph_viewport.dart";
 
 class NodeElement<NodeIdType> extends SlottedRenderObjectElement<NodeWidgetSlot, RenderBox> {
   NodeElement(NodeWidget super.widget);
@@ -42,13 +44,15 @@ class NodeElement<NodeIdType> extends SlottedRenderObjectElement<NodeWidgetSlot,
 
   void _initializeRecognizers(NodeWidget widget) {
     _tapRecognizer = TapGestureRecognizer(debugOwner: this);
-    _tapRecognizer.onTap = widget.onTap;
+    _tapRecognizer.onTapDown = (widget.onTapDown != null) ? _onTapDown : null;
+    _tapRecognizer.onTap = (widget.onTap != null) ? _onTap : null;
 
     _doubleTapRecognizer = DoubleTapGestureRecognizer(debugOwner: this);
-    _doubleTapRecognizer.onDoubleTap = widget.onDoubleTap;
+    _doubleTapRecognizer.onDoubleTapDown = (widget.onTapDown != null) ? _onTapDown : null;
+    _doubleTapRecognizer.onDoubleTap = (widget.onDoubleTap != null) ? _onDoubleTap : null;
 
     _longPressRecognizer = LongPressGestureRecognizer(debugOwner: this);
-    _longPressRecognizer.onLongPress = widget.onLongPress;
+    _longPressRecognizer.onLongPress = (widget.onLongPress != null) ? _onLongPress : null;
 
     _panRecognizer = PanGestureRecognizer(debugOwner: this);
     if (widget.isDragEnabled) {
@@ -74,9 +78,40 @@ class NodeElement<NodeIdType> extends SlottedRenderObjectElement<NodeWidgetSlot,
     _panRecognizer.addPointerPanZoom(event);
   }
 
+  void _onTapDown(TapDownDetails details) {
+    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
+    final GraphViewportTransform viewportTransform = viewportBase.transform;
+    final Offset viewportPosition = details.globalPosition - viewportBase.globalPaintOffset;
+    final GraphViewportTapDownDetails newDetails = GraphViewportTapDownDetails(
+      globalPosition: details.globalPosition,
+      viewportPosition: viewportPosition,
+      graphPosition: viewportTransform.toGraphSpacePosition(viewportPosition),
+    );
+
+    (widget as NodeWidget).onTapDown?.call(newDetails);
+  }
+
+  void _onTap() {
+    (widget as NodeWidget).onTap?.call();
+  }
+
+  void _onDoubleTap() {
+    (widget as NodeWidget).onDoubleTap?.call();
+  }
+
+  void _onLongPress() {
+    (widget as NodeWidget).onLongPress?.call();
+  }
+
   void _onDragDown(DragDownDetails details) {
     final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
-    final NodeDragDownDetails newDetails = viewportBase.convertDragDownDetails(details);
+    final GraphViewportTransform viewportTransform = viewportBase.transform;
+    final Offset viewportPosition = details.globalPosition - viewportBase.globalPaintOffset;
+    final GraphViewportDragDownDetails newDetails = GraphViewportDragDownDetails(
+      globalPosition: details.globalPosition,
+      viewportPosition: viewportPosition,
+      graphPosition: viewportTransform.toGraphSpacePosition(viewportPosition),
+    );
 
     (widget as NodeWidget).onDragDown?.call(newDetails);
     viewportBase.onNodeDragDown(newDetails, slot!.nodeId);
@@ -84,7 +119,13 @@ class NodeElement<NodeIdType> extends SlottedRenderObjectElement<NodeWidgetSlot,
 
   void _onDragStart(DragStartDetails details) {
     final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
-    final NodeDragStartDetails newDetails = viewportBase.convertDragStartDetails(details);
+    final GraphViewportTransform viewportTransform = viewportBase.transform;
+    final Offset viewportPosition = details.globalPosition - viewportBase.globalPaintOffset;
+    final GraphViewportDragStartDetails newDetails = GraphViewportDragStartDetails(
+      globalPosition: details.globalPosition,
+      viewportPosition: viewportPosition,
+      graphPosition: viewportTransform.toGraphSpacePosition(viewportPosition),
+    );
 
     (widget as NodeWidget).onDragStart?.call(newDetails);
     viewportBase.onNodeDragStart(newDetails);
@@ -92,7 +133,15 @@ class NodeElement<NodeIdType> extends SlottedRenderObjectElement<NodeWidgetSlot,
 
   void _onDragUpdate(DragUpdateDetails details) {
     final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
-    final NodeDragUpdateDetails newDetails = viewportBase.convertDragUpdateDetails(details);
+    final GraphViewportTransform viewportTransform = viewportBase.transform;
+    final Offset viewportPosition = details.globalPosition - viewportBase.globalPaintOffset;
+    final GraphViewportDragUpdateDetails newDetails = GraphViewportDragUpdateDetails(
+      globalPosition: details.globalPosition,
+      viewportPosition: viewportPosition,
+      graphPosition: viewportTransform.toGraphSpacePosition(viewportPosition),
+      viewportDelta: viewportTransform.toGraphSpaceOffset(details.delta),
+      graphDelta: details.delta,
+    );
 
     (widget as NodeWidget).onDragUpdate?.call(newDetails);
     viewportBase.onNodeDragUpdate(newDetails);
@@ -100,7 +149,7 @@ class NodeElement<NodeIdType> extends SlottedRenderObjectElement<NodeWidgetSlot,
 
   void _onDragEnd(DragEndDetails details) {
     final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
-    final NodeDragEndDetails newDetails = viewportBase.convertDragEndDetails(details);
+    final GraphViewportDragEndDetails newDetails = GraphViewportDragEndDetails();
 
     (widget as NodeWidget).onDragEnd?.call(newDetails);
     viewportBase.onNodeDragEnd(newDetails);

@@ -8,6 +8,7 @@ import "package:flutter/widgets.dart";
 
 import "interaction/drag_details.dart";
 import "interaction/interaction_config.dart";
+import "interaction/scale_details.dart";
 
 /// A callback for when the move of the viewport transform, that was initiated by the user, stops moving.
 typedef TransformSettleListener = void Function(Offset position, double scale);
@@ -146,7 +147,7 @@ class GraphViewportTransform extends ChangeNotifier {
   AnimationController? _ballisticController;
   final TickerProvider _vsync;
 
-  late Offset _nodeDragParentSpacePositionAtStart;
+  late Offset _nodeDragViewportPositionAtStart;
   late final Ticker _edgeMoveTicker = Ticker(_edgeMoveTick);
   AnimationController? _cameraMoveAnimationController;
   late Offset _edgeMoveDirection;
@@ -410,7 +411,7 @@ class GraphViewportTransform extends ChangeNotifier {
   bool _isBeingScaled = false;
 
   /// Handles the ScaleStart gesture to update [position] and [scale].
-  void onScaleStart(ScaleStartDetails details) {
+  void onScaleStart(GraphViewportScaleStartDetails details) {
     _ballisticController?.stop();
     _cameraMoveAnimationController?.stop();
 
@@ -420,29 +421,30 @@ class GraphViewportTransform extends ChangeNotifier {
   }
 
   /// Handles the ScaleUpdate gesture to update [position] and [scale].
-  void onScaleUpdate(ScaleUpdateDetails details) {
-    final Offset graphSpaceFocalPointBefore = toGraphSpacePosition(details.localFocalPoint);
+  void onScaleUpdate(GraphViewportScaleUpdateDetails details) {
+    final Offset graphFocalPointBeforeScaling = toGraphSpacePosition(details.viewportFocalPoint);
 
     scale = _scaleAtScaleStart * details.scale;
 
-    final Offset graphSpaceFocalPointAfter = toGraphSpacePosition(details.localFocalPoint);
-    final Offset graphSpaceFocalPointDelta = graphSpaceFocalPointAfter - graphSpaceFocalPointBefore;
+    final Offset graphFocalPointAfterScaling = toGraphSpacePosition(details.viewportFocalPoint);
+    final Offset graphSpaceFocalPointDifference = graphFocalPointAfterScaling - graphFocalPointBeforeScaling;
 
-    position -= (graphSpaceFocalPointDelta + details.focalPointDelta / scale);
+    position -= (details.graphFocalPointDelta + graphSpaceFocalPointDifference);
   }
 
   /// Handles the ScaleEnd gesture to update [position] and [scale].
-  void onScaleEnd(ScaleEndDetails details) {
-    if (details.velocity.pixelsPerSecond.distance > interactionConfig.minFlingVelocity) {
+  void onScaleEnd(GraphViewportScaleEndDetails details) {
+    if (details.viewportVelocity.pixelsPerSecond.distance > interactionConfig.minFlingVelocity) {
       _ballisticController?.stop();
 
       final _GraphBallisticSimulation simulation = _GraphBallisticSimulation(
-        velocity: details.velocity.pixelsPerSecond.distance,
+        velocity: details.viewportVelocity.pixelsPerSecond.distance,
       );
       final AnimationController ballisticController = AnimationController.unbounded(vsync: _vsync);
       _ballisticController = ballisticController;
 
-      final Offset direction = details.velocity.pixelsPerSecond / details.velocity.pixelsPerSecond.distance;
+      final Offset direction =
+          details.viewportVelocity.pixelsPerSecond / details.viewportVelocity.pixelsPerSecond.distance;
       Offset startPosition = _position;
       void tick() {
         position = startPosition - (direction * ballisticController.value / scale);
@@ -479,37 +481,37 @@ class GraphViewportTransform extends ChangeNotifier {
   }
 
   /// Handles the DragDown gesture of a node to update [position] and [scale].
-  void onNodeDragDown(NodeDragDownDetails details) {
+  void onNodeDragDown(GraphViewportDragDownDetails details) {
     _ballisticController?.stop();
     _cameraMoveAnimationController?.stop();
 
-    _nodeDragParentSpacePositionAtStart = details.parentSpacePosition;
+    _nodeDragViewportPositionAtStart = details.viewportPosition;
   }
 
   /// Handles the DragStart gesture of a node to update [position] and [scale].
-  void onNodeDragStart(NodeDragStartDetails details) {}
+  void onNodeDragStart(GraphViewportDragStartDetails details) {}
 
   /// Handles the DragUpdate gesture of a node to update [position] and [scale].
-  void onNodeDragUpdate(NodeDragUpdateDetails details) {
+  void onNodeDragUpdate(GraphViewportDragUpdateDetails details) {
     if (!_edgeMoveTicker.isActive &&
-        (details.parentSpacePosition - _nodeDragParentSpacePositionAtStart).distance <
+        (details.viewportPosition - _nodeDragViewportPositionAtStart).distance <
             interactionConfig.cameraEdgeMoveConfig.minDragDelta) {
       // The Ticker wasn't started yet but we also haven't exceeded the minDelta, so do nothing
       return;
     }
 
     double? horizontalCameraMovement;
-    if (details.parentSpacePosition.dx < interactionConfig.cameraEdgeMoveConfig.rimDistanceThreshold) {
+    if (details.viewportPosition.dx < interactionConfig.cameraEdgeMoveConfig.rimDistanceThreshold) {
       horizontalCameraMovement = -1;
-    } else if (details.parentSpacePosition.dx >
+    } else if (details.viewportPosition.dx >
         viewportSize.width - interactionConfig.cameraEdgeMoveConfig.rimDistanceThreshold) {
       horizontalCameraMovement = 1;
     }
 
     double? verticalCameraMovement;
-    if (details.parentSpacePosition.dy < interactionConfig.cameraEdgeMoveConfig.rimDistanceThreshold) {
+    if (details.viewportPosition.dy < interactionConfig.cameraEdgeMoveConfig.rimDistanceThreshold) {
       verticalCameraMovement = -1;
-    } else if (details.parentSpacePosition.dy >
+    } else if (details.viewportPosition.dy >
         viewportSize.height - interactionConfig.cameraEdgeMoveConfig.rimDistanceThreshold) {
       verticalCameraMovement = 1;
     }
@@ -529,7 +531,7 @@ class GraphViewportTransform extends ChangeNotifier {
   }
 
   /// Handles the DragEnd gesture of a node to update [position] and [scale].
-  void onNodeDragEnd(NodeDragEndDetails details) {
+  void onNodeDragEnd(GraphViewportDragEndDetails details) {
     _edgeMoveTicker.stop();
 
     _maybeNotifySettleListeners();

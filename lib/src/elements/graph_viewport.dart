@@ -3,6 +3,7 @@ import "package:flutter/widgets.dart";
 
 import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
+import "../interaction/scale_details.dart";
 import "../interaction/tap_details.dart";
 import "../rendering/edge.dart";
 import "../rendering/graph_element.dart";
@@ -167,15 +168,16 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     _edgeBuilder = widget.edgeBuilder;
 
     _scaleRecognizer = ScaleGestureRecognizer(debugOwner: this, trackpadScrollCausesScale: true);
-    _scaleRecognizer.onStart = widget.onScaleStart;
-    _scaleRecognizer.onUpdate = widget.onScaleUpdate;
-    _scaleRecognizer.onEnd = widget.onScaleEnd;
+    _scaleRecognizer.onStart = (widget.onScaleStart != null) ? _onScaleStart : null;
+    _scaleRecognizer.onUpdate = (widget.onScaleUpdate != null) ? _onScaleUpdate : null;
+    _scaleRecognizer.onEnd = (widget.onScaleEnd != null) ? _onScaleEnd : null;
 
     _tapRecognizer = TapGestureRecognizer(debugOwner: this);
     _tapRecognizer.onTapDown = (widget.onTapDown != null) ? _onTapDown : null;
     _tapRecognizer.onTap = (widget.onTap != null) ? _onTap : null;
 
     _doubleTapRecognizer = DoubleTapGestureRecognizer(debugOwner: this);
+    _doubleTapRecognizer.onDoubleTapDown = (widget.onTapDown != null) ? _onTapDown : null;
     _doubleTapRecognizer.onDoubleTap = (widget.onDoubleTap != null) ? _onDoubleTap : null;
 
     renderObject.onPointerDown = _handlePointerDown;
@@ -195,9 +197,9 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     _nodeBuilder = newWidget.nodeBuilder;
     _edgeBuilder = newWidget.edgeBuilder;
 
-    _scaleRecognizer.onStart = newWidget.onScaleStart;
-    _scaleRecognizer.onUpdate = newWidget.onScaleUpdate;
-    _scaleRecognizer.onEnd = newWidget.onScaleEnd;
+    _scaleRecognizer.onStart = (newWidget.onScaleStart != null) ? _onScaleStart : null;
+    _scaleRecognizer.onUpdate = (newWidget.onScaleUpdate != null) ? _onScaleUpdate : null;
+    _scaleRecognizer.onEnd = (newWidget.onScaleEnd != null) ? _onScaleEnd : null;
 
     _tapRecognizer.onTapDown = (newWidget.onTapDown != null) ? _onTapDown : null;
     _tapRecognizer.onTap = (newWidget.onTap != null) ? _onTap : null;
@@ -296,7 +298,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     final GraphViewportTransform viewportTransform = RenderGraphViewportBase.of(renderObject).transform;
     final GraphViewportTapDownDetails newDetails = GraphViewportTapDownDetails(
       globalPosition: details.globalPosition,
-      localPosition: details.localPosition,
+      viewportPosition: details.localPosition,
       graphPosition: viewportTransform.toGraphSpacePosition(details.localPosition),
     );
 
@@ -309,5 +311,47 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
 
   void _onDoubleTap() {
     (widget as GraphViewport).onDoubleTap?.call();
+  }
+
+  void _onScaleStart(ScaleStartDetails details) {
+    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
+    final GraphViewportTransform viewportTransform = viewportBase.transform;
+    final GraphViewportScaleStartDetails newDetails = GraphViewportScaleStartDetails(
+      globalFocalPoint: details.focalPoint,
+      viewportFocalPoint: details.localFocalPoint,
+      graphFocalPoint: viewportTransform.toGraphSpacePosition(details.localFocalPoint),
+      pointerCount: details.pointerCount,
+    );
+
+    (widget as GraphViewport).onScaleStart?.call(newDetails);
+  }
+
+  void _onScaleUpdate(ScaleUpdateDetails details) {
+    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
+    final GraphViewportTransform viewportTransform = viewportBase.transform;
+    final GraphViewportScaleUpdateDetails newDetails = GraphViewportScaleUpdateDetails(
+      viewportFocalPointDelta: details.focalPointDelta,
+      graphFocalPointDelta: viewportTransform.toGraphSpaceOffset(details.focalPointDelta),
+      globalFocalPoint: details.focalPoint,
+      viewportFocalPoint: details.localFocalPoint,
+      graphFocalPoint: viewportTransform.toGraphSpacePosition(details.localFocalPoint),
+      scale: details.scale,
+      pointerCount: details.pointerCount,
+    );
+
+    (widget as GraphViewport).onScaleUpdate?.call(newDetails);
+  }
+
+  void _onScaleEnd(ScaleEndDetails details) {
+    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
+    final GraphViewportTransform viewportTransform = viewportBase.transform;
+    final GraphViewportScaleEndDetails newDetails = GraphViewportScaleEndDetails(
+      viewportVelocity: details.velocity,
+      graphVelocity: Velocity(pixelsPerSecond: details.velocity.pixelsPerSecond / viewportTransform.scale),
+      scaleVelocity: details.scaleVelocity,
+      pointerCount: details.pointerCount,
+    );
+
+    (widget as GraphViewport).onScaleEnd?.call(newDetails);
   }
 }

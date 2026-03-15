@@ -2,6 +2,7 @@ import "package:flutter/material.dart" show Theme;
 import "package:flutter/widgets.dart";
 
 import "../elements/edge.dart";
+import "../interaction/gesture_callbacks.dart";
 import "../rendering/edge.dart";
 import "../style/edge_style.dart";
 
@@ -18,6 +19,7 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
     required this.endNodeId,
     required this.text,
     this.style,
+    this.onTapDown,
     this.onTap,
   });
 
@@ -47,11 +49,17 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
   /// 3. [EdgeStyle.fallback] which will have a fallback value for every property.
   final EdgeStyle? style;
 
+  /// This callback will be called when a TapDown gesture was registered on this edge.
+  ///
+  /// Note that you can configure the gesture hitbox for all edges of a viewport through
+  /// [GraphViewport.edgeHitboxThickness].
+  final GestureGraphViewportTapDownCallback? onTapDown;
+
   /// This callback will be called when a Tap gesture was registered on this edge.
   ///
   /// Note that you can configure the gesture hitbox for all edges of a viewport through
   /// [GraphViewport.edgeHitboxThickness].
-  final VoidCallback? onTap;
+  final GestureGraphViewportTapCallback? onTap;
 
   @override
   GraphEdgeRenderObject createRenderObject(BuildContext context) {
