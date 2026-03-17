@@ -6,11 +6,13 @@ import "package:flutter/widgets.dart";
 import "../widgets/node.dart";
 import "../widgets/node_overlay.dart";
 import "graph_element.dart";
+import "graph_viewport.dart";
 import "node_parent_data.dart";
 
-final class GraphNodeRenderObject extends GraphElementRenderObject
+final class GraphNodeRenderObject<NodeIdType> extends GraphElementRenderObject
     with SlottedContainerRenderObjectMixin<NodeWidgetSlot, RenderBox> {
   GraphNodeRenderObject({
+    required this.nodeId,
     required Offset position,
     required double maxWidth,
     required Radius borderRadius,
@@ -22,6 +24,8 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
        _clipBehavior = clipBehavior,
        _overlayConfig = overlayConfig;
 
+  final NodeIdType nodeId;
+
   Offset get positionWithDragOffset => position + (parentData as GraphViewportNodeParentData).dragOffset;
 
   Offset _position;
@@ -30,7 +34,7 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
     if (_position == value) return;
 
     _position = value;
-    markParentNeedsLayout();
+    markNeedsLayout();
   }
 
   double _maxWidth;
@@ -39,7 +43,7 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
     if (_maxWidth == value) return;
 
     _maxWidth = value;
-    markParentNeedsLayout();
+    markNeedsLayout();
   }
 
   Radius _borderRadius;
@@ -48,7 +52,7 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
     if (_borderRadius == value) return;
 
     _borderRadius = value;
-    markParentNeedsLayout();
+    markNeedsLayout();
   }
 
   Clip _clipBehavior;
@@ -216,5 +220,16 @@ final class GraphNodeRenderObject extends GraphElementRenderObject
     }
 
     return false;
+  }
+
+  @override
+  void markNeedsLayout() {
+    markParentNeedsLayout();
+  }
+
+  @override
+  void markParentNeedsLayout() {
+    super.markParentNeedsLayout();
+    (parent as RenderGraphViewport).markNeedsLayoutForNodeChange(nodeId);
   }
 }

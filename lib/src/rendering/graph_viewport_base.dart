@@ -206,6 +206,8 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
   @protected
   void markEdgeNeedsLayout(EdgeIdType edgeId);
 
+  void markNeedsLayoutForNodeChange(NodeIdType nodeId);
+
   @protected
   Iterable<EdgeIdType> getConnectingEdgeIds(NodeIdType nodeId);
 

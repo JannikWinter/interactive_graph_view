@@ -15,7 +15,7 @@ enum NodeWidgetSlot { content, background, overlay }
 /// To display this node, it should be constructed as a child of a [GraphViewport] through [GraphViewport.nodeBuilder].
 ///
 /// To build a node, its ID should first be added to a [GraphViewport]'s [GraphViewport.viewportController].
-class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, RenderBox> {
+class NodeWidget<NodeIdType> extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, RenderBox> {
   /// Constructs a [NodeWidget] at a given [position] while giving you full customizability for the [content],
   /// [background] and [overlay] widgets.
   ///
@@ -180,12 +180,14 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   }
 
   @override
-  GraphNodeRenderObject createRenderObject(BuildContext context) {
+  GraphNodeRenderObject<NodeIdType> createRenderObject(BuildContext context) {
+    final NodeIdType nodeId = (context as NodeElement<NodeIdType>).slot!.nodeId;
     final NodeStyle? themeStyle = Theme.of(context).extension<NodeStyle>();
     final NodeStyle fallbackStyle = NodeStyle.fallback();
     final NodeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
 
     return GraphNodeRenderObject(
+      nodeId: nodeId,
       position: position,
       overlayConfig: overlay,
       maxWidth: effectiveStyle.maxWidth!,

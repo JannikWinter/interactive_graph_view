@@ -108,6 +108,14 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   }
 
   @override
+  void markNeedsLayoutForNodeChange(NodeIdType nodeId) {
+    for (final EdgeIdType edgeId in getConnectingEdgeIds(nodeId)) {
+      markEdgeNeedsLayout(edgeId);
+    }
+    markNeedsLayout();
+  }
+
+  @override
   Iterable<EdgeIdType> getConnectingEdgeIds(NodeIdType nodeId) {
     return _edges.entries
         .where((edgeEntry) => edgeEntry.value.startNodeId == nodeId || edgeEntry.value.endNodeId == nodeId)
