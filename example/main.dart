@@ -17,7 +17,20 @@ class GraphViewExampleApp extends StatelessWidget {
     return MaterialApp(
       title: "Graph View Demo",
       home: const GraphViewExampleHomePage(),
-      theme: ThemeData(extensions: {}),
+      theme: ThemeData(
+        extensions: {
+          GraphStyle(backgroundColor: Colors.blue.shade900),
+          NodeStyle(
+            backgroundColor: Colors.blue.shade100,
+            textStyle: TextStyle(color: Colors.blue.shade900),
+            borderRadius: Radius.circular(5),
+          ),
+          EdgeStyle(
+            arrowStyle: ArrowStyle(length: 8, width: 12),
+            lineStyle: SolidLineStyle(thickness: 2),
+          ),
+        },
+      ),
     );
   }
 }
