@@ -17,7 +17,7 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
     super.key,
     required this.startNodeId,
     required this.endNodeId,
-    required this.text,
+    this.text,
     this.style,
     this.onTapDown,
     this.onTap,
