@@ -35,6 +35,9 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
   /// The default value for [cacheExtent] when it is not supplied to the constructor.
   static const double kDefaultCacheExtent = GraphViewport.kDefaultCacheExtent;
 
+  /// The default value for [boundaryInsets] when it is not supplied to the constructor.
+  static const EdgeInsets kDefaultBoundaryInsets = GraphViewport.kDefaultBoundaryInsets;
+
   /// The default value for [rebuildAllChildrenOnWidgetUpdate] when it is not supplied to the constructor.
   static const bool kDefaultRebuildAllChildrenOnWidgetUpdate = GraphViewport.kDefaultRebuildAllChildrenOnWidgetUpdate;
 
@@ -48,6 +51,7 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
     this.maxScale = kDefaultMaxScale,
     this.style,
     this.cacheExtent = kDefaultCacheExtent,
+    this.boundaryInsets = kDefaultBoundaryInsets,
     this.rebuildAllChildrenOnWidgetUpdate = kDefaultRebuildAllChildrenOnWidgetUpdate,
     this.interactionConfig = const InteractionConfig(),
     required this.nodeBuilder,
@@ -104,6 +108,11 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
   ///
   /// Defaults to [kDefaultCacheExtent].
   final double cacheExtent;
+
+  /// {@macro graph_viewport.boundary_insets}
+  ///
+  /// Defaults to [kDefaultBoundaryInsets].
+  final EdgeInsets boundaryInsets;
 
   /// {@macro graph_viewport.rebuild_all_children_on_widget_update}
   final bool rebuildAllChildrenOnWidgetUpdate;
@@ -189,6 +198,7 @@ class GraphViewState<NodeIdType, EdgeIdType> extends State<GraphView<NodeIdType,
       transform: _viewportTransform,
       style: widget.style,
       cacheExtent: widget.cacheExtent,
+      boundaryInsets: widget.boundaryInsets,
       edgeHitboxThickness: widget.interactionConfig.edgeHitboxThickness,
       rebuildAllChildrenOnWidgetUpdate: widget.rebuildAllChildrenOnWidgetUpdate,
       onTapDown: widget.onTapDown,

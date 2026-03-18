@@ -54,16 +54,20 @@ class GraphViewportTransform extends ChangeNotifier {
   }
 
   Offset _clampPosition(Offset value) {
+    if (!hasViewportSize || !hasViewportBoundaryInsets) {
+      return value;
+    }
+
     return Offset(
       clampDouble(
         value.dx,
-        contentRect.left - viewportSize.width / (2 * scale),
-        contentRect.right + viewportSize.width / (2 * scale),
+        contentRect.left - (viewportSize.width - viewportBoundaryInsets.right) / (2 * scale),
+        contentRect.right + (viewportSize.width - viewportBoundaryInsets.left) / (2 * scale),
       ),
       clampDouble(
         value.dy,
-        contentRect.top - viewportSize.height / (2 * scale),
-        contentRect.bottom + viewportSize.height / (2 * scale),
+        contentRect.top - (viewportSize.height - viewportBoundaryInsets.bottom) / (2 * scale),
+        contentRect.bottom + (viewportSize.height - viewportBoundaryInsets.top) / (2 * scale),
       ),
     );
   }
@@ -129,19 +133,29 @@ class GraphViewportTransform extends ChangeNotifier {
     }
   }
 
-  /// The size of the [GraphViewport].
-  Size get viewportSize => _viewportSize!;
   Size? _viewportSize;
 
-  /// Whether the [GraphViewport] has a size.
+  /// Whether [viewportSize] was already set by the [GraphViewport].
   bool get hasViewportSize => _viewportSize != null;
+
+  /// The size of the [GraphViewport].
+  Size get viewportSize => _viewportSize!;
+
+  EdgeInsets? _viewportBoundaryInsets;
+
+  /// Whether [viewportBoundaryInsets] was already set by the [GraphViewport].
+  bool get hasViewportBoundaryInsets => _viewportBoundaryInsets != null;
+
+  /// {@macro graph_viewport.boundary_insets}
+  EdgeInsets get viewportBoundaryInsets => _viewportBoundaryInsets!;
+
+  Rect? _contentRect;
+
+  /// Whether [contentRect] was already set by the [GraphViewport].
+  bool get hasContentRect => _contentRect != null;
 
   /// The rect that spans all children of the [GraphViewport].
   Rect get contentRect => _contentRect!;
-  Rect? _contentRect;
-
-  /// Whether the [GraphViewport] has a [contentRect].
-  bool get hasContentRect => _contentRect != null;
 
   late double _scaleAtScaleStart;
   AnimationController? _ballisticController;
@@ -169,12 +183,20 @@ class GraphViewportTransform extends ChangeNotifier {
     ..scaleByDouble(scale, scale, scale, 1)
     ..translateByDouble(-position.dx, -position.dy, 0, 1);
 
-  /// Applies the [GraphViewport]'s dimension to this transform.
+  /// Applies the [GraphViewport]'s dimensions to this transform.
   ///
   /// This gets called internally during layout.
   /// You should usually not call this method yourself.
-  void applyViewportDimensions(Size size) {
+  void applyViewportDimensions(Size size, EdgeInsets boundaryInsets) {
+    if (_viewportSize == size && _viewportBoundaryInsets == boundaryInsets) {
+      return;
+    }
+
     _viewportSize = size;
+    _viewportBoundaryInsets = boundaryInsets;
+
+    // clamp the position if needed:
+    _position = _clampPosition(position);
   }
 
   /// Applies the dimensions of the [GraphViewport]'s content (all children and edges) to this transform.
@@ -182,7 +204,14 @@ class GraphViewportTransform extends ChangeNotifier {
   /// This gets called internally during layout.
   /// You should usually not call this method yourself.
   void applyContentDimensions(Rect rect) {
+    if (_contentRect == rect) {
+      return;
+    }
+
     _contentRect = rect;
+
+    // clamp the position if needed:
+    _position = _clampPosition(position);
   }
 
   /// Animate this transform to show the given [targetRect] _(in graph space)_ in the center of the viewport.

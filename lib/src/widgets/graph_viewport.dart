@@ -36,6 +36,9 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// The default value for [cacheExtent] when it is not supplied to the constructor.
   static const double kDefaultCacheExtent = 50.0;
 
+  /// The default value for [boundaryInsets] when it is not supplied to the constructor.
+  static const EdgeInsets kDefaultBoundaryInsets = EdgeInsets.zero;
+
   /// The default value for [edgeHitboxThickness] when it is not supplied to the constructor.
   static const double kDefaultEdgeHitboxThickness = 40.0;
   static const bool kDefaultRebuildAllChildrenOnWidgetUpdate = true;
@@ -49,6 +52,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     required this.transform,
     this.style,
     this.cacheExtent = kDefaultCacheExtent,
+    this.boundaryInsets = kDefaultBoundaryInsets,
     this.edgeHitboxThickness = kDefaultEdgeHitboxThickness,
     this.rebuildAllChildrenOnWidgetUpdate = kDefaultRebuildAllChildrenOnWidgetUpdate,
     this.onScaleStart,
@@ -118,6 +122,18 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   ///
   /// Defaults to [kDefaultCacheExtent].
   final double cacheExtent;
+
+  /// {@template graph_viewport.boundary_insets}
+  /// The minimum inset on each side of the [GraphViewport] that must remain covered by the content rect.
+  ///
+  /// Each inset value specifies the minimum number of pixels of the content that must remain visible on that
+  /// side when the outermost child is scrolled to the edge. At [EdgeInsets.zero], the content may scroll until it is
+  /// entirely off-screen but still flush with the viewport boundary. Greater values pull the content back toward
+  /// the center.
+  /// {@endtemplate}
+  ///
+  /// Defaults to [kDefaultBoundaryInsets]
+  final EdgeInsets boundaryInsets;
 
   /// {@template graph_viewport.edge_hitbox_thickness}
   /// The thickness of the gesture hitbox for all edges displayed by this GraphView.
@@ -197,6 +213,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
       transform: transform,
       layoutHelper: context as GraphViewportElement<NodeIdType, EdgeIdType>,
       cacheExtent: cacheExtent,
+      boundaryInsets: boundaryInsets,
       edgeHitboxThickness: edgeHitboxThickness,
       backgroundColor: effectiveStyle.backgroundColor!,
     );
@@ -215,6 +232,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
       ..viewportController = viewportController
       ..transform = transform
       ..cacheExtent = cacheExtent
+      ..boundaryInsets = boundaryInsets
       ..edgeHitboxThickness = edgeHitboxThickness
       ..backgroundColor = effectiveStyle.backgroundColor!;
   }

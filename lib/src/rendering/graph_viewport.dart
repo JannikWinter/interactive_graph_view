@@ -17,10 +17,12 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     required super.transform,
     required GraphViewportLayoutHelper layoutHelper,
     required double cacheExtent,
+    required EdgeInsets boundaryInsets,
     required double edgeHitboxThickness,
     required Color backgroundColor,
   }) : _layoutHelper = layoutHelper,
        _cacheExtent = cacheExtent,
+       _boundaryInsets = boundaryInsets,
        _edgeHitboxThickness = edgeHitboxThickness,
        _backgroundColor = backgroundColor;
 
@@ -43,6 +45,16 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     if (_cacheExtent == value) return;
 
     _cacheExtent = value;
+
+    markNeedsLayout();
+  }
+
+  EdgeInsets get boundaryInsets => _boundaryInsets;
+  EdgeInsets _boundaryInsets;
+  set boundaryInsets(EdgeInsets value) {
+    if (_boundaryInsets == value) return;
+
+    _boundaryInsets = value;
 
     markNeedsLayout();
   }
@@ -241,8 +253,8 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
 
     if (!hasSize || size != constraints.biggest) {
       size = constraints.biggest;
-      transform.applyViewportDimensions(size);
     }
+    transform.applyViewportDimensions(size, boundaryInsets);
 
     {
       // frage QuadTree, was gerade sichtbar ist und baue nur diese Elemente + aktive ELemente +  die Elemente, die geändert wurden
