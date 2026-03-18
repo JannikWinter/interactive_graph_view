@@ -190,7 +190,7 @@ class NodeWidget<NodeIdType> extends SlottedMultiChildRenderObjectWidget<NodeWid
       nodeId: nodeId,
       position: position,
       overlayConfig: overlay,
-      maxWidth: effectiveStyle.maxWidth!,
+      contentConstraints: effectiveStyle.contentConstraints!,
       borderRadius: effectiveStyle.borderRadius!,
       clipBehavior: effectiveStyle.clipBehavior!,
     );
@@ -210,7 +210,7 @@ class NodeWidget<NodeIdType> extends SlottedMultiChildRenderObjectWidget<NodeWid
     renderObject
       ..position = position
       ..overlayConfig = overlay
-      ..maxWidth = effectiveStyle.maxWidth!
+      ..contentConstraints = effectiveStyle.contentConstraints!
       ..borderRadius = effectiveStyle.borderRadius!
       ..clipBehavior = effectiveStyle.clipBehavior!;
   }

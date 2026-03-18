@@ -66,7 +66,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
       ExampleNode(
         id: "node2",
         position: Offset(80, -80),
-        inlineStyle: NodeStyle(maxWidth: 25),
+        inlineStyle: NodeStyle(contentConstraints: BoxConstraints(maxWidth: 25)),
       ),
       ExampleNode(
         id: "node3",

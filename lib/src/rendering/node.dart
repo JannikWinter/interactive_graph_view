@@ -14,12 +14,12 @@ final class GraphNodeRenderObject<NodeIdType> extends GraphElementRenderObject
   GraphNodeRenderObject({
     required this.nodeId,
     required Offset position,
-    required double maxWidth,
+    required BoxConstraints contentConstraints,
     required Radius borderRadius,
     required Clip clipBehavior,
     required NodeOverlayConfig? overlayConfig,
   }) : _position = position,
-       _maxWidth = maxWidth,
+       _contentConstraints = contentConstraints,
        _borderRadius = borderRadius,
        _clipBehavior = clipBehavior,
        _overlayConfig = overlayConfig;
@@ -37,12 +37,12 @@ final class GraphNodeRenderObject<NodeIdType> extends GraphElementRenderObject
     markNeedsLayout();
   }
 
-  double _maxWidth;
-  double get maxWidth => _maxWidth;
-  set maxWidth(double value) {
-    if (_maxWidth == value) return;
+  BoxConstraints _contentConstraints;
+  BoxConstraints get contentConstraints => _contentConstraints;
+  set contentConstraints(BoxConstraints value) {
+    if (_contentConstraints == value) return;
 
-    _maxWidth = value;
+    _contentConstraints = value;
     markNeedsLayout();
   }
 
@@ -92,7 +92,7 @@ final class GraphNodeRenderObject<NodeIdType> extends GraphElementRenderObject
   @override
   void performLayout() {
     content.layout(
-      BoxConstraints(maxWidth: maxWidth),
+      contentConstraints,
       parentUsesSize: true,
     );
 

@@ -1,7 +1,5 @@
-import "dart:ui";
-
 import "package:flutter/foundation.dart" show immutable;
-import "package:flutter/material.dart" show ThemeExtension, Colors;
+import "package:flutter/material.dart" show BoxConstraints, Colors, ThemeExtension;
 import "package:flutter/painting.dart";
 
 import "../util/nullable.dart";
@@ -33,7 +31,7 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
     this.padding,
     this.backgroundColor,
     this.borderSide,
-    this.maxWidth,
+    this.contentConstraints,
     this.clipBehavior,
     this.borderRadius,
   });
@@ -48,7 +46,7 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
         padding: const EdgeInsets.all(6.0),
         backgroundColor: Colors.blue,
         borderSide: const BorderSide(style: BorderStyle.none),
-        maxWidth: 400,
+        contentConstraints: const BoxConstraints(maxWidth: 400),
         clipBehavior: Clip.none,
         borderRadius: Radius.zero,
       );
@@ -67,11 +65,11 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
   /// Supply a `BoderSide` with `style` set to [BorderStyle.none], if there should not be a border.
   final BorderSide? borderSide;
 
-  /// The maximum width the node is allowed to take before the content wraps.
+  /// The constraints for the node's content.
   ///
-  /// If the content or background of the node overflows this maximum width, it will be clipped according to
+  /// If the node's content or background end up larger than the constraints, they will be clipped according to
   /// [clipBehavior].
-  final double? maxWidth;
+  final BoxConstraints? contentConstraints;
 
   /// The node's clipping behavior.
   ///
@@ -89,7 +87,7 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
     Nullable<EdgeInsets>? padding,
     Nullable<Color>? backgroundColor,
     Nullable<BorderSide>? borderSide,
-    Nullable<double>? maxWidth,
+    Nullable<BoxConstraints>? contentConstraints,
     Nullable<Clip>? clipBehavior,
     Nullable<Radius>? borderRadius,
   }) {
@@ -98,7 +96,7 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
       padding: (padding != null) ? padding.value : this.padding,
       backgroundColor: (backgroundColor != null) ? backgroundColor.value : this.backgroundColor,
       borderSide: (borderSide != null) ? borderSide.value : this.borderSide,
-      maxWidth: (maxWidth != null) ? maxWidth.value : this.maxWidth,
+      contentConstraints: (contentConstraints != null) ? contentConstraints.value : this.contentConstraints,
       clipBehavior: (clipBehavior != null) ? clipBehavior.value : this.clipBehavior,
       borderRadius: (borderRadius != null) ? borderRadius.value : this.borderRadius,
     );
@@ -119,7 +117,7 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
         other.borderSide ?? const BorderSide(style: BorderStyle.none),
         t,
       ),
-      maxWidth: lerpDouble(maxWidth, other.maxWidth, t),
+      contentConstraints: BoxConstraints.lerp(contentConstraints, other.contentConstraints, t),
       clipBehavior: (t < 0.5) ? clipBehavior : other.clipBehavior,
       borderRadius: Radius.lerp(borderRadius, other.borderRadius, t),
     );
@@ -142,7 +140,7 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
       padding: Nullable((other.padding != null) ? other.padding : padding),
       backgroundColor: Nullable((other.backgroundColor != null) ? other.backgroundColor : backgroundColor),
       borderSide: Nullable((other.borderSide != null) ? other.borderSide : borderSide),
-      maxWidth: Nullable((other.maxWidth != null) ? other.maxWidth : maxWidth),
+      contentConstraints: Nullable((other.contentConstraints != null) ? other.contentConstraints : contentConstraints),
       clipBehavior: Nullable((other.clipBehavior != null) ? other.clipBehavior : clipBehavior),
       borderRadius: Nullable((other.borderRadius != null) ? other.borderRadius : borderRadius),
     );
@@ -162,7 +160,7 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
         padding == other.padding &&
         backgroundColor == other.backgroundColor &&
         borderSide == other.borderSide &&
-        maxWidth == other.maxWidth &&
+        contentConstraints == other.contentConstraints &&
         clipBehavior == other.clipBehavior &&
         borderRadius == other.borderRadius;
   }
@@ -173,7 +171,7 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
     padding,
     backgroundColor,
     borderSide,
-    maxWidth,
+    contentConstraints,
     clipBehavior,
     borderRadius,
   );
