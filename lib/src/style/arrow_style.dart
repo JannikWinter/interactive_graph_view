@@ -39,4 +39,19 @@ final class ArrowStyle {
       width: lerpDouble(widthA, widthB, t)!,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (runtimeType != other.runtimeType) {
+      return false;
+    }
+
+    return other is ArrowStyle && length == other.length && width == other.width;
+  }
+
+  @override
+  int get hashCode => Object.hash(length, width);
 }

@@ -135,4 +135,34 @@ class EdgeStyle extends ThemeExtension<EdgeStyle> {
       shadow: Nullable((other.shadow != null) ? other.shadow : shadow),
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (runtimeType != other.runtimeType) {
+      return false;
+    }
+
+    return other is EdgeStyle &&
+        lineColor == other.lineColor &&
+        textStyle == other.textStyle &&
+        textBackgroundColor == other.textBackgroundColor &&
+        lineStyle == other.lineStyle &&
+        curveStyle == other.curveStyle &&
+        arrowStyle == other.arrowStyle &&
+        shadow == other.shadow;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    lineColor,
+    textStyle,
+    textBackgroundColor,
+    lineStyle,
+    curveStyle,
+    arrowStyle,
+    shadow,
+  );
 }

@@ -72,4 +72,19 @@ class GraphStyle extends ThemeExtension<GraphStyle> {
       backgroundColor: Nullable((other.backgroundColor != null) ? other.backgroundColor : backgroundColor),
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+
+    return other is GraphStyle && backgroundColor == other.backgroundColor;
+  }
+
+  @override
+  int get hashCode => backgroundColor.hashCode;
 }

@@ -59,6 +59,21 @@ sealed class LineStyle {
 class SolidLineStyle extends LineStyle {
   /// Constructs a solid line style with a given [thickness].
   const SolidLineStyle({required super.thickness});
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+
+    return other is SolidLineStyle && thickness == other.thickness;
+  }
+
+  @override
+  int get hashCode => thickness.hashCode;
 }
 
 /// The _dashed_ line style for an [EdgeWidget]'s drawn line.
@@ -73,6 +88,24 @@ final class DashedLineStyle extends LineStyle {
 
   /// The length of each gap - the part between the drawn dashes.
   final double gapSize;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+
+    return other is DashedLineStyle &&
+        thickness == other.thickness &&
+        dashSize == other.dashSize &&
+        gapSize == other.gapSize;
+  }
+
+  @override
+  int get hashCode => Object.hash(thickness, dashSize, gapSize);
 }
 
 /// The _dotted_ line style for an [EdgeWidget]'s drawn line.
@@ -91,4 +124,19 @@ final class DottedLineStyle extends LineStyle {
   ///
   /// Defaults to [thickness].
   final double gapSize;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+
+    return other is DottedLineStyle && thickness == other.thickness && gapSize == other.gapSize;
+  }
+
+  @override
+  int get hashCode => Object.hash(thickness, gapSize);
 }

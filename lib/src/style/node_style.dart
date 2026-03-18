@@ -147,4 +147,34 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
       borderRadius: Nullable((other.borderRadius != null) ? other.borderRadius : borderRadius),
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+
+    return other is NodeStyle &&
+        textStyle == other.textStyle &&
+        padding == other.padding &&
+        backgroundColor == other.backgroundColor &&
+        borderSide == other.borderSide &&
+        maxWidth == other.maxWidth &&
+        clipBehavior == other.clipBehavior &&
+        borderRadius == other.borderRadius;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    textStyle,
+    padding,
+    backgroundColor,
+    borderSide,
+    maxWidth,
+    clipBehavior,
+    borderRadius,
+  );
 }

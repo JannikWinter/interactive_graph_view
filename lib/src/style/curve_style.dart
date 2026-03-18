@@ -23,6 +23,21 @@ sealed class CurveStyle {
 /// An edge using this [CurveStyle] will be drawn as a straight line from start node to end node.
 final class StraightCurveStyle extends CurveStyle {
   const StraightCurveStyle();
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (runtimeType != other.runtimeType) {
+      return false;
+    }
+
+    return other is StraightCurveStyle;
+  }
+
+  @override
+  int get hashCode => 0;
 }
 
 // final class CubicBezierCurveStyle extends CurveStyle {
