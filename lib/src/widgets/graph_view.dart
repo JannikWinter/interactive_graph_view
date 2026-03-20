@@ -54,6 +54,7 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
     this.boundaryInsets = kDefaultBoundaryInsets,
     this.rebuildAllChildrenOnWidgetUpdate = kDefaultRebuildAllChildrenOnWidgetUpdate,
     this.interactionConfig = const InteractionConfig(),
+    this.debugPaintQuadTree = false,
     required this.nodeBuilder,
     required this.edgeBuilder,
     this.onTransformSettled,
@@ -119,6 +120,11 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
 
   /// The configuration for gesture interactions with this GraphView.
   final InteractionConfig interactionConfig;
+
+  /// {@macro graph_viewport.debug_paint_quad_tree}
+  ///
+  /// Defaults to `false`.
+  final bool debugPaintQuadTree;
 
   /// {@macro graph_viewport.node_builder}
   final NodeBuilder<NodeIdType> nodeBuilder;
@@ -200,6 +206,7 @@ class GraphViewState<NodeIdType, EdgeIdType> extends State<GraphView<NodeIdType,
       cacheExtent: widget.cacheExtent,
       boundaryInsets: widget.boundaryInsets,
       edgeHitboxThickness: widget.interactionConfig.edgeHitboxThickness,
+      debugPaintQuadTree: widget.debugPaintQuadTree,
       rebuildAllChildrenOnWidgetUpdate: widget.rebuildAllChildrenOnWidgetUpdate,
       onTapDown: widget.onTapDown,
       onTap: widget.onTap,

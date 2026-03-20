@@ -54,6 +54,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     this.cacheExtent = kDefaultCacheExtent,
     this.boundaryInsets = kDefaultBoundaryInsets,
     this.edgeHitboxThickness = kDefaultEdgeHitboxThickness,
+    this.debugPaintQuadTree = false,
     this.rebuildAllChildrenOnWidgetUpdate = kDefaultRebuildAllChildrenOnWidgetUpdate,
     this.onScaleStart,
     this.onScaleUpdate,
@@ -142,6 +143,13 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// Defaults to [kDefaultEdgeHitboxThickness].
   final double edgeHitboxThickness;
 
+  /// {@template graph_viewport.debug_paint_quad_tree}
+  /// Whether the quad tree, that is used to effectively store the children of the viewport, should be painted.
+  /// {@endtemplate}
+  ///
+  /// Defaults to `false`.
+  final bool debugPaintQuadTree;
+
   /// {@template graph_viewport.rebuild_all_children_on_widget_update}
   /// Whether all children should be rebuilt when this widget's configuration changes (see [Element.update]).
   ///
@@ -215,6 +223,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
       cacheExtent: cacheExtent,
       boundaryInsets: boundaryInsets,
       edgeHitboxThickness: edgeHitboxThickness,
+      debugPaintQuadTree: debugPaintQuadTree,
       backgroundColor: effectiveStyle.backgroundColor!,
     );
   }
@@ -234,6 +243,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
       ..cacheExtent = cacheExtent
       ..boundaryInsets = boundaryInsets
       ..edgeHitboxThickness = edgeHitboxThickness
+      ..debugPaintQuadTree = debugPaintQuadTree
       ..backgroundColor = effectiveStyle.backgroundColor!;
   }
 }

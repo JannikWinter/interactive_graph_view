@@ -20,11 +20,13 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     required EdgeInsets boundaryInsets,
     required double edgeHitboxThickness,
     required Color backgroundColor,
+    required bool debugPaintQuadTree,
   }) : _layoutHelper = layoutHelper,
        _cacheExtent = cacheExtent,
        _boundaryInsets = boundaryInsets,
        _edgeHitboxThickness = edgeHitboxThickness,
-       _backgroundColor = backgroundColor;
+       _backgroundColor = backgroundColor,
+       _debugPaintQuadTree = debugPaintQuadTree;
 
   final GraphViewportLayoutHelper _layoutHelper;
 
@@ -77,6 +79,16 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     _edgeHitboxThickness = value;
 
     markNeedsLayout();
+  }
+
+  bool _debugPaintQuadTree;
+  bool get debugPaintQuadTree => _debugPaintQuadTree;
+  set debugPaintQuadTree(bool value) {
+    if (_debugPaintQuadTree == value) return;
+
+    _debugPaintQuadTree = value;
+
+    markNeedsPaint();
   }
 
   @override
@@ -391,7 +403,9 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
           offset,
           transform.childTransformMatrix,
           (context, offset) {
-            // _childQuadTree.debugPaint(context, offset);
+            if (debugPaintQuadTree) {
+              _childQuadTree.debugPaint(context, offset);
+            }
 
             for (final GraphEdgeRenderObject edge in _edges.values) {
               context.paintChild(edge, offset);
