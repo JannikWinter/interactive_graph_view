@@ -35,7 +35,10 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
 
   late bool _isFirstLayout;
 
-  final QuadTree _childQuadTree = QuadTree();
+  late final QuadTree<NodeIdType, EdgeIdType> _childQuadTree = QuadTree.fromInnermostQTSize(
+    innermostDimension: 100,
+    subdivisionSteps: 10,
+  );
   final Set<NodeIdType> _nodeIdsNeedingRebuild = {};
   final Set<EdgeIdType> _edgeIdsNeedingRebuild = {};
   final Set<NodeIdType> _nodeIdsNeedingLayout = {};
