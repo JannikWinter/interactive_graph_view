@@ -389,7 +389,10 @@ class PropertiesPanel extends StatelessWidget {
                   const SizedBox(height: 16),
                   TextFormField(
                     decoration: InputDecoration(labelText: "Border radius"),
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(4),
+                    ],
                     initialValue: (node.style.borderRadius != null)
                         ? node.style.borderRadius!.x.toInt().toString()
                         : "",
