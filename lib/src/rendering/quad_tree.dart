@@ -24,23 +24,24 @@ typedef _Index = (int, int);
 class QuadTree<NodeIdType, EdgeIdType> {
   /// Creates a `QuadTree` from the size of the innermost (smallest subdivided) quad trees.
   ///
-  /// The [rootQuadTreeDimension] is calculated from: [innermostDimension] * (2 ^ ([subdivisionSteps] - 1))
+  /// The [rootQuadTreeDimension] is calculated from: [innermostDimension] * (2 ^ ([subdivisionSteps]))
   QuadTree.fromInnermostQTSize({
     required this.innermostDimension,
     required this.subdivisionSteps,
   }) : assert(innermostDimension >= 10),
        assert(subdivisionSteps >= 0),
-       rootQuadTreeDimension = innermostDimension * pow(2, subdivisionSteps - 1);
+       assert(innermostDimension * pow(2, subdivisionSteps) >= 1000),
+       rootQuadTreeDimension = innermostDimension * pow(2, subdivisionSteps);
 
   /// Creates a `QuadTree` from the size of the root quad trees.
   ///
-  /// The [innermostDimension] is calculated from: [rootQuadTreeDimension] / (2 ^ ([subdivisionSteps] - 1))
+  /// The [innermostDimension] is calculated from: [rootQuadTreeDimension] / (2 ^ ([subdivisionSteps]))
   QuadTree.fromRootQTSize({
     required this.rootQuadTreeDimension,
     required this.subdivisionSteps,
   }) : assert(rootQuadTreeDimension >= 1000),
        assert(subdivisionSteps >= 0),
-       innermostDimension = rootQuadTreeDimension / pow(2, subdivisionSteps - 1);
+       innermostDimension = rootQuadTreeDimension / pow(2, subdivisionSteps);
 
   /// The size in pixels for each dimension of each root quad tree inside this [QuadTree].
   final double rootQuadTreeDimension;
@@ -129,8 +130,8 @@ class QuadTree<NodeIdType, EdgeIdType> {
       _rootQuadTrees[index] = _QT(
         Rect.fromCenter(
           center: Offset(index.$1.toDouble(), index.$2.toDouble()) * rootQuadTreeDimension,
-          width: rootQuadTreeDimension / 2,
-          height: rootQuadTreeDimension / 2,
+          width: rootQuadTreeDimension,
+          height: rootQuadTreeDimension,
         ),
         innermostDimension,
       );
