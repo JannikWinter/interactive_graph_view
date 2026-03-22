@@ -100,7 +100,7 @@ class QuadTree<NodeIdType, EdgeIdType> {
   /// Paints this `QuadTree`'s debug view into the given painting [context] at the given [offset].
   void debugPaint(PaintingContext context, Offset offset) {
     for (final qt in _rootQuadTrees.values) {
-      qt.debugPaint(context, offset, 0);
+      qt.debugPaint(context, offset);
     }
   }
 
@@ -516,18 +516,57 @@ class _QT<NodeIdType, EdgeIdType> {
   ///
   /// [depth] is increased at every level and is used to deflate the painted rects in order to better differentiate the
   /// bounding boxes.
-  void debugPaint(PaintingContext context, Offset offset, int depth) {
+  void debugPaint(PaintingContext context, Offset offset, [Rect? paintBounds]) {
+    paintBounds ??= bounds;
+
     context.canvas.drawRect(
-      bounds.translate(offset.dx, offset.dy).deflate(depth.toDouble()),
+      paintBounds.translate(offset.dx, offset.dy),
       Paint()
-        ..color = (_allChildNodes.isNotEmpty || _allChildEdges.isNotEmpty) ? Colors.red : Colors.blue
-        ..style = PaintingStyle.stroke,
+        ..color = Colors.red
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.0,
     );
 
-    _topLeft?.debugPaint(context, offset, depth + 1);
-    _topRight?.debugPaint(context, offset, depth + 1);
-    _bottomLeft?.debugPaint(context, offset, depth + 1);
-    _bottomRight?.debugPaint(context, offset, depth + 1);
+    _topLeft?.debugPaint(
+      context,
+      offset,
+      Rect.fromLTRB(
+        paintBounds.left + 1,
+        paintBounds.top + 1,
+        bounds.center.dx - 0.5,
+        bounds.center.dy - 0.5,
+      ),
+    );
+    _topRight?.debugPaint(
+      context,
+      offset,
+      Rect.fromLTRB(
+        bounds.center.dx + 0.5,
+        paintBounds.top + 1,
+        paintBounds.right - 1,
+        bounds.center.dy - 0.5,
+      ),
+    );
+    _bottomLeft?.debugPaint(
+      context,
+      offset,
+      Rect.fromLTRB(
+        paintBounds.left + 1,
+        bounds.center.dy + 0.5,
+        bounds.center.dx - 0.5,
+        paintBounds.bottom - 1,
+      ),
+    );
+    _bottomRight?.debugPaint(
+      context,
+      offset,
+      Rect.fromLTRB(
+        bounds.center.dx + 0.5,
+        bounds.center.dy + 0.5,
+        paintBounds.right - 1,
+        paintBounds.bottom - 1,
+      ),
+    );
   }
 
   /// Get all node IDs that are contained inside a given [rect].
