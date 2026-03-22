@@ -436,16 +436,16 @@ class _QT<NodeIdType, EdgeIdType> {
 
     if (!isLeaf && !fullyOverlaps(rect)) {
       if (_rectsIntersect(topLeftBounds, rect)) {
-        _topLeft ??= _QT(topLeftBounds, innermostDimension)..putNode(nodeId, rect);
+        (_topLeft ??= _QT(topLeftBounds, innermostDimension)).putNode(nodeId, rect);
       }
       if (_rectsIntersect(topRightBounds, rect)) {
-        _topRight ??= _QT(topRightBounds, innermostDimension)..putNode(nodeId, rect);
+        (_topRight ??= _QT(topRightBounds, innermostDimension)).putNode(nodeId, rect);
       }
       if (_rectsIntersect(bottomRightBounds, rect)) {
-        _bottomRight ??= _QT(bottomRightBounds, innermostDimension)..putNode(nodeId, rect);
+        (_bottomRight ??= _QT(bottomRightBounds, innermostDimension)).putNode(nodeId, rect);
       }
       if (_rectsIntersect(bottomLeftBounds, rect)) {
-        _bottomLeft ??= _QT(bottomLeftBounds, innermostDimension)..putNode(nodeId, rect);
+        (_bottomLeft ??= _QT(bottomLeftBounds, innermostDimension)).putNode(nodeId, rect);
       }
     }
   }
@@ -463,16 +463,16 @@ class _QT<NodeIdType, EdgeIdType> {
 
     if (!isLeaf && !fullyOverlaps(path.getBounds())) {
       if (_pathAndRectIntersect(path, topLeftBounds)) {
-        _topLeft ??= _QT(topLeftBounds, innermostDimension)..putEdge(edgeId, path);
+        (_topLeft ??= _QT(topLeftBounds, innermostDimension)).putEdge(edgeId, path);
       }
       if (_pathAndRectIntersect(path, topRightBounds)) {
-        _topRight ??= _QT(topRightBounds, innermostDimension)..putEdge(edgeId, path);
+        (_topRight ??= _QT(topRightBounds, innermostDimension)).putEdge(edgeId, path);
       }
       if (_pathAndRectIntersect(path, bottomRightBounds)) {
-        _bottomRight ??= _QT(bottomRightBounds, innermostDimension)..putEdge(edgeId, path);
+        (_bottomRight ??= _QT(bottomRightBounds, innermostDimension)).putEdge(edgeId, path);
       }
       if (_pathAndRectIntersect(path, bottomLeftBounds)) {
-        _bottomLeft ??= _QT(bottomLeftBounds, innermostDimension)..putEdge(edgeId, path);
+        (_bottomLeft ??= _QT(bottomLeftBounds, innermostDimension)).putEdge(edgeId, path);
       }
     }
   }
