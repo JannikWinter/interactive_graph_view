@@ -408,6 +408,12 @@ class _QT<NodeIdType, EdgeIdType> {
   /// All child edges that are either directly inside this quad tree node or in any of its children.
   final Map<EdgeIdType, Path> _allChildEdges = {};
 
+  /// The IDs of all nodes that are directly contained in this quad tree node and not in any of its children.
+  final Set<NodeIdType> _directlyContainedChildNodeIds = {};
+
+  /// The IDs of all edges that are directly contained in this quad tree node and not in any of its children.
+  final Set<EdgeIdType> _directlyContainedChildEdgeIds = {};
+
   /// The top left child quad tree node.
   _QT<NodeIdType, EdgeIdType>? _topLeft;
 
@@ -448,6 +454,8 @@ class _QT<NodeIdType, EdgeIdType> {
       if (_rectsIntersect(bottomLeftBounds, rect)) {
         (_bottomLeft ??= _QT(bottomLeftBounds, innermostDimension)).putNode(nodeId, rect);
       }
+    } else {
+      _directlyContainedChildNodeIds.add(nodeId);
     }
   }
 
@@ -475,6 +483,8 @@ class _QT<NodeIdType, EdgeIdType> {
       if (_pathAndRectIntersect(path, bottomLeftBounds)) {
         (_bottomLeft ??= _QT(bottomLeftBounds, innermostDimension)).putEdge(edgeId, path);
       }
+    } else {
+      _directlyContainedChildEdgeIds.add(edgeId);
     }
   }
 
@@ -483,6 +493,7 @@ class _QT<NodeIdType, EdgeIdType> {
     if (!_allChildNodes.containsKey(nodeId)) return;
 
     _allChildNodes.remove(nodeId);
+    _directlyContainedChildNodeIds.remove(nodeId);
 
     _topLeft?.removeNode(nodeId);
     _topRight?.removeNode(nodeId);
@@ -500,6 +511,7 @@ class _QT<NodeIdType, EdgeIdType> {
     if (!_allChildEdges.containsKey(edgeId)) return;
 
     _allChildEdges.remove(edgeId);
+    _directlyContainedChildEdgeIds.remove(edgeId);
 
     _topLeft?.removeEdge(edgeId);
     _topRight?.removeEdge(edgeId);
@@ -578,6 +590,7 @@ class _QT<NodeIdType, EdgeIdType> {
     if (fullyOverlaps(rect)) return _allChildNodes.keys;
 
     return {
+      ..._directlyContainedChildNodeIds,
       ..._topLeft?.getNodeIdsInRect(rect) ?? const {},
       ..._topRight?.getNodeIdsInRect(rect) ?? const {},
       ..._bottomRight?.getNodeIdsInRect(rect) ?? const {},
@@ -594,6 +607,7 @@ class _QT<NodeIdType, EdgeIdType> {
     if (fullyOverlaps(rect)) return _allChildEdges.keys;
 
     return {
+      ..._directlyContainedChildEdgeIds,
       ..._topLeft?.getEdgeIdsInRect(rect) ?? const {},
       ..._topRight?.getEdgeIdsInRect(rect) ?? const {},
       ..._bottomRight?.getEdgeIdsInRect(rect) ?? const {},
@@ -617,7 +631,7 @@ class _QT<NodeIdType, EdgeIdType> {
       bounds.top + innermostDimension >= rect.top &&
       bounds.bottom - innermostDimension <= rect.bottom;
 
-  /// The largest y-coordinate of any child node's or edge's left bounds.
+  /// The smallest x-coordinate of any child node's or edge's left bounds.
   double get leftContentEdge {
     if (_topLeft == null && _topRight == null && _bottomRight == null && _bottomLeft == null) {
       return {
@@ -626,20 +640,34 @@ class _QT<NodeIdType, EdgeIdType> {
       }.map((rect) => rect.left).reduce(min);
     }
 
+    final double directlyContainedLeftContentEdge =
+        (_directlyContainedChildNodeIds.isNotEmpty || _directlyContainedChildEdgeIds.isNotEmpty)
+        ? {
+            ..._directlyContainedChildNodeIds.map((nodeId) => _allChildNodes[nodeId]!),
+            ..._directlyContainedChildEdgeIds.map((edgeId) => _allChildEdges[edgeId]!.getBounds()),
+          }.map((rect) => rect.left).reduce(min)
+        : double.infinity;
+
     if (_topLeft != null || _bottomLeft != null) {
       return min(
-        _topLeft?.leftContentEdge ?? double.infinity,
-        _bottomLeft?.leftContentEdge ?? double.infinity,
+        min(
+          _topLeft?.leftContentEdge ?? double.infinity,
+          _bottomLeft?.leftContentEdge ?? double.infinity,
+        ),
+        directlyContainedLeftContentEdge,
       );
     } else {
       return min(
-        _topRight?.leftContentEdge ?? double.infinity,
-        _bottomRight?.leftContentEdge ?? double.infinity,
+        min(
+          _topRight?.leftContentEdge ?? double.infinity,
+          _bottomRight?.leftContentEdge ?? double.infinity,
+        ),
+        directlyContainedLeftContentEdge,
       );
     }
   }
 
-  /// The largest y-coordinate of any child node's or edge's top bounds.
+  /// The smallest y-coordinate of any child node's or edge's top bounds.
   double get topContentEdge {
     if (_topLeft == null && _topRight == null && _bottomRight == null && _bottomLeft == null) {
       return {
@@ -648,20 +676,34 @@ class _QT<NodeIdType, EdgeIdType> {
       }.map((rect) => rect.top).reduce(min);
     }
 
+    final double directlyContainedTopContentEdge =
+        (_directlyContainedChildNodeIds.isNotEmpty || _directlyContainedChildEdgeIds.isNotEmpty)
+        ? {
+            ..._directlyContainedChildNodeIds.map((nodeId) => _allChildNodes[nodeId]!),
+            ..._directlyContainedChildEdgeIds.map((edgeId) => _allChildEdges[edgeId]!.getBounds()),
+          }.map((rect) => rect.top).reduce(min)
+        : double.infinity;
+
     if (_topLeft != null || _topRight != null) {
       return min(
-        _topLeft?.topContentEdge ?? double.infinity,
-        _topRight?.topContentEdge ?? double.infinity,
+        min(
+          _topLeft?.topContentEdge ?? double.infinity,
+          _topRight?.topContentEdge ?? double.infinity,
+        ),
+        directlyContainedTopContentEdge,
       );
     } else {
       return min(
-        _bottomLeft?.topContentEdge ?? double.infinity,
-        _bottomRight?.topContentEdge ?? double.infinity,
+        min(
+          _bottomLeft?.topContentEdge ?? double.infinity,
+          _bottomRight?.topContentEdge ?? double.infinity,
+        ),
+        directlyContainedTopContentEdge,
       );
     }
   }
 
-  /// The largest y-coordinate of any child node's or edge's right bounds.
+  /// The largest x-coordinate of any child node's or edge's right bounds.
   double get rightContentEdge {
     if (_topLeft == null && _topRight == null && _bottomRight == null && _bottomLeft == null) {
       return {
@@ -670,15 +712,29 @@ class _QT<NodeIdType, EdgeIdType> {
       }.map((rect) => rect.right).reduce(max);
     }
 
+    final double directlyContainedRightContentEdge =
+        (_directlyContainedChildNodeIds.isNotEmpty || _directlyContainedChildEdgeIds.isNotEmpty)
+        ? {
+            ..._directlyContainedChildNodeIds.map((nodeId) => _allChildNodes[nodeId]!),
+            ..._directlyContainedChildEdgeIds.map((edgeId) => _allChildEdges[edgeId]!.getBounds()),
+          }.map((rect) => rect.right).reduce(max)
+        : double.negativeInfinity;
+
     if (_topRight != null || _bottomRight != null) {
       return max(
-        _topRight?.rightContentEdge ?? double.negativeInfinity,
-        _bottomRight?.rightContentEdge ?? double.negativeInfinity,
+        max(
+          _topRight?.rightContentEdge ?? double.negativeInfinity,
+          _bottomRight?.rightContentEdge ?? double.negativeInfinity,
+        ),
+        directlyContainedRightContentEdge,
       );
     } else {
       return max(
-        _topLeft?.rightContentEdge ?? double.negativeInfinity,
-        _bottomLeft?.rightContentEdge ?? double.negativeInfinity,
+        max(
+          _topLeft?.rightContentEdge ?? double.negativeInfinity,
+          _bottomLeft?.rightContentEdge ?? double.negativeInfinity,
+        ),
+        directlyContainedRightContentEdge,
       );
     }
   }
@@ -692,15 +748,29 @@ class _QT<NodeIdType, EdgeIdType> {
       }.map((rect) => rect.bottom).reduce(max);
     }
 
+    final double directlyContainedBottomContentEdge =
+        (_directlyContainedChildNodeIds.isNotEmpty || _directlyContainedChildEdgeIds.isNotEmpty)
+        ? {
+            ..._directlyContainedChildNodeIds.map((nodeId) => _allChildNodes[nodeId]!),
+            ..._directlyContainedChildEdgeIds.map((edgeId) => _allChildEdges[edgeId]!.getBounds()),
+          }.map((rect) => rect.bottom).reduce(max)
+        : double.negativeInfinity;
+
     if (_bottomLeft != null || _bottomRight != null) {
       return max(
-        _bottomLeft?.bottomContentEdge ?? double.negativeInfinity,
-        _bottomRight?.bottomContentEdge ?? double.negativeInfinity,
+        max(
+          _bottomLeft?.bottomContentEdge ?? double.negativeInfinity,
+          _bottomRight?.bottomContentEdge ?? double.negativeInfinity,
+        ),
+        directlyContainedBottomContentEdge,
       );
     } else {
       return max(
-        _topLeft?.bottomContentEdge ?? double.negativeInfinity,
-        _topRight?.bottomContentEdge ?? double.negativeInfinity,
+        max(
+          _topLeft?.bottomContentEdge ?? double.negativeInfinity,
+          _topRight?.bottomContentEdge ?? double.negativeInfinity,
+        ),
+        directlyContainedBottomContentEdge,
       );
     }
   }
