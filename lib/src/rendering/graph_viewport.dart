@@ -214,12 +214,10 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     _setChildNodeParentData(nodeId, node);
     node.layout(BoxConstraints(), parentUsesSize: true);
 
-    // Remove from QuadTree if this node is currently moving (e.g. during dragging).
-    // Not removing a moving node here might result in many unnecessary quadtree updates.
+    // Only update the QuadTree if this node is not currently moving (e.g. during dragging).
+    // Updating in-flight nodes would result in many unnecessary quad tree updates.
     // inFlightNodeIds are layouted even if they are not on screen, so they can safely be excluded from the quad tree.
-    if (inFlightNodeIds.contains(nodeId)) {
-      _childQuadTree.removeNode(nodeId);
-    } else {
+    if (!inFlightNodeIds.contains(nodeId)) {
       _childQuadTree.putNode(nodeId, node.semanticBounds);
     }
   }
@@ -230,12 +228,10 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     _setChildEdgeParentData(edgeId, edge);
     edge.layout(BoxConstraints(), parentUsesSize: true);
 
-    // Remove from QuadTree if this edge is currently moving (e.g. during dragging).
-    // Not removing a moving edges here might result in many unnecessary quadtree updates.
+    // Only update the QuadTree if this edge is not currently moving (e.g. during dragging).
+    // Updating in-flight edges would result in many unnecessary quad tree updates.
     // inFlightEdgeIds are layouted even if they are not on screen, so they can safely be excluded from the quad tree.
-    if (inFlightEdgeIds.contains(edgeId)) {
-      _childQuadTree.removeEdge(edgeId);
-    } else {
+    if (!inFlightEdgeIds.contains(edgeId)) {
       _childQuadTree.putEdge(edgeId, edge.linePath);
     }
   }
@@ -315,9 +311,6 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
 
     {
       final Rect oldContentRect = _lastFrameContentRect;
-
-      _childQuadTree.removeAllEdges(inFlightEdgeIds);
-      _childQuadTree.removeAllNodes(inFlightNodeIds);
 
       for (final NodeIdType nodeId in _nodes.keys) {
         final GraphNodeRenderObject node = _nodes[nodeId]!;
