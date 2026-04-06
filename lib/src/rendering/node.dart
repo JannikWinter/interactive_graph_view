@@ -188,35 +188,35 @@ final class GraphNodeRenderObject<NodeIdType> extends GraphElementRenderObject
 
   @override
   bool hitTest(BoxHitTestResult result, Offset position) {
-    final bool wasOverlayHit = (overlayConfig != null)
-        ? result.addWithPaintOffset(
-            offset: overlayPaintOffset,
-            position: position,
-            hitTest: (result, position) => overlay!.hitTest(result, position: position),
-          )
-        : false;
-    final bool wasContentHit = result.addWithPaintOffset(
-      offset: -content.size.center(Offset.zero),
-      position: position,
-      hitTest: (result, position) => content.hitTest(result, position: position),
-    );
-    final bool wasBackgroundHit = result.addWithPaintOffset(
-      offset: -background.size.center(Offset.zero),
-      position: position,
-      hitTest: (result, position) => background.hitTest(result, position: position),
-    );
-    final bool wasSelfHit = result.addWithPaintOffset(
-      offset: -size.center(Offset.zero),
-      position: position,
-      hitTest: (result, position) => size.contains(position),
-    );
-
-    if (wasSelfHit || wasBackgroundHit || wasContentHit) {
-      result.add(HitTestEntry(this));
-      return true;
+    if (overlayConfig != null) {
+      result.addWithPaintOffset(
+        offset: overlayPaintOffset,
+        position: position,
+        hitTest: (result, position) => overlay!.hitTest(result, position: position),
+      );
     }
-    if (wasOverlayHit) {
-      return true;
+
+    final bool wasSelfHit = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: Offset.zero,
+        width: max(size.width, borderRadius.x * 2),
+        height: max(size.height, borderRadius.y * 2),
+      ),
+      borderRadius,
+    ).contains(position);
+
+    if (wasSelfHit) {
+      result.addWithPaintOffset(
+        offset: -content.size.center(Offset.zero),
+        position: position,
+        hitTest: (result, position) => content.hitTest(result, position: position),
+      );
+      result.addWithPaintOffset(
+        offset: -background.size.center(Offset.zero),
+        position: position,
+        hitTest: (result, position) => background.hitTest(result, position: position),
+      );
+      result.add(HitTestEntry(this));
     }
 
     return false;

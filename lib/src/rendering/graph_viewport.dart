@@ -501,17 +501,13 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
       transform: transform.childTransformMatrix,
       position: position,
       hitTest: (result, position) {
-        bool hitAnyChild = false;
-
         final List<GraphNodeRenderObject> nodes = _nodes.values.toList();
         for (final GraphNodeRenderObject node in nodes.reversed) {
-          final bool wasNodeHit = result.addWithPaintOffset(
+          result.addWithPaintOffset(
             offset: node.positionWithDragOffset,
             position: position,
             hitTest: node.hitTest,
           );
-
-          hitAnyChild |= wasNodeHit;
         }
 
         final List<(GraphEdgeRenderObject, double)> edgesWithDist = _edges.values
@@ -524,12 +520,10 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
         edgesWithDist.sort((edgeDist1, edgeDist2) => edgeDist1.$2.compareTo(edgeDist2.$2));
 
         for (final GraphEdgeRenderObject edge in edgesWithDist.map((edgeDist) => edgeDist.$1)) {
-          final bool wasEdgeHit = edge.hitTest(result, position);
-
-          hitAnyChild |= wasEdgeHit;
+          edge.hitTest(result, position);
         }
 
-        return hitAnyChild;
+        return true;
       },
     );
   }

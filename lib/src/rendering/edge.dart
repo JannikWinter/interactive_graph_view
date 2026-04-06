@@ -446,7 +446,6 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
   bool hitTest(BoxHitTestResult result, Offset position) {
     if (_hitTestPath.contains(position)) {
       result.add(HitTestEntry(this));
-      return true;
     }
 
     return false;
