@@ -296,7 +296,7 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
 
           final Offset startBorderToEndBorder = lineEndAtNodeBorder - lineStartAtNodeBorder;
           final Offset lineEndWithoutArrow =
-              _arrowPosition - (startBorderToEndBorder / startBorderToEndBorder.distance) * arrowStyle.length;
+              _arrowPosition - (startBorderToEndBorder / startBorderToEndBorder.distance) * (arrowStyle.length - 0.1);
 
           _textPosition = lineStartAtNodeBorder + startBorderToEndBorder / 2;
 
