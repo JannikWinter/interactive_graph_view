@@ -3,6 +3,7 @@ import "package:flutter/widgets.dart";
 
 import "../graph_viewport_transform.dart";
 import "../interaction/drag_details.dart";
+import "../interaction/single_pointer_pan_gesture_recognizer.dart";
 import "../interaction/tap_details.dart";
 import "../rendering/graph_viewport_base.dart";
 import "../rendering/node.dart";
@@ -15,7 +16,7 @@ class NodeElement<NodeIdType> extends SlottedRenderObjectElement<NodeWidgetSlot,
   late TapGestureRecognizer _tapRecognizer;
   late DoubleTapGestureRecognizer _doubleTapRecognizer;
   late LongPressGestureRecognizer _longPressRecognizer;
-  late PanGestureRecognizer _panRecognizer;
+  late SinglePointerPanGestureRecognizer _panRecognizer;
 
   @override
   GraphNodeRenderObject get renderObject => super.renderObject as GraphNodeRenderObject;
@@ -54,7 +55,7 @@ class NodeElement<NodeIdType> extends SlottedRenderObjectElement<NodeWidgetSlot,
     _longPressRecognizer = LongPressGestureRecognizer(debugOwner: this);
     _longPressRecognizer.onLongPress = (widget.onLongPress != null) ? _onLongPress : null;
 
-    _panRecognizer = PanGestureRecognizer(debugOwner: this);
+    _panRecognizer = SinglePointerPanGestureRecognizer(debugOwner: this);
     if (widget.isDragEnabled) {
       _panRecognizer.onDown = _onDragDown;
       _panRecognizer.onStart = _onDragStart;
