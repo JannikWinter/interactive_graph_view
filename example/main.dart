@@ -66,6 +66,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
   late Offset _tapDownPosition;
 
   final Set<String> _selectedNodeIds = {};
+  final Set<String> _selectedEdgeIds = {};
 
   @override
   void initState() {
@@ -142,7 +143,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
               isDragEnabled: isSelected,
 
               onTap: () {
-                // Select this node, unselect all others.
+                // Select this node, deselect everything else.
                 _singleSelectNode(nodeId);
               },
               onLongPress: () {
@@ -168,18 +169,42 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
             );
           },
           edgeBuilder: (context, edgeId) {
+            final bool isSelected = _selectedEdgeIds.contains(edgeId);
             final ExampleEdge edge = _edges[edgeId]!;
 
             return EdgeWidget(
               startNodeId: edge.startNodeId,
               endNodeId: edge.endNodeId,
-              text: null,
+              text: edge.showText ? edge.text : null,
+              onTap: () {
+                // Select this node, deselect everything else.
+                _singleSelectEdge(edgeId);
+              },
+              onLongPress: () {
+                // Toggle the selection state.
+                _toggleEdgeSelection(edgeId);
+              },
+              style:
+                  (isSelected
+                          ? EdgeStyle(
+                              shadow: [
+                                LineShadow(
+                                  color: Colors.red,
+                                  blurRadius: 0,
+                                  spreadRadius: 1.5,
+                                ),
+                              ],
+                            )
+                          : EdgeStyle())
+                      .merge(edge.style),
             );
           },
         ),
         secondary: PropertiesPanel(
           selectedNodeIds: _selectedNodeIds,
+          selectedEdgeIds: _selectedEdgeIds,
           nodes: _nodes,
+          edges: _edges,
           graphViewportController: _graphViewportController,
         ),
       ),
@@ -208,11 +233,31 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
     _graphViewportController.movingNodeIds = _selectedNodeIds;
   }
 
+  void _toggleEdgeSelection(String edgeId) {
+    if (_selectedEdgeIds.contains(edgeId)) {
+      _selectedEdgeIds.remove(edgeId);
+    } else {
+      _selectedEdgeIds.add(edgeId);
+    }
+
+    // Trigger rebuild to update the properties panel
+    setState(() {});
+  }
+
+  void _singleSelectEdge(String edgeId) {
+    _clearSelection();
+    _selectedEdgeIds.add(edgeId);
+  }
+
   void _clearSelection() {
     for (final String selectedNodeId in _selectedNodeIds) {
       _graphViewportController.rebuildNode(selectedNodeId);
     }
+    for (final String selectedEdgeId in _selectedEdgeIds) {
+      _graphViewportController.rebuildEdge(selectedEdgeId);
+    }
     _selectedNodeIds.clear();
+    _selectedEdgeIds.clear();
 
     // Trigger rebuild to update the properties panel
     setState(() {});
@@ -261,12 +306,25 @@ class ExampleNode {
 }
 
 class ExampleEdge {
-  ExampleEdge({String? id, required this.startNodeId, required this.endNodeId}) : id = id ?? _newRandomId();
+  ExampleEdge({
+    String? id,
+    required this.startNodeId,
+    required this.endNodeId,
+    this.showText = false,
+    this.text = "",
+    EdgeStyle? style,
+  }) : id = id ?? _newRandomId(),
+       style = style ?? const EdgeStyle();
 
   final String id;
 
   String startNodeId;
   String endNodeId;
+
+  bool showText;
+  String text;
+
+  EdgeStyle style;
 }
 
 // =============================
@@ -287,14 +345,20 @@ class PropertiesPanel extends StatelessWidget {
   const PropertiesPanel({
     super.key,
     required Set<String> selectedNodeIds,
+    required Set<String> selectedEdgeIds,
     required Map<String, ExampleNode> nodes,
+    required Map<String, ExampleEdge> edges,
     required GraphViewportController<String, String> graphViewportController,
   }) : _selectedNodeIds = selectedNodeIds,
+       _selectedEdgeIds = selectedEdgeIds,
        _nodes = nodes,
+       _edges = edges,
        _graphViewportController = graphViewportController;
 
   final Set<String> _selectedNodeIds;
+  final Set<String> _selectedEdgeIds;
   final Map<String, ExampleNode> _nodes;
+  final Map<String, ExampleEdge> _edges;
   final GraphViewportController<String, String> _graphViewportController;
 
   @override
@@ -310,103 +374,321 @@ class PropertiesPanel extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           child: Builder(
             builder: (context) {
-              if (_selectedNodeIds.length != 1) {
+              if (_selectedNodeIds.length == 1 && _selectedEdgeIds.isEmpty) {
+                final String nodeId = _selectedNodeIds.single;
+                final ExampleNode node = _nodes[nodeId]!;
+
+                return Column(
+                  key: ValueKey("node-properties-$nodeId"),
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Text("Node $nodeId"),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      decoration: InputDecoration(labelText: "Text"),
+                      initialValue: node.text,
+                      onChanged: (value) {
+                        node.text = value;
+                        _graphViewportController.rebuildNode(nodeId);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<Color>(
+                      decoration: InputDecoration(labelText: "Background Color"),
+                      items: [
+                        DropdownMenuItem(child: Text("None (use fallback)")),
+                        ...[Colors.black, Colors.white, ...Colors.primaries].map(
+                          (color) => DropdownMenuItem(
+                            value: color,
+                            child: Container(
+                              color: color,
+                              child: Text(
+                                "#${color.toARGB32().toRadixString(16)}",
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                      initialValue: node.style.backgroundColor,
+                      onChanged: (value) {
+                        node.style = node.style.copyWith(
+                          backgroundColor: Nullable(value),
+                        );
+                        _graphViewportController.rebuildNode(nodeId);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<Color>(
+                      decoration: InputDecoration(labelText: "Text Color"),
+                      items: [
+                        DropdownMenuItem(child: Text("None (use fallback)")),
+                        ...[Colors.black, Colors.white, ...Colors.primaries].map(
+                          (color) => DropdownMenuItem(
+                            value: color,
+                            child: Container(
+                              color: color,
+                              child: Text(
+                                "#${color.toARGB32().toRadixString(16)}",
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                      initialValue: node.style.textStyle.color,
+                      onChanged: (value) {
+                        node.style = node.style.copyWith(
+                          textStyle: node.style.textStyle.copyWith(color: value),
+                        );
+                        _graphViewportController.rebuildNode(nodeId);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      decoration: InputDecoration(labelText: "Border radius"),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(4),
+                      ],
+                      initialValue: (node.style.borderRadius != null)
+                          ? node.style.borderRadius!.x.toInt().toString()
+                          : "",
+                      onChanged: (value) {
+                        node.style = node.style.copyWith(
+                          borderRadius: Nullable(
+                            value.isEmpty ? null : Radius.circular(double.parse(value)),
+                          ),
+                        );
+                        _graphViewportController.rebuildNode(nodeId);
+                      },
+                    ),
+                  ],
+                );
+              } else if (_selectedEdgeIds.length == 1 && _selectedNodeIds.isEmpty) {
+                final String edgeId = _selectedEdgeIds.single;
+                final ExampleEdge edge = _edges[edgeId]!;
+
+                return Column(
+                  key: ValueKey("edge-properties-$edgeId"),
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Text("Edge $edgeId"),
+                    const SizedBox(height: 16),
+                    StatefulBuilder(
+                      builder: (context, setState) {
+                        void onTapShowText() {
+                          setState(() {
+                            edge.showText = !edge.showText;
+                          });
+                          _graphViewportController.rebuildEdge(edgeId);
+                        }
+
+                        return Column(
+                          children: [
+                            GestureDetector(
+                              onTap: onTapShowText,
+                              child: Row(
+                                children: [
+                                  Checkbox(
+                                    value: edge.showText,
+                                    onChanged: (value) => onTapShowText(),
+                                  ),
+                                  Expanded(child: Text("Show Text")),
+                                ],
+                              ),
+                            ),
+                            TextFormField(
+                              enabled: edge.showText,
+                              decoration: InputDecoration(labelText: "Text"),
+                              initialValue: edge.text,
+                              onChanged: (value) {
+                                edge.text = value;
+                                _graphViewportController.rebuildEdge(edgeId);
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            DropdownButtonFormField<Color>(
+                              decoration: InputDecoration(labelText: "Text Background Color"),
+                              items: [
+                                DropdownMenuItem(child: Text("None (use fallback)")),
+                                DropdownMenuItem(
+                                  value: Colors.transparent,
+                                  child: Text("Transparent"),
+                                ),
+                                ...[Colors.black, Colors.white, ...Colors.primaries].map(
+                                  (color) => DropdownMenuItem(
+                                    value: color,
+                                    child: Container(
+                                      color: color,
+                                      child: Text(
+                                        "#${color.toARGB32().toRadixString(16)}",
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              initialValue: edge.style.textBackgroundColor,
+                              onChanged: edge.showText
+                                  ? (value) {
+                                      edge.style = edge.style.copyWith(
+                                        textBackgroundColor: Nullable(value),
+                                      );
+                                      _graphViewportController.rebuildEdge(edgeId);
+                                    }
+                                  : null,
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<Color>(
+                      decoration: InputDecoration(labelText: "Line Color"),
+                      items: [
+                        DropdownMenuItem(child: Text("None (use fallback)")),
+                        ...[Colors.black, Colors.white, ...Colors.primaries].map(
+                          (color) => DropdownMenuItem(
+                            value: color,
+                            child: Container(
+                              color: color,
+                              child: Text(
+                                "#${color.toARGB32().toRadixString(16)}",
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                      initialValue: edge.style.lineColor,
+                      onChanged: (value) {
+                        edge.style = edge.style.copyWith(
+                          lineColor: Nullable(value),
+                        );
+                        _graphViewportController.rebuildEdge(edgeId);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<LineStyle>(
+                      decoration: InputDecoration(labelText: "Line Style"),
+                      items: [
+                        DropdownMenuItem(child: Text("None (use fallback)")),
+                        DropdownMenuItem(
+                          value: SolidLineStyle(thickness: 3),
+                          child: Text("Solid"),
+                        ),
+                        DropdownMenuItem(
+                          value: DashedLineStyle(thickness: 3, dashSize: 8, gapSize: 4),
+                          child: Text("Dashed"),
+                        ),
+                        DropdownMenuItem(
+                          value: DottedLineStyle(thickness: 3),
+                          child: Text("Dotted"),
+                        ),
+                      ],
+                      initialValue: edge.style.lineStyle,
+                      onChanged: (value) {
+                        edge.style = edge.style.copyWith(
+                          lineStyle: Nullable(value),
+                        );
+                        _graphViewportController.rebuildEdge(edgeId);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Builder(
+                      builder: (context) {
+                        double arrowWidth = edge.style.arrowStyle?.width ?? 10;
+                        double arrowLength = edge.style.arrowStyle?.length ?? 10;
+
+                        return StatefulBuilder(
+                          builder: (context, setState) {
+                            void onTapOverrideArrowStyle() {
+                              setState(() {
+                                if (edge.style.arrowStyle == null) {
+                                  edge.style = edge.style.copyWith(
+                                    arrowStyle: Nullable(ArrowStyle(width: arrowWidth, length: arrowLength)),
+                                  );
+                                } else {
+                                  edge.style = edge.style.copyWith(arrowStyle: Nullable(null));
+                                }
+                              });
+                              _graphViewportController.rebuildEdge(edgeId);
+                            }
+
+                            return Column(
+                              children: [
+                                GestureDetector(
+                                  onTap: onTapOverrideArrowStyle,
+                                  child: Row(
+                                    children: [
+                                      Checkbox(
+                                        value: edge.style.arrowStyle != null,
+                                        onChanged: (value) => onTapOverrideArrowStyle(),
+                                      ),
+                                      Expanded(child: Text("Override arrow style")),
+                                    ],
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextFormField(
+                                        enabled: edge.style.arrowStyle != null,
+                                        decoration: InputDecoration(label: Text("Arrow width")),
+                                        initialValue: arrowWidth.toInt().toString(),
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter.digitsOnly,
+                                          LengthLimitingTextInputFormatter(2),
+                                        ],
+                                        onChanged: (value) {
+                                          setState(() {
+                                            arrowWidth = double.tryParse(value) ?? 0;
+                                            edge.style = edge.style.copyWith(
+                                              arrowStyle: Nullable(edge.style.arrowStyle!.copyWith(width: arrowWidth)),
+                                            );
+                                            _graphViewportController.rebuildEdge(edgeId);
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: TextFormField(
+                                        enabled: edge.style.arrowStyle != null,
+                                        decoration: InputDecoration(label: Text("Arrow length")),
+                                        initialValue: arrowLength.toInt().toString(),
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter.digitsOnly,
+                                          LengthLimitingTextInputFormatter(2),
+                                        ],
+                                        onChanged: (value) {
+                                          setState(() {
+                                            arrowLength = double.tryParse(value) ?? 0;
+                                            edge.style = edge.style.copyWith(
+                                              arrowStyle: Nullable(
+                                                edge.style.arrowStyle!.copyWith(length: arrowLength),
+                                              ),
+                                            );
+                                            _graphViewportController.rebuildEdge(edgeId);
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                );
+              } else {
                 return Center(
                   child: Text(
-                    "Please select a single node to change its properties",
+                    "Please select a single node or edge to change its properties",
                   ),
                 );
               }
-
-              final String nodeId = _selectedNodeIds.single;
-              final ExampleNode node = _nodes[nodeId]!;
-
-              return Column(
-                key: ValueKey("property-panel-$nodeId"),
-                mainAxisAlignment: MainAxisAlignment.start,
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Text("Node $nodeId"),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    decoration: InputDecoration(labelText: "Text"),
-                    initialValue: node.text,
-                    onChanged: (value) {
-                      node.text = value;
-                      _graphViewportController.rebuildNode(nodeId);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<Color>(
-                    decoration: InputDecoration(labelText: "BackgroundColor"),
-                    items: [
-                      DropdownMenuItem(child: Text("None")),
-                      ...[Colors.black, Colors.white, ...Colors.primaries].map(
-                        (color) => DropdownMenuItem(
-                          value: color,
-                          child: Container(
-                            color: color,
-                            child: Text(
-                              "#${color.toARGB32().toRadixString(16)}",
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                    initialValue: node.style.backgroundColor,
-                    onChanged: (value) {
-                      node.style = node.style.copyWith(
-                        backgroundColor: Nullable(value),
-                      );
-                      _graphViewportController.rebuildNode(nodeId);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<Color>(
-                    decoration: InputDecoration(labelText: "Text Color"),
-                    items: [
-                      DropdownMenuItem(child: Text("None")),
-                      ...[Colors.black, Colors.white, ...Colors.primaries].map(
-                        (color) => DropdownMenuItem(
-                          value: color,
-                          child: Container(
-                            color: color,
-                            child: Text(
-                              "#${color.toARGB32().toRadixString(16)}",
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                    initialValue: node.style.textStyle.color,
-                    onChanged: (value) {
-                      node.style = node.style.copyWith(
-                        textStyle: node.style.textStyle.copyWith(color: value),
-                      );
-                      _graphViewportController.rebuildNode(nodeId);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    decoration: InputDecoration(labelText: "Border radius"),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(4),
-                    ],
-                    initialValue: (node.style.borderRadius != null)
-                        ? node.style.borderRadius!.x.toInt().toString()
-                        : "",
-                    onChanged: (value) {
-                      node.style = node.style.copyWith(
-                        borderRadius: Nullable(
-                          value.isEmpty ? null : Radius.circular(double.parse(value)),
-                        ),
-                      );
-                      _graphViewportController.rebuildNode(nodeId);
-                    },
-                  ),
-                ],
-              );
             },
           ),
         ),
