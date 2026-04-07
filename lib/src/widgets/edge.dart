@@ -21,6 +21,7 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
     this.style,
     this.onTapDown,
     this.onTap,
+    this.onLongPress,
   });
 
   /// The ID of the node where this edge originates from.
@@ -60,6 +61,12 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
   /// Note that you can configure the gesture hitbox for all edges of a viewport through
   /// [GraphViewport.edgeHitboxThickness].
   final GestureGraphViewportTapCallback? onTap;
+
+  /// This callback will be called when a LongPress gesture was registered on this edge.
+  ///
+  /// Note that you can configure the gesture hitbox for all edges of a viewport through
+  /// [GraphViewport.edgeHitboxThickness].
+  final GestureGraphViewportLongPressCallback? onLongPress;
 
   @override
   GraphEdgeRenderObject createRenderObject(BuildContext context) {

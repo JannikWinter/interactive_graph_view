@@ -11,6 +11,7 @@ class EdgeElement extends LeafRenderObjectElement {
   EdgeElement(EdgeWidget super.widget);
 
   late TapGestureRecognizer _tapRecognizer;
+  late LongPressGestureRecognizer _longPressRecognizer;
 
   @override
   GraphEdgeRenderObject get renderObject => super.renderObject as GraphEdgeRenderObject;
@@ -25,6 +26,9 @@ class EdgeElement extends LeafRenderObjectElement {
     _tapRecognizer.onTapDown = (widget.onTapDown != null) ? _onTapDown : null;
     _tapRecognizer.onTap = (widget.onTap != null) ? _onTap : null;
 
+    _longPressRecognizer = LongPressGestureRecognizer(debugOwner: this);
+    _longPressRecognizer.onLongPress = (widget.onLongPress != null) ? _onLongPress : null;
+
     renderObject.onPointerDown = _handlePointerDown;
     renderObject.onPointerPanZoomStart = _handlePointerPanZoomStart;
   }
@@ -38,10 +42,12 @@ class EdgeElement extends LeafRenderObjectElement {
 
   void _handlePointerDown(PointerDownEvent event) {
     _tapRecognizer.addPointer(event);
+    _longPressRecognizer.addPointer(event);
   }
 
   void _handlePointerPanZoomStart(PointerPanZoomStartEvent event) {
     _tapRecognizer.addPointerPanZoom(event);
+    _longPressRecognizer.addPointerPanZoom(event);
   }
 
   void _onTapDown(TapDownDetails details) {
@@ -59,5 +65,9 @@ class EdgeElement extends LeafRenderObjectElement {
 
   void _onTap() {
     (widget as EdgeWidget).onTap?.call();
+  }
+
+  void _onLongPress() {
+    (widget as EdgeWidget).onLongPress?.call();
   }
 }
