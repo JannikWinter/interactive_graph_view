@@ -342,7 +342,7 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     for (final LineShadow shadow in shadow) {
       context.canvas.drawPath(
         _linePath,
-        shadow.toPaint(),
+        shadow.toPaint(baseStrokeWidth: lineStyle.thickness),
       );
 
       _paintArrow(

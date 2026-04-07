@@ -29,12 +29,12 @@ final class LineShadow extends ui.Shadow {
 
   /// Create the [Paint] object that corresponds to this shadow description.
   @override
-  Paint toPaint() {
+  Paint toPaint({double baseStrokeWidth = 0}) {
     final Paint result = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, blurSigma)
-      ..strokeWidth = spreadRadius * 2;
+      ..strokeWidth = baseStrokeWidth + spreadRadius * 2;
 
     return result;
   }
