@@ -43,7 +43,7 @@ class EdgeStyle extends ThemeExtension<EdgeStyle> {
     : this(
         lineColor: Colors.white,
         textStyle: TextStyle(color: Colors.white),
-        textBackgroundColor: Colors.black.withValues(alpha: 0.8),
+        textBackgroundColor: Colors.transparent,
         lineStyle: const SolidLineStyle(thickness: 3),
         curveStyle: const StraightCurveStyle(),
         arrowStyle: const ArrowStyle(length: 20, width: 20),
