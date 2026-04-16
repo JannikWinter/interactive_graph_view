@@ -149,28 +149,42 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
         .map((edgeEntry) => edgeEntry.key);
   }
 
-  void insertNode(GraphNodeRenderObject node, NodeIdType nodeId) {
+  void adoptNode(NodeIdType nodeId, GraphNodeRenderObject node) {
     _nodes[nodeId] = node;
 
     adoptChild(node);
   }
 
-  void insertEdge(GraphEdgeRenderObject edge, EdgeIdType edgeId) {
+  void adoptEdge(EdgeIdType edgeId, GraphEdgeRenderObject edge) {
     _edges[edgeId] = edge;
 
     adoptChild(edge);
   }
 
-  void removeNode(NodeIdType nodeId) {
+  void dropNode(NodeIdType nodeId) {
     final GraphNodeRenderObject node = _nodes.remove(nodeId)!;
 
     dropChild(node);
   }
 
-  void removeEdge(EdgeIdType edgeId) {
+  void dropEdge(EdgeIdType edgeId) {
     final GraphEdgeRenderObject edge = _edges.remove(edgeId)!;
 
     dropChild(edge);
+  }
+
+  @override
+  void removeNode(NodeIdType nodeId) {
+    _childQuadTree.removeNode(nodeId);
+    _nodeIdsNeedingRebuild.remove(nodeId);
+    _nodeIdsNeedingLayout.remove(nodeId);
+  }
+
+  @override
+  void removeEdge(EdgeIdType edgeId) {
+    _childQuadTree.removeEdge(edgeId);
+    _edgeIdsNeedingRebuild.remove(edgeId);
+    _edgeIdsNeedingLayout.remove(edgeId);
   }
 
   GraphViewportNodeParentData _setChildNodeParentData(NodeIdType nodeId, GraphNodeRenderObject node) {

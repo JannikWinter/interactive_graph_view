@@ -92,6 +92,9 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
     markNeedsLayout();
   }
 
+  void removeNode(NodeIdType nodeId);
+  void removeEdge(EdgeIdType edgeId);
+
   Offset _startingViewportPosition = Offset.zero;
 
   Offset _startingPointerViewportPosition = Offset.zero;
@@ -208,7 +211,6 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
 
   void markNeedsLayoutForNodeChange(NodeIdType nodeId);
 
-  @protected
   Iterable<EdgeIdType> getConnectingEdgeIds(NodeIdType nodeId);
 
   Offset get globalPaintOffset {

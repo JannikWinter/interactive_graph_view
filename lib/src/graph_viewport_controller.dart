@@ -89,8 +89,20 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   }
 
   /// Remove a node from the [GraphViewport] that this controller is attached to.
-  void removeNode(NodeIdType nodeId) {
+  void removeNode(NodeIdType nodeId, {bool removeConnectingEdges = true}) {
     assert(_nodeIds.contains(nodeId));
+
+    final Set<EdgeIdType> connectingEdges = _viewport!.getConnectingEdgeIds(nodeId).toSet();
+    if (removeConnectingEdges) {
+      for (final EdgeIdType edgeId in connectingEdges) {
+        removeEdge(edgeId);
+      }
+    } else {
+      assert(connectingEdges.isEmpty);
+    }
+
+    _nodeIds.remove(nodeId);
+    _viewport!.removeNode(nodeId);
 
     _viewport!.markNeedsLayout();
   }
@@ -98,6 +110,9 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   /// Remove an edge from the [GraphViewport] that this controller is attached to.
   void removeEdge(EdgeIdType edgeId) {
     assert(_edgeIds.contains(edgeId));
+
+    _edgeIds.remove(edgeId);
+    _viewport!.removeEdge(edgeId);
 
     _viewport!.markNeedsLayout();
   }

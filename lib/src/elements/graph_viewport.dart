@@ -231,10 +231,10 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
 
     switch (child) {
       case GraphNodeRenderObject():
-        renderObject.insertNode(child, (slot as GraphViewportNodeSlot).nodeId);
+        renderObject.adoptNode((slot as GraphViewportNodeSlot).nodeId, child);
 
       case GraphEdgeRenderObject():
-        renderObject.insertEdge(child, (slot as GraphViewportEdgeSlot).edgeId);
+        renderObject.adoptEdge((slot as GraphViewportEdgeSlot).edgeId, child);
     }
   }
 
@@ -255,10 +255,10 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   void removeRenderObjectChild(GraphElementRenderObject child, GraphViewportChildSlot slot) {
     switch (child) {
       case GraphNodeRenderObject():
-        renderObject.removeNode((slot as GraphViewportNodeSlot).nodeId);
+        renderObject.dropNode((slot as GraphViewportNodeSlot).nodeId);
 
       case GraphEdgeRenderObject():
-        renderObject.removeEdge((slot as GraphViewportEdgeSlot).edgeId);
+        renderObject.dropEdge((slot as GraphViewportEdgeSlot).edgeId);
     }
   }
 
