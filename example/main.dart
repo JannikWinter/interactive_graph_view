@@ -341,7 +341,7 @@ String _newRandomId({int length = 8}) {
   return result;
 }
 
-class PropertiesPanel extends StatelessWidget {
+class PropertiesPanel extends StatefulWidget {
   const PropertiesPanel({
     super.key,
     required Set<String> selectedNodeIds,
@@ -362,6 +362,11 @@ class PropertiesPanel extends StatelessWidget {
   final GraphViewportController<String, String> _graphViewportController;
 
   @override
+  State<PropertiesPanel> createState() => _PropertiesPanelState();
+}
+
+class _PropertiesPanelState extends State<PropertiesPanel> {
+  @override
   Widget build(BuildContext context) {
     return Theme(
       data: ThemeData(
@@ -374,23 +379,39 @@ class PropertiesPanel extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           child: Builder(
             builder: (context) {
-              if (_selectedNodeIds.length == 1 && _selectedEdgeIds.isEmpty) {
-                final String nodeId = _selectedNodeIds.single;
-                final ExampleNode node = _nodes[nodeId]!;
+              if (widget._selectedNodeIds.length == 1 && widget._selectedEdgeIds.isEmpty) {
+                final String nodeId = widget._selectedNodeIds.single;
+                final ExampleNode node = widget._nodes[nodeId]!;
 
                 return Column(
                   key: ValueKey("node-properties-$nodeId"),
                   mainAxisAlignment: MainAxisAlignment.start,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    Text("Node $nodeId"),
+                    Row(
+                      children: [
+                        Text("Node $nodeId"),
+                        Spacer(),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            setState(() {
+                              widget._nodes.remove(nodeId);
+                              widget._selectedNodeIds.remove(nodeId);
+                              widget._graphViewportController.removeNode(nodeId);
+                            });
+                          },
+                          color: Colors.red,
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 16),
                     TextFormField(
                       decoration: InputDecoration(labelText: "Text"),
                       initialValue: node.text,
                       onChanged: (value) {
                         node.text = value;
-                        _graphViewportController.rebuildNode(nodeId);
+                        widget._graphViewportController.rebuildNode(nodeId);
                       },
                     ),
                     const SizedBox(height: 16),
@@ -415,7 +436,7 @@ class PropertiesPanel extends StatelessWidget {
                         node.style = node.style.copyWith(
                           backgroundColor: Nullable(value),
                         );
-                        _graphViewportController.rebuildNode(nodeId);
+                        widget._graphViewportController.rebuildNode(nodeId);
                       },
                     ),
                     const SizedBox(height: 16),
@@ -440,7 +461,7 @@ class PropertiesPanel extends StatelessWidget {
                         node.style = node.style.copyWith(
                           textStyle: node.style.textStyle.copyWith(color: value),
                         );
-                        _graphViewportController.rebuildNode(nodeId);
+                        widget._graphViewportController.rebuildNode(nodeId);
                       },
                     ),
                     const SizedBox(height: 16),
@@ -459,21 +480,37 @@ class PropertiesPanel extends StatelessWidget {
                             value.isEmpty ? null : Radius.circular(double.parse(value)),
                           ),
                         );
-                        _graphViewportController.rebuildNode(nodeId);
+                        widget._graphViewportController.rebuildNode(nodeId);
                       },
                     ),
                   ],
                 );
-              } else if (_selectedEdgeIds.length == 1 && _selectedNodeIds.isEmpty) {
-                final String edgeId = _selectedEdgeIds.single;
-                final ExampleEdge edge = _edges[edgeId]!;
+              } else if (widget._selectedEdgeIds.length == 1 && widget._selectedNodeIds.isEmpty) {
+                final String edgeId = widget._selectedEdgeIds.single;
+                final ExampleEdge edge = widget._edges[edgeId]!;
 
                 return Column(
                   key: ValueKey("edge-properties-$edgeId"),
                   mainAxisAlignment: MainAxisAlignment.start,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    Text("Edge $edgeId"),
+                    Row(
+                      children: [
+                        Text("Edge $edgeId"),
+                        Spacer(),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            setState(() {
+                              widget._edges.remove(edgeId);
+                              widget._selectedEdgeIds.remove(edgeId);
+                              widget._graphViewportController.removeEdge(edgeId);
+                            });
+                          },
+                          color: Colors.red,
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 16),
                     StatefulBuilder(
                       builder: (context, setState) {
@@ -481,7 +518,7 @@ class PropertiesPanel extends StatelessWidget {
                           setState(() {
                             edge.showText = !edge.showText;
                           });
-                          _graphViewportController.rebuildEdge(edgeId);
+                          widget._graphViewportController.rebuildEdge(edgeId);
                         }
 
                         return Column(
@@ -504,7 +541,7 @@ class PropertiesPanel extends StatelessWidget {
                               initialValue: edge.text,
                               onChanged: (value) {
                                 edge.text = value;
-                                _graphViewportController.rebuildEdge(edgeId);
+                                widget._graphViewportController.rebuildEdge(edgeId);
                               },
                             ),
                             const SizedBox(height: 16),
@@ -534,7 +571,7 @@ class PropertiesPanel extends StatelessWidget {
                                       edge.style = edge.style.copyWith(
                                         textBackgroundColor: Nullable(value),
                                       );
-                                      _graphViewportController.rebuildEdge(edgeId);
+                                      widget._graphViewportController.rebuildEdge(edgeId);
                                     }
                                   : null,
                             ),
@@ -564,7 +601,7 @@ class PropertiesPanel extends StatelessWidget {
                         edge.style = edge.style.copyWith(
                           lineColor: Nullable(value),
                         );
-                        _graphViewportController.rebuildEdge(edgeId);
+                        widget._graphViewportController.rebuildEdge(edgeId);
                       },
                     ),
                     const SizedBox(height: 16),
@@ -590,7 +627,7 @@ class PropertiesPanel extends StatelessWidget {
                         edge.style = edge.style.copyWith(
                           lineStyle: Nullable(value),
                         );
-                        _graphViewportController.rebuildEdge(edgeId);
+                        widget._graphViewportController.rebuildEdge(edgeId);
                       },
                     ),
                     const SizedBox(height: 16),
@@ -611,7 +648,7 @@ class PropertiesPanel extends StatelessWidget {
                                   edge.style = edge.style.copyWith(arrowStyle: Nullable(null));
                                 }
                               });
-                              _graphViewportController.rebuildEdge(edgeId);
+                              widget._graphViewportController.rebuildEdge(edgeId);
                             }
 
                             return Column(
@@ -645,7 +682,7 @@ class PropertiesPanel extends StatelessWidget {
                                             edge.style = edge.style.copyWith(
                                               arrowStyle: Nullable(edge.style.arrowStyle!.copyWith(width: arrowWidth)),
                                             );
-                                            _graphViewportController.rebuildEdge(edgeId);
+                                            widget._graphViewportController.rebuildEdge(edgeId);
                                           });
                                         },
                                       ),
@@ -667,7 +704,7 @@ class PropertiesPanel extends StatelessWidget {
                                                 edge.style.arrowStyle!.copyWith(length: arrowLength),
                                               ),
                                             );
-                                            _graphViewportController.rebuildEdge(edgeId);
+                                            widget._graphViewportController.rebuildEdge(edgeId);
                                           });
                                         },
                                       ),
