@@ -8,19 +8,19 @@ import "package:flutter/widgets.dart";
 @immutable
 final class ArrowStyle {
   /// Constructs an arrow style with a given [width] and [length].
-  const ArrowStyle({required this.length, required this.width});
-
-  /// The arrow's length.
-  final double length;
+  const ArrowStyle({required this.width, required this.length});
 
   /// The arrow's width.
   final double width;
 
+  /// The arrow's length.
+  final double length;
+
   /// Creates a copy of this arrow style with all the given fields replaced by the non-null parameter values.
-  ArrowStyle copyWith({double? length, double? width}) {
+  ArrowStyle copyWith({double? width, double? length}) {
     return ArrowStyle(
-      length: length ?? this.length,
       width: width ?? this.width,
+      length: length ?? this.length,
     );
   }
 
@@ -29,14 +29,14 @@ final class ArrowStyle {
       return a;
     }
 
-    final double lengthA = a?.length ?? 0;
     final double widthA = a?.width ?? 0;
-    final double lengthB = b?.length ?? 0;
+    final double lengthA = a?.length ?? 0;
     final double widthB = b?.width ?? 0;
+    final double lengthB = b?.length ?? 0;
 
     return ArrowStyle(
-      length: lerpDouble(lengthA, lengthB, t)!,
       width: lerpDouble(widthA, widthB, t)!,
+      length: lerpDouble(lengthA, lengthB, t)!,
     );
   }
 
@@ -49,9 +49,9 @@ final class ArrowStyle {
       return false;
     }
 
-    return other is ArrowStyle && length == other.length && width == other.width;
+    return other is ArrowStyle && width == other.width && length == other.length;
   }
 
   @override
-  int get hashCode => Object.hash(length, width);
+  int get hashCode => Object.hash(width, length);
 }
