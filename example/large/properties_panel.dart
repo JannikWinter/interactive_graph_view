@@ -20,6 +20,7 @@ class PropertiesPanel extends StatelessWidget {
     required this.onEdgeShowTextChanged,
     required this.onEdgeTextChanged,
     required this.onEdgeTextBackgroundColorChanged,
+    required this.onEdgeTextColorChanged,
     required this.onEdgeLineColorChanged,
     required this.onEdgeLineStyleChanged,
     required this.onEdgeOverrideArrowStyleChanged,
@@ -40,6 +41,7 @@ class PropertiesPanel extends StatelessWidget {
   final void Function(String edgeId, bool showText) onEdgeShowTextChanged;
   final void Function(String edgeId, String text) onEdgeTextChanged;
   final void Function(String edgeId, Color? textBackgroundColor) onEdgeTextBackgroundColorChanged;
+  final void Function(String edgeId, Color? textColor) onEdgeTextColorChanged;
   final void Function(String edgeId, Color? lineColor) onEdgeLineColorChanged;
   final void Function(String edgeId, LineStyle? lineStyle) onEdgeLineStyleChanged;
   final void Function(String edgeId, bool overrideArrowStyle) onEdgeOverrideArrowStyleChanged;
@@ -80,6 +82,7 @@ class PropertiesPanel extends StatelessWidget {
                   onTextChanged: (String text) => onEdgeTextChanged(edge.id, text),
                   onTextBackgroundColorChanged: (Color? textBackgroundColor) =>
                       onEdgeTextBackgroundColorChanged(edge.id, textBackgroundColor),
+                  onTextColorChanged: (Color? textColor) => onEdgeTextColorChanged(edge.id, textColor),
                   onLineColorChanged: (Color? lineColor) => onEdgeLineColorChanged(edge.id, lineColor),
                   onLineStyleChanged: (LineStyle? lineStyle) => onEdgeLineStyleChanged(edge.id, lineStyle),
                   onOverrideArrowStyleChanged: (bool overrideArrowStyle) =>

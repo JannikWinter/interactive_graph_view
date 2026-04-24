@@ -13,6 +13,7 @@ class EdgePropertiesPanel extends StatefulWidget {
     required this.onShowTextChanged,
     required this.onTextChanged,
     required this.onTextBackgroundColorChanged,
+    required this.onTextColorChanged,
     required this.onLineColorChanged,
     required this.onLineStyleChanged,
     required this.onOverrideArrowStyleChanged,
@@ -24,6 +25,7 @@ class EdgePropertiesPanel extends StatefulWidget {
   final void Function(bool showText) onShowTextChanged;
   final void Function(String text) onTextChanged;
   final void Function(Color? textBackgroundColor) onTextBackgroundColorChanged;
+  final void Function(Color? textColor) onTextColorChanged;
   final void Function(Color? lineColor) onLineColorChanged;
   final void Function(LineStyle? lineStyle) onLineStyleChanged;
   final void Function(bool overrideArrowStyle) onOverrideArrowStyleChanged;
@@ -40,6 +42,7 @@ class _EdgePropertiesPanelState extends State<EdgePropertiesPanel> {
 
   late bool _showText;
   late Color? _textBackgroundColor;
+  late Color? _textColor;
   late Color? _lineColor;
   late LineStyle? _lineStyle;
   late bool _overrideArrowStyle;
@@ -58,6 +61,7 @@ class _EdgePropertiesPanelState extends State<EdgePropertiesPanel> {
 
     _showText = widget.edge.showText;
     _textBackgroundColor = widget.edge.textBackgroundColor;
+    _textColor = widget.edge.textColor;
     _lineColor = widget.edge.lineColor;
     _lineStyle = widget.edge.lineStyle;
     _overrideArrowStyle = widget.edge.overrideArrowStyle;
@@ -81,6 +85,7 @@ class _EdgePropertiesPanelState extends State<EdgePropertiesPanel> {
 
     _showText = widget.edge.showText;
     _textBackgroundColor = widget.edge.textBackgroundColor;
+    _textColor = widget.edge.textColor;
     _lineColor = widget.edge.lineColor;
     _lineStyle = widget.edge.lineStyle;
     _overrideArrowStyle = widget.edge.overrideArrowStyle;
@@ -98,6 +103,11 @@ class _EdgePropertiesPanelState extends State<EdgePropertiesPanel> {
   void _onTextBackgroundColorChanged(Color? value) {
     setState(() => _textBackgroundColor = value);
     widget.onTextBackgroundColorChanged(value);
+  }
+
+  void _onTextColorChanged(Color? value) {
+    setState(() => _textColor = value);
+    widget.onTextColorChanged(value);
   }
 
   void _onLineColorChanged(Color? value) {
@@ -169,6 +179,24 @@ class _EdgePropertiesPanelState extends State<EdgePropertiesPanel> {
               value: Colors.transparent,
               child: Text("Transparent"),
             ),
+            ...[Colors.black, Colors.white, ...Colors.primaries].map(
+              (color) => DropdownMenuItem(
+                value: color,
+                child: Container(
+                  color: color,
+                  child: Text("#${color.toARGB32().toRadixString(16)}"),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<Color>(
+          initialValue: _textColor,
+          onChanged: _showText ? _onTextColorChanged : null,
+          decoration: InputDecoration(labelText: "Text Color"),
+          items: [
+            DropdownMenuItem(child: Text("None (use fallback)")),
             ...[Colors.black, Colors.white, ...Colors.primaries].map(
               (color) => DropdownMenuItem(
                 value: color,

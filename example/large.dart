@@ -210,6 +210,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
                   lineStyle: edge.lineStyle,
                   lineColor: edge.lineColor,
                   textBackgroundColor: edge.textBackgroundColor,
+                  textStyle: TextStyle(color: edge.textColor),
                 ),
               ),
             );
@@ -254,6 +255,10 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
           },
           onEdgeTextBackgroundColorChanged: (edgeId, textBackgroundColor) {
             _edges[edgeId]!.textBackgroundColor = textBackgroundColor;
+            _graphViewportController.rebuildEdge(edgeId);
+          },
+          onEdgeTextColorChanged: (edgeId, textColor) {
+            _edges[edgeId]!.textColor = textColor;
             _graphViewportController.rebuildEdge(edgeId);
           },
           onEdgeLineColorChanged: (edgeId, lineColor) {
@@ -384,6 +389,7 @@ class ExampleEdge {
     this.showText = false,
     this.text = "",
     this.textBackgroundColor,
+    this.textColor,
     this.lineColor,
     this.lineStyle,
     this.overrideArrowStyle = false,
@@ -399,6 +405,7 @@ class ExampleEdge {
   bool showText;
   String text;
   Color? textBackgroundColor;
+  Color? textColor;
   Color? lineColor;
   LineStyle? lineStyle;
   bool overrideArrowStyle;
