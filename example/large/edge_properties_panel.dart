@@ -3,7 +3,7 @@ import "package:flutter/services.dart" show FilteringTextInputFormatter, LengthL
 import "package:interactive_graph_view/interactive_graph_view.dart"
     show LineStyle, SolidLineStyle, DashedLineStyle, DottedLineStyle;
 
-import "../main.dart" show ExampleEdge;
+import "../large.dart" show ExampleEdge;
 
 class EdgePropertiesPanel extends StatefulWidget {
   const EdgePropertiesPanel({

@@ -4,8 +4,8 @@ import "package:flutter/material.dart";
 
 import "package:interactive_graph_view/interactive_graph_view.dart";
 
-import "main/horizontal_or_vertical.dart";
-import "main/properties_panel.dart";
+import "large/horizontal_or_vertical.dart";
+import "large/properties_panel.dart";
 
 void main() {
   runApp(const GraphViewExampleApp());

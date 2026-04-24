@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:flutter/services.dart" show FilteringTextInputFormatter, LengthLimitingTextInputFormatter;
 
-import "../main.dart" show ExampleNode;
+import "../large.dart" show ExampleNode;
 
 class NodePropertiesPanel extends StatefulWidget {
   const NodePropertiesPanel({

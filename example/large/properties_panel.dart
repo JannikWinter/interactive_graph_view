@@ -2,7 +2,7 @@ import "package:flutter/material.dart";
 
 import "package:interactive_graph_view/interactive_graph_view.dart";
 
-import "../main.dart";
+import "../large.dart";
 import "edge_properties_panel.dart";
 import "node_properties_panel.dart";
 
