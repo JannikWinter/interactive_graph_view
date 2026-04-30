@@ -1,3 +1,7 @@
+## 0.3.0+1
+
+* Fixes that children of `GraphViewport` were not correctly deactivated after they had been rebuilt.
+
 ## 0.3.0
 
 ### New and changed
