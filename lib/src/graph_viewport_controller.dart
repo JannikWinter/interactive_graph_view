@@ -16,8 +16,8 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
        _edgeIds = Set.from(initialEdgeIds),
        _onNodesMoved = onNodesMoved;
 
-  final Set<NodeIdType> _nodeIds;
-  final Set<EdgeIdType> _edgeIds;
+  Set<NodeIdType> _nodeIds;
+  Set<EdgeIdType> _edgeIds;
   final NodesMovedCallback? _onNodesMoved;
 
   RenderGraphViewportBase<NodeIdType, EdgeIdType>? _viewport;
@@ -113,6 +113,58 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
 
     _edgeIds.remove(edgeId);
     _viewport!.removeEdge(edgeId);
+
+    _viewport!.markNeedsLayout();
+  }
+
+  /// Replace the nodes of the [GraphViewport] that this controller is attached to.
+  ///
+  /// This will automatically:
+  /// - remove all nodes that were contained in the viewport and are not contained in [nodeIds]
+  /// - insert and build all nodes that were not contained in the viewport and are contained in [nodeIds]
+  ///
+  /// Nodes that both were contained in the viewport before and are also contained in [nodeIds] will **not** be rebuilt
+  /// automatically.
+  void setNodes(Iterable<NodeIdType> nodeIds) {
+    final Set<NodeIdType> newNodeIds = nodeIds.toSet();
+
+    final Set<NodeIdType> removedNodeIds = _nodeIds.difference(newNodeIds);
+    final Set<NodeIdType> addedNodeIds = newNodeIds.difference(_nodeIds);
+
+    for (final nodeId in removedNodeIds) {
+      _viewport!.removeNode(nodeId);
+    }
+    for (final nodeId in addedNodeIds) {
+      _viewport!.markNodeNeedsRebuild(nodeId);
+    }
+
+    _nodeIds = newNodeIds;
+
+    _viewport!.markNeedsLayout();
+  }
+
+  /// Replace the edges of the [GraphViewport] that this controller is attached to.
+  ///
+  /// This will automatically:
+  /// - remove all edges that were contained in the viewport and are not contained in [edgeIds]
+  /// - insert and build all edges that were not contained in the viewport and are contained in [edgeIds]
+  ///
+  /// Edges that both were contained in the viewport before and are also contained in [edgeIds] will **not** be rebuilt
+  /// automatically.
+  void setEdges(Iterable<EdgeIdType> edgeIds) {
+    final Set<EdgeIdType> newEdgeIds = edgeIds.toSet();
+
+    final Set<EdgeIdType> removedEdgeIds = _edgeIds.difference(newEdgeIds);
+    final Set<EdgeIdType> addedEdgeIds = newEdgeIds.difference(_edgeIds);
+
+    for (final edgeId in removedEdgeIds) {
+      _viewport!.removeEdge(edgeId);
+    }
+    for (final edgeId in addedEdgeIds) {
+      _viewport!.markEdgeNeedsRebuild(edgeId);
+    }
+
+    _edgeIds = newEdgeIds;
 
     _viewport!.markNeedsLayout();
   }
