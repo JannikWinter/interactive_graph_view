@@ -72,7 +72,7 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
 
   /// Insert a node into the [GraphViewport] that this controller is attached to.
   ///
-  /// The framework will automatically built this node with [GraphViewport.nodeBuilder] in the next frame.
+  /// The framework will automatically build this node with [GraphViewport.nodeBuilder] in the next frame.
   void insertNode(NodeIdType nodeId) {
     if (_nodeIds.add(nodeId)) {
       _viewport!.markNodeNeedsRebuild(nodeId);
@@ -81,7 +81,7 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
 
   /// Insert an edge into the [GraphViewport] that this controller is attached to.
   ///
-  /// The framework will automatically built this node with [GraphViewport.edgeBuilder] in the next frame.
+  /// The framework will automatically build this node with [GraphViewport.edgeBuilder] in the next frame.
   void insertEdge(EdgeIdType edgeId) {
     if (_edgeIds.add(edgeId)) {
       _viewport!.markEdgeNeedsRebuild(edgeId);
