@@ -1,3 +1,9 @@
+## 0.3.1
+
+### New
+
+* Adds `setNodes` and `setEdges` to `GraphViewportController` to be able to update all managed nodes resp. edges at once.
+
 ## 0.3.0+1
 
 * Fixes that children of `GraphViewport` were not correctly deactivated after they had been rebuilt.
