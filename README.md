@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://pub.dev/packages/interactive_graph_view">
+    <img src="https://img.shields.io/pub/v/interactive_graph_view?label=pub.dev&logo=dart">
+  </a>
+</p>
+
 A performant rendering library for displaying and manipulating custom-defined graph structures through a simple and intuitive API, that gives you maximum control over the graph's look and feel.  
 It was designed from the ground up to be fully integrated with flutter's architecture.
 
