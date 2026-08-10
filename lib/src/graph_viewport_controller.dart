@@ -88,6 +88,16 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
     }
   }
 
+  /// Whether the [GraphViewport] that this controller is attached to contains a node with the given [nodeId].
+  bool containsNode(NodeIdType nodeId) {
+    return _nodeIds.contains(nodeId);
+  }
+
+  /// Whether the [GraphViewport] that this controller is attached to contains an edge with the given [edgeId].
+  bool containsEdge(EdgeIdType edgeId) {
+    return _edgeIds.contains(edgeId);
+  }
+
   /// Remove a node from the [GraphViewport] that this controller is attached to.
   void removeNode(NodeIdType nodeId, {bool removeConnectingEdges = true}) {
     assert(_nodeIds.contains(nodeId));
