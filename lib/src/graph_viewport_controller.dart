@@ -11,14 +11,14 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   GraphViewportController({
     required Iterable<NodeIdType> initialNodeIds,
     required Iterable<EdgeIdType> initialEdgeIds,
-    NodesMovedCallback? onNodesMoved,
+    NodesMovedCallback<NodeIdType>? onNodesMoved,
   }) : _nodeIds = Set.from(initialNodeIds),
        _edgeIds = Set.from(initialEdgeIds),
        _onNodesMoved = onNodesMoved;
 
   Set<NodeIdType> _nodeIds;
   Set<EdgeIdType> _edgeIds;
-  final NodesMovedCallback? _onNodesMoved;
+  final NodesMovedCallback<NodeIdType>? _onNodesMoved;
 
   RenderGraphViewportBase<NodeIdType, EdgeIdType>? _viewport;
 
