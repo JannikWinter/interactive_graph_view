@@ -152,7 +152,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   }
 
   void _buildAllEdges() {
-    for (final EdgeIdType edgeId in _viewportController.allEdgeIds) {
+    for (final EdgeIdType edgeId in _viewportController.allEdges.keys) {
       _edges[edgeId] = _buildEdge(edgeId);
     }
   }

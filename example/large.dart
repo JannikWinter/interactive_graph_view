@@ -92,7 +92,9 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
 
     _graphViewportController = GraphViewportController(
       initialNodeIds: _nodes.keys,
-      initialEdgeIds: _edges.keys,
+      initialEdges: _edges.values.map(
+        (edge) => EdgeData(edgeId: edge.id, startNodeId: edge.startNodeId, endNodeId: edge.endNodeId),
+      ),
 
       onNodesMoved: (nodeIds, offset) {
         for (String nodeId in nodeIds) {
@@ -188,8 +190,6 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
             final ExampleEdge edge = _edges[edgeId]!;
 
             return EdgeWidget(
-              startNodeId: edge.startNodeId,
-              endNodeId: edge.endNodeId,
               text: edge.showText ? edge.text : null,
               onTap: () {
                 // Select this node, deselect everything else.
@@ -353,7 +353,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
       endNodeId: endNodeId,
     );
     _edges[newEdge.id] = newEdge;
-    _graphViewportController.insertEdge(newEdge.id);
+    _graphViewportController.insertEdge(EdgeData(edgeId: newEdge.id, startNodeId: startNodeId, endNodeId: endNodeId));
 
     return newEdge.id;
   }
