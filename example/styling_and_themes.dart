@@ -119,7 +119,9 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
 
     _graphViewportController = GraphViewportController(
       initialNodeIds: _nodes.keys,
-      initialEdgeIds: _edges.keys,
+      initialEdges: _edges.values.map(
+        (edge) => EdgeData(edgeId: edge.id, startNodeId: edge.startNodeId, endNodeId: edge.endNodeId),
+      ),
     );
   }
 
@@ -147,8 +149,6 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
         edgeBuilder: (context, edgeId) {
           final ExampleEdge edge = _edges[edgeId]!;
           return EdgeWidget(
-            startNodeId: edge.startNodeId,
-            endNodeId: edge.endNodeId,
             text: edge.showText ? edgeId : null,
 
             // Here you can provide the inline style for this edge.

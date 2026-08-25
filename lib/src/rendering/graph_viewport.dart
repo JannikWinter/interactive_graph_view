@@ -2,6 +2,7 @@ import "package:flutter/gestures.dart";
 import "package:flutter/rendering.dart";
 import "package:flutter/widgets.dart";
 
+import "../edge_data.dart";
 import "../elements/graph_viewport.dart";
 import "edge.dart";
 import "edge_parent_data.dart";
@@ -144,7 +145,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
 
   @override
   Iterable<EdgeIdType> getConnectingEdgeIds(NodeIdType nodeId) {
-    return _edges.entries
+    return viewportController.allEdges.entries
         .where((edgeEntry) => edgeEntry.value.startNodeId == nodeId || edgeEntry.value.endNodeId == nodeId)
         .map((edgeEntry) => edgeEntry.key);
   }
@@ -202,8 +203,9 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   GraphViewportEdgeParentData _setChildEdgeParentData(EdgeIdType edgeId, GraphEdgeRenderObject edge) {
     final GraphViewportEdgeParentData edgeParentData = edge.parentData! as GraphViewportEdgeParentData;
 
-    final GraphNodeRenderObject startNode = _nodes[edge.startNodeId]!;
-    final GraphNodeRenderObject endNode = _nodes[edge.endNodeId]!;
+    final EdgeData<NodeIdType, EdgeIdType> edgeData = viewportController.allEdges[edgeId]!;
+    final GraphNodeRenderObject startNode = _nodes[edgeData.startNodeId]!;
+    final GraphNodeRenderObject endNode = _nodes[edgeData.endNodeId]!;
 
     edgeParentData
       ..startNodeCenter = startNode.positionWithDragOffset
@@ -306,9 +308,9 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
       for (final EdgeIdType edgeId in usedEdgeIds) {
         _reuseOrBuildEdge(edgeId);
 
-        final GraphEdgeRenderObject edge = _edges[edgeId]!;
+        final EdgeData<NodeIdType, EdgeIdType> edgeData = viewportController.allEdges[edgeId]!;
 
-        usedNodeIds.addAll([edge.startNodeId, edge.endNodeId]);
+        usedNodeIds.addAll([edgeData.startNodeId, edgeData.endNodeId]);
       }
 
       for (final NodeIdType nodeId in usedNodeIds) {

@@ -53,7 +53,9 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
 
     _graphViewportController = GraphViewportController(
       initialNodeIds: _nodes.keys,
-      initialEdgeIds: _edges.keys,
+      initialEdges: _edges.values.map(
+        (edge) => EdgeData(edgeId: edge.id, startNodeId: edge.startNodeId, endNodeId: edge.endNodeId),
+      ),
     );
   }
 
@@ -73,11 +75,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
           );
         },
         edgeBuilder: (context, edgeId) {
-          return EdgeWidget(
-            startNodeId: _edges[edgeId]!.startNodeId,
-            endNodeId: _edges[edgeId]!.endNodeId,
-            text: null,
-          );
+          return EdgeWidget();
         },
       ),
     );

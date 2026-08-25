@@ -18,8 +18,6 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
   static const double _hitTestPathStepSize = 5.0;
 
   GraphEdgeRenderObject({
-    required NodeIdType startNodeId,
-    required NodeIdType endNodeId,
     required String? text,
     required ArrowStyle arrowStyle,
     required CurveStyle curveStyle,
@@ -28,9 +26,7 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     required Color textBackgroundColor,
     required Color color,
     required List<LineShadow> shadow,
-  }) : _startNodeId = startNodeId,
-       _endNodeId = endNodeId,
-       _text = text,
+  }) : _text = text,
        _arrowStyle = arrowStyle,
        _curveStyle = curveStyle,
        _lineStyle = lineStyle,
@@ -39,24 +35,6 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
        _color = color,
        _shadow = shadow {
     _recreateTextPainter();
-  }
-
-  NodeIdType _startNodeId;
-  NodeIdType get startNodeId => _startNodeId;
-  set startNodeId(NodeIdType value) {
-    if (_startNodeId == value) return;
-
-    _startNodeId = value;
-    markParentNeedsLayout();
-  }
-
-  NodeIdType _endNodeId;
-  NodeIdType get endNodeId => _endNodeId;
-  set endNodeId(NodeIdType value) {
-    if (_endNodeId == value) return;
-
-    _endNodeId = value;
-    markParentNeedsLayout();
   }
 
   TextPainter? _textPainter;

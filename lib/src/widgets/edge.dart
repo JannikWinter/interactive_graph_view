@@ -15,24 +15,12 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
   /// Constructs an [EdgeWidget].
   const EdgeWidget({
     super.key,
-    required this.startNodeId,
-    required this.endNodeId,
     this.text,
     this.style,
     this.onTapDown,
     this.onTap,
     this.onLongPress,
   });
-
-  /// The ID of the node where this edge originates from.
-  ///
-  /// This ID must be known by the [GraphViewport]'s [GraphViewport.viewportController].
-  final NodeIdType startNodeId;
-
-  /// The ID of the node where this edge ends at.
-  ///
-  /// This ID must be known by the [GraphViewport]'s [GraphViewport.viewportController].
-  final NodeIdType endNodeId;
 
   /// The text that is shown at the center of this edge.
   ///
@@ -75,8 +63,6 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
     final EdgeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
 
     return GraphEdgeRenderObject(
-      startNodeId: startNodeId,
-      endNodeId: endNodeId,
       text: text,
       arrowStyle: effectiveStyle.arrowStyle!,
       lineStyle: effectiveStyle.lineStyle!,
@@ -100,8 +86,6 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
     final EdgeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
 
     renderObject
-      ..startNodeId = startNodeId
-      ..endNodeId = endNodeId
       ..text = text
       ..arrowStyle = effectiveStyle.arrowStyle!
       ..lineStyle = effectiveStyle.lineStyle!
