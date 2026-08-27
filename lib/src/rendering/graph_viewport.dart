@@ -360,6 +360,12 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   GraphNodeRenderObject _reuseOrBuildNode(NodeIdType nodeId) {
     final GraphViewportNodeSlot slot = GraphViewportNodeSlot(nodeId);
 
+    assert(
+      viewportController.containsNode(nodeId),
+      "The node $nodeId was marked for layout but does not exist in the ViewportController.\n"
+      "This can happen when a node gets removed via ViewportController.removeNode() but its connecting edges are not.",
+    );
+
     if (!_nodes.containsKey(nodeId) || _nodeIdsNeedingRebuild.contains(nodeId)) {
       invokeLayoutCallback((BoxConstraints _) {
         _layoutHelper.buildChild(slot);
@@ -375,6 +381,9 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
 
   GraphEdgeRenderObject _reuseOrBuildEdge(EdgeIdType edgeId) {
     final GraphViewportEdgeSlot slot = GraphViewportEdgeSlot(edgeId);
+
+    assert(viewportController.containsEdge(edgeId));
+
     if (!_edges.containsKey(edgeId) || _edgeIdsNeedingRebuild.contains(edgeId)) {
       invokeLayoutCallback((BoxConstraints _) {
         _layoutHelper.buildChild(slot);
