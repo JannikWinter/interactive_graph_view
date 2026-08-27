@@ -52,7 +52,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
     super.initState();
 
     _graphViewportController = GraphViewportController(
-      initialNodeIds: _nodes.keys,
+      initialNodes: _nodes.values.map((node) => NodeData(nodeId: node.id, position: node.position)),
       initialEdges: _edges.values.map(
         (edge) => EdgeData(edgeId: edge.id, startNodeId: edge.startNodeId, endNodeId: edge.endNodeId),
       ),
@@ -69,7 +69,6 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
         viewportController: _graphViewportController,
         nodeBuilder: (context, nodeId) {
           return NodeWidget.basic(
-            position: _nodes[nodeId]!.position,
             text: nodeId,
             isDragEnabled: false,
           );

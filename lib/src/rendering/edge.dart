@@ -140,9 +140,10 @@ final class GraphEdgeRenderObject extends GraphElementRenderObject {
   Path get linePath => _basicLinePath;
 
   @override
-  void performLayout() {
-    final GraphViewportEdgeParentData parentData = this.parentData as GraphViewportEdgeParentData;
+  GraphViewportEdgeParentData get parentData => super.parentData as GraphViewportEdgeParentData;
 
+  @override
+  void performLayout() {
     final Offset startNodeCenter = parentData.startNodeCenter;
     final Size startNodeSize = parentData.startNodeSize;
 
@@ -390,8 +391,6 @@ final class GraphEdgeRenderObject extends GraphElementRenderObject {
 
   @override
   Rect get semanticBounds {
-    final GraphViewportEdgeParentData parentData = this.parentData as GraphViewportEdgeParentData;
-
     return Rect.fromPoints(parentData.startNodeCenter, parentData.endNodeCenter);
   }
 
