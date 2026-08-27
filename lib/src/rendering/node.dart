@@ -9,10 +9,9 @@ import "graph_element.dart";
 import "graph_viewport.dart";
 import "node_parent_data.dart";
 
-final class GraphNodeRenderObject<NodeIdType> extends GraphElementRenderObject
+final class GraphNodeRenderObject extends GraphElementRenderObject
     with SlottedContainerRenderObjectMixin<NodeWidgetSlot, RenderBox> {
   GraphNodeRenderObject({
-    required this.nodeId,
     required Offset position,
     required BoxConstraints contentConstraints,
     required Radius borderRadius,
@@ -23,8 +22,6 @@ final class GraphNodeRenderObject<NodeIdType> extends GraphElementRenderObject
        _borderRadius = borderRadius,
        _clipBehavior = clipBehavior,
        _overlayConfig = overlayConfig;
-
-  final NodeIdType nodeId;
 
   Offset get positionWithDragOffset => position + (parentData as GraphViewportNodeParentData).dragOffset;
 
@@ -230,6 +227,6 @@ final class GraphNodeRenderObject<NodeIdType> extends GraphElementRenderObject
   @override
   void markParentNeedsLayout() {
     super.markParentNeedsLayout();
-    (parent as RenderGraphViewport).markNeedsLayoutForNodeChange(nodeId);
+    (parent as RenderGraphViewport).markNeedsLayoutForNodeChange(this);
   }
 }

@@ -136,7 +136,9 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   }
 
   @override
-  void markNeedsLayoutForNodeChange(NodeIdType nodeId) {
+  void markNeedsLayoutForNodeChange(GraphNodeRenderObject node) {
+    final NodeIdType nodeId = _nodes.entries.firstWhere((entry) => entry.value == node).key;
+
     for (final EdgeIdType edgeId in getConnectingEdgeIds(nodeId)) {
       markEdgeNeedsLayout(edgeId);
     }

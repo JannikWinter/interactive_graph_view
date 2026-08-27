@@ -8,9 +8,8 @@ import "../interaction/tap_details.dart";
 import "../rendering/graph_viewport_base.dart";
 import "../rendering/node.dart";
 import "../widgets/node.dart";
-import "graph_viewport.dart";
 
-class NodeElement<NodeIdType> extends SlottedRenderObjectElement<NodeWidgetSlot, RenderBox> {
+class NodeElement extends SlottedRenderObjectElement<NodeWidgetSlot, RenderBox> {
   NodeElement(NodeWidget super.widget);
 
   late TapGestureRecognizer _tapRecognizer;
@@ -20,9 +19,6 @@ class NodeElement<NodeIdType> extends SlottedRenderObjectElement<NodeWidgetSlot,
 
   @override
   GraphNodeRenderObject get renderObject => super.renderObject as GraphNodeRenderObject;
-
-  @override
-  GraphViewportNodeSlot<NodeIdType>? get slot => super.slot as GraphViewportNodeSlot<NodeIdType>?;
 
   @override
   void mount(Element? parent, Object? newSlot) {
@@ -115,7 +111,7 @@ class NodeElement<NodeIdType> extends SlottedRenderObjectElement<NodeWidgetSlot,
     );
 
     (widget as NodeWidget).onDragDown?.call(newDetails);
-    viewportBase.onNodeDragDown(newDetails, slot!.nodeId);
+    viewportBase.onNodeDragDown(newDetails);
   }
 
   void _onDragStart(DragStartDetails details) {
