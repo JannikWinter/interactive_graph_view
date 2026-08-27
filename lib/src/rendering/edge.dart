@@ -184,24 +184,34 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
             required Size nodeSize,
             required Offset nodeCenter,
           }) {
-            final double lineSlope = (lineToNode.dy / lineToNode.dx).abs();
+            if (nodeSize.isEmpty) {
+              return nodeCenter;
+            }
+            if (lineToNode == Offset.zero) {
+              return nodeCenter;
+            }
+
+            final double dx = lineToNode.dx;
+            final double dy = lineToNode.dy;
+
+            final bool intersectsVerticalEdge = dy.abs() * nodeSize.width < dx.abs() * nodeSize.height;
 
             final double xOffset;
             final double yOffset;
-            if (lineSlope < (nodeSize.height / nodeSize.width).abs()) {
-              // horizontal
+            if (intersectsVerticalEdge) {
+              // line is flatter than the diagonal of the node and hits the left or right edge
               xOffset = nodeSize.width / 2;
-              yOffset = lineSlope * xOffset;
+              yOffset =  xOffset * dy.abs() / dx.abs();
             } else {
-              // vertical
+              // line is steeper than the diagonal of the node and hits the top or bottom edge
               yOffset = nodeSize.height / 2;
-              xOffset = yOffset / lineSlope;
+              xOffset = yOffset * dx.abs() / dy.abs();
             }
 
             return nodeCenter +
                 Offset(
-                  xOffset * -lineToNode.dx.sign,
-                  yOffset * -lineToNode.dy.sign,
+                  xOffset * -dx.sign,
+                  yOffset * -dy.sign,
                 );
           }
 
