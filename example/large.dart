@@ -220,14 +220,10 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
           selectedNodes: _selectedNodeIds.map((nodeId) => _nodes[nodeId]!).toSet(),
           selectedEdges: _selectedEdgeIds.map((edgeId) => _edges[edgeId]!).toSet(),
           onDeleteNode: (nodeId) {
-            _nodes.remove(nodeId);
-            _selectedNodeIds.remove(nodeId);
-            _graphViewportController.removeNode(nodeId);
+            _deleteNode(nodeId);
           },
           onDeleteEdge: (edgeId) {
-            _edges.remove(edgeId);
-            _selectedEdgeIds.remove(edgeId);
-            _graphViewportController.removeEdge(edgeId);
+            _deleteEdge(edgeId);
           },
           onNodeTextChanged: (nodeId, text) {
             _nodes[nodeId]!.text = text;
@@ -356,6 +352,26 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
     _graphViewportController.insertEdge(EdgeData(edgeId: newEdge.id, startNodeId: startNodeId, endNodeId: endNodeId));
 
     return newEdge.id;
+  }
+
+  void _deleteNode(String nodeId) {
+    final Set<String> connectedEdgeIds = _edges.values
+        .where((edge) => edge.startNodeId == nodeId || edge.endNodeId == nodeId)
+        .map((edge) => edge.id)
+        .toSet();
+    for (final String connectedEdgeId in connectedEdgeIds) {
+      _deleteEdge(connectedEdgeId);
+    }
+
+    _nodes.remove(nodeId);
+    _selectedNodeIds.remove(nodeId);
+    _graphViewportController.removeNode(nodeId);
+  }
+
+  void _deleteEdge(String edgeId) {
+    _edges.remove(edgeId);
+    _selectedEdgeIds.remove(edgeId);
+    _graphViewportController.removeEdge(edgeId);
   }
 }
 
