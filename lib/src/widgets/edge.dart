@@ -5,13 +5,14 @@ import "../elements/edge.dart";
 import "../interaction/gesture_callbacks.dart";
 import "../rendering/edge.dart";
 import "../style/edge_style.dart";
+import "graph_viewport_child_widget.dart";
 
 /// A widget for configuring, interacting with and styling an edge in a graph.
 ///
 /// To display this edge, it should be constructed as a child of a [GraphViewport] through [GraphViewport.edgeBuilder].
 ///
 /// To build an edge, its ID should first be added to a [GraphViewport]'s [GraphViewport.controller].
-class EdgeWidget extends LeafRenderObjectWidget {
+class EdgeWidget extends LeafRenderObjectWidget with GraphViewportChildWidget {
   /// The default value for [hitboxThickness] when it is not supplied to the constructor.
   static const double kDefaultHitboxThickness = 40.0;
 

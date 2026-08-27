@@ -31,6 +31,7 @@ export "src/interaction/scale_details.dart"
 export "src/interaction/tap_details.dart" show GraphViewportTapDownDetails;
 export "src/widgets/edge.dart" show EdgeWidget;
 export "src/widgets/graph_viewport.dart" show GraphViewport, NodeBuilder, EdgeBuilder, NodesMovedCallback;
+export "src/widgets/graph_viewport_proxy.dart" show GraphViewportProxy;
 export "src/widgets/node.dart" show NodeWidget, BasicNodeBackground, BasicNodeContent;
 export "src/widgets/node_overlay.dart" show NodeOverlay;
 export "src/style/arrow_style.dart" show ArrowStyle;
