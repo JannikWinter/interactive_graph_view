@@ -11,7 +11,7 @@ import "../style/edge_style.dart";
 /// To display this edge, it should be constructed as a child of a [GraphViewport] through [GraphViewport.edgeBuilder].
 ///
 /// To build an edge, its ID should first be added to a [GraphViewport]'s [GraphViewport.viewportController].
-class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
+class EdgeWidget extends LeafRenderObjectWidget {
   /// Constructs an [EdgeWidget].
   const EdgeWidget({
     super.key,

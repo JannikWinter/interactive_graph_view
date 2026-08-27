@@ -14,7 +14,7 @@ import "../style/line_style.dart";
 import "edge_parent_data.dart";
 import "graph_element.dart";
 
-final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
+final class GraphEdgeRenderObject extends GraphElementRenderObject {
   static const double _hitTestPathStepSize = 5.0;
 
   GraphEdgeRenderObject({
@@ -201,7 +201,7 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
             if (intersectsVerticalEdge) {
               // line is flatter than the diagonal of the node and hits the left or right edge
               xOffset = nodeSize.width / 2;
-              yOffset =  xOffset * dy.abs() / dx.abs();
+              yOffset = xOffset * dy.abs() / dx.abs();
             } else {
               // line is steeper than the diagonal of the node and hits the top or bottom edge
               yOffset = nodeSize.height / 2;

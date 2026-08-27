@@ -103,10 +103,9 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
   bool _isDraggingNodes = false;
 
   Set<NodeIdType> _movingNodeIds = {};
-  NodeIdType? _dragDownNodeId;
 
   /// The NodeIds that are marked for being moved when dragging a Node.
-  UnmodifiableSetView<NodeIdType> get movingNodeIds => UnmodifiableSetView({..._movingNodeIds, ?_dragDownNodeId});
+  UnmodifiableSetView<NodeIdType> get movingNodeIds => UnmodifiableSetView(_movingNodeIds);
 
   /// The NodeIds that are marked for being moved when dragging a Node.
   set movingNodeIds(Set<NodeIdType> value) => _movingNodeIds = Set.from(value);
@@ -131,13 +130,12 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
             ((_pointerViewportPosition - _startingPointerViewportPosition) / _transform.scale)
       : Offset.zero;
 
-  void onNodeDragDown(GraphViewportDragDownDetails details, NodeIdType nodeId) {
+  void onNodeDragDown(GraphViewportDragDownDetails details) {
     transform.onNodeDragDown(details);
 
     _startingViewportPosition = _transform.position;
     _startingPointerViewportPosition = details.viewportPosition;
     _pointerViewportPosition = details.viewportPosition;
-    _dragDownNodeId = nodeId;
   }
 
   void onNodeDragStart(GraphViewportDragStartDetails details) {
@@ -177,7 +175,6 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
     final Offset dragOffset = movingNodeOffset;
 
     _isDraggingNodes = false;
-    _dragDownNodeId = null;
 
     _viewportController.notifyNodesMoved(movedNodeIds, dragOffset);
   }
@@ -195,7 +192,6 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
     markNeedsLayout();
 
     _isDraggingNodes = false;
-    _dragDownNodeId = null;
   }
 
   GraphNodeRenderObject? getNode(NodeIdType nodeId);
@@ -209,7 +205,7 @@ abstract class RenderGraphViewportBase<NodeIdType, EdgeIdType> extends RenderBox
   @protected
   void markEdgeNeedsLayout(EdgeIdType edgeId);
 
-  void markNeedsLayoutForNodeChange(NodeIdType nodeId);
+  void markNeedsLayoutForNodeChange(GraphNodeRenderObject node);
 
   Iterable<EdgeIdType> getConnectingEdgeIds(NodeIdType nodeId);
 
