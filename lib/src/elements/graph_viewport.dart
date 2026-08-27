@@ -146,7 +146,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   }
 
   void _buildAllNodes() {
-    for (final NodeIdType nodeId in _viewportController.allNodeIds) {
+    for (final NodeIdType nodeId in _viewportController.allNodes.keys) {
       _nodes[nodeId] = _buildNode(nodeId);
     }
   }

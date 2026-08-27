@@ -91,7 +91,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
     super.initState();
 
     _graphViewportController = GraphViewportController(
-      initialNodeIds: _nodes.keys,
+      initialNodes: _nodes.values.map((node) => NodeData(nodeId: node.id, position: node.position)),
       initialEdges: _edges.values.map(
         (edge) => EdgeData(edgeId: edge.id, startNodeId: edge.startNodeId, endNodeId: edge.endNodeId),
       ),
@@ -146,7 +146,6 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
             final ExampleNode node = _nodes[nodeId]!;
 
             return NodeWidget.basic(
-              position: node.position,
               text: node.text,
               style: (isSelected ? _selectedNodeStyle : NodeStyle()).merge(
                 NodeStyle(
@@ -338,7 +337,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
   String _createNode(Offset position) {
     final ExampleNode newNode = ExampleNode(position: _tapDownPosition);
     _nodes[newNode.id] = newNode;
-    _graphViewportController.insertNode(newNode.id);
+    _graphViewportController.insertNode(NodeData(nodeId: newNode.id, position: position));
 
     return newNode.id;
   }

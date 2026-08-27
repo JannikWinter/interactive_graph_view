@@ -37,7 +37,6 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   /// 3. [NodeStyle.fallback] which will have a fallback value for every property.
   const NodeWidget.custom({
     super.key,
-    required this.position,
     required this.content,
     required this.background,
     this.overlay,
@@ -66,7 +65,6 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   /// 3. [NodeStyle.fallback] which will have a fallback value for every property.
   factory NodeWidget.basic({
     Key? key,
-    required Offset position,
     required String text,
     NodeOverlay? overlay,
     NodeStyle? style,
@@ -83,7 +81,6 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   }) {
     return NodeWidget.custom(
       key: key,
-      position: position,
       content: BasicNodeContent(text: text, style: style),
       background: BasicNodeBackground(style: style),
       overlay: overlay,
@@ -100,11 +97,6 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
       onDragCancel: onDragCancel,
     );
   }
-
-  /// The position in the [GraphViewport] where this node will be displayed.
-  ///
-  /// The node is always centered around the position.
-  final Offset position;
 
   /// The widget used to construct the content of this node.
   ///
@@ -186,7 +178,6 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     final NodeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
 
     return GraphNodeRenderObject(
-      position: position,
       overlayConfig: overlay,
       contentConstraints: effectiveStyle.contentConstraints!,
       borderRadius: effectiveStyle.borderRadius!,
@@ -206,7 +197,6 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     final NodeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
 
     renderObject
-      ..position = position
       ..overlayConfig = overlay
       ..contentConstraints = effectiveStyle.contentConstraints!
       ..borderRadius = effectiveStyle.borderRadius!

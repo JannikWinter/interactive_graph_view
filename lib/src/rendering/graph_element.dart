@@ -5,6 +5,8 @@ abstract base class GraphElementRenderObject extends RenderObject {
   PointerDownEventListener? onPointerDown;
   PointerPanZoomStartEventListener? onPointerPanZoomStart;
 
+  bool get hasParentData => super.parentData != null;
+
   @override
   void debugAssertDoesMeetConstraints() {
     // Constraints are never given to GraphElements, so nothing to check here

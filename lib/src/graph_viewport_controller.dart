@@ -3,6 +3,7 @@ import "dart:collection";
 import "package:flutter/widgets.dart";
 
 import "edge_data.dart";
+import "node_data.dart";
 import "rendering/graph_viewport_base.dart";
 
 /// This callback is called whenever nodes were dragged and that drag ended.
@@ -12,14 +13,14 @@ typedef NodesMovedCallback<NodeIdType> = void Function(Set<NodeIdType> nodeIds, 
 class GraphViewportController<NodeIdType, EdgeIdType> {
   /// Constructs a viewport controller with all [initialNodeIds] and [initialEdgeIds] that exist.
   GraphViewportController({
-    required Iterable<NodeIdType> initialNodeIds,
+    required Iterable<NodeData<NodeIdType>> initialNodes,
     required Iterable<EdgeData<NodeIdType, EdgeIdType>> initialEdges,
     NodesMovedCallback<NodeIdType>? onNodesMoved,
-  }) : _nodeIds = Set.from(initialNodeIds),
+  }) : _nodes = {for (final nodeData in initialNodes) nodeData.nodeId: nodeData},
        _edges = {for (final edgeData in initialEdges) edgeData.edgeId: edgeData},
        _onNodesMoved = onNodesMoved;
 
-  Set<NodeIdType> _nodeIds;
+  Map<NodeIdType, NodeData<NodeIdType>> _nodes;
   Map<EdgeIdType, EdgeData<NodeIdType, EdgeIdType>> _edges;
   final NodesMovedCallback<NodeIdType>? _onNodesMoved;
 
@@ -59,7 +60,7 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   ///
   /// In the next frame [GraphViewport.nodeBuilder] will be called for the given [nodeId].
   void rebuildNode(NodeIdType nodeId) {
-    assert(_nodeIds.contains(nodeId));
+    assert(_nodes.containsKey(nodeId));
 
     _viewport!.markNodeNeedsRebuild(nodeId);
   }
@@ -76,10 +77,11 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   /// Insert a node into the [GraphViewport] that this controller is attached to.
   ///
   /// The framework will automatically build this node with [GraphViewport.nodeBuilder] in the next frame.
-  void insertNode(NodeIdType nodeId) {
-    if (_nodeIds.add(nodeId)) {
-      _viewport!.markNodeNeedsRebuild(nodeId);
-    }
+  void insertNode(NodeData<NodeIdType> node) {
+    if (_nodes[node.nodeId] == node) return;
+
+    _nodes[node.nodeId] = node;
+    _viewport!.markNodeNeedsRebuild(node.nodeId);
   }
 
   /// Insert an edge into the [GraphViewport] that this controller is attached to.
@@ -94,7 +96,7 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
 
   /// Whether the [GraphViewport] that this controller is attached to contains a node with the given [nodeId].
   bool containsNode(NodeIdType nodeId) {
-    return _nodeIds.contains(nodeId);
+    return _nodes.containsKey(nodeId);
   }
 
   /// Whether the [GraphViewport] that this controller is attached to contains an edge with the given [edgeId].
@@ -106,9 +108,9 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   void removeNode(
     NodeIdType nodeId,
   ) {
-    assert(_nodeIds.contains(nodeId));
+    assert(_nodes.containsKey(nodeId));
 
-    _nodeIds.remove(nodeId);
+    _nodes.remove(nodeId);
     _viewport!.removeNode(nodeId);
 
     _viewport!.markNeedsLayout();
@@ -132,11 +134,12 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   ///
   /// Nodes that both were contained in the viewport before and are also contained in [nodeIds] will **not** be rebuilt
   /// automatically.
-  void setNodes(Iterable<NodeIdType> nodeIds) {
-    final Set<NodeIdType> newNodeIds = nodeIds.toSet();
+  void setNodes(Iterable<NodeData<NodeIdType>> nodes) {
+    final Set<NodeIdType> previousNodeIds = _nodes.keys.toSet();
+    final Set<NodeIdType> newNodeIds = nodes.map((node) => node.nodeId).toSet();
 
-    final Set<NodeIdType> removedNodeIds = _nodeIds.difference(newNodeIds);
-    final Set<NodeIdType> addedNodeIds = newNodeIds.difference(_nodeIds);
+    final Set<NodeIdType> removedNodeIds = previousNodeIds.difference(newNodeIds);
+    final Set<NodeIdType> addedNodeIds = newNodeIds.difference(previousNodeIds);
 
     for (final nodeId in removedNodeIds) {
       _viewport!.removeNode(nodeId);
@@ -145,7 +148,7 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
       _viewport!.markNodeNeedsRebuild(nodeId);
     }
 
-    _nodeIds = newNodeIds;
+    _nodes = {for (final nodeData in nodes) nodeData.nodeId: nodeData};
 
     _viewport!.markNeedsLayout();
   }
@@ -215,7 +218,7 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   );
 
   /// An iterable over all node IDs managed by this controller.
-  UnmodifiableSetView<NodeIdType> get allNodeIds => UnmodifiableSetView(_nodeIds);
+  UnmodifiableMapView<NodeIdType, NodeData<NodeIdType>> get allNodes => UnmodifiableMapView(_nodes);
 
   /// An iterable over all edge IDs managed by this controller.
   UnmodifiableMapView<EdgeIdType, EdgeData<NodeIdType, EdgeIdType>> get allEdges => UnmodifiableMapView(_edges);
