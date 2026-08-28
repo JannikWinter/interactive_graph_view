@@ -39,8 +39,6 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// The default value for [boundaryInsets] when it is not supplied to the constructor.
   static const EdgeInsets kDefaultBoundaryInsets = EdgeInsets.zero;
 
-  /// The default value for [edgeHitboxThickness] when it is not supplied to the constructor.
-  static const double kDefaultEdgeHitboxThickness = 40.0;
   static const bool kDefaultRebuildAllChildrenOnWidgetUpdate = true;
 
   /// Constructs a [GraphViewport].
@@ -53,7 +51,6 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     this.style,
     this.cacheExtent = kDefaultCacheExtent,
     this.boundaryInsets = kDefaultBoundaryInsets,
-    this.edgeHitboxThickness = kDefaultEdgeHitboxThickness,
     this.debugPaintQuadTree = false,
     this.rebuildAllChildrenOnWidgetUpdate = kDefaultRebuildAllChildrenOnWidgetUpdate,
     this.onScaleStart,
@@ -63,8 +60,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     this.onTap,
     this.onDoubleTap,
     this.onPointerSignal,
-  }) : assert(cacheExtent >= 0.0),
-       assert(edgeHitboxThickness >= 1.0);
+  }) : assert(cacheExtent >= 0.0);
 
   /// {@template graph_viewport.viewport_controller}
   /// The viewport controller through which the graph's elements are controlled programmatically.
@@ -135,13 +131,6 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   ///
   /// Defaults to [kDefaultBoundaryInsets]
   final EdgeInsets boundaryInsets;
-
-  /// {@template graph_viewport.edge_hitbox_thickness}
-  /// The thickness of the gesture hitbox for all edges displayed by this GraphView.
-  /// {@endtemplate}
-  ///
-  /// Defaults to [kDefaultEdgeHitboxThickness].
-  final double edgeHitboxThickness;
 
   /// {@template graph_viewport.debug_paint_quad_tree}
   /// Whether the quad tree, that is used to effectively store the children of the viewport, should be painted.
@@ -222,7 +211,6 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
       layoutHelper: context as GraphViewportElement<NodeIdType, EdgeIdType>,
       cacheExtent: cacheExtent,
       boundaryInsets: boundaryInsets,
-      edgeHitboxThickness: edgeHitboxThickness,
       debugPaintQuadTree: debugPaintQuadTree,
       backgroundColor: effectiveStyle.backgroundColor!,
     );
@@ -242,7 +230,6 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
       ..transform = transform
       ..cacheExtent = cacheExtent
       ..boundaryInsets = boundaryInsets
-      ..edgeHitboxThickness = edgeHitboxThickness
       ..debugPaintQuadTree = debugPaintQuadTree
       ..backgroundColor = effectiveStyle.backgroundColor!;
   }

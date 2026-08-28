@@ -12,6 +12,9 @@ import "../style/edge_style.dart";
 ///
 /// To build an edge, its ID should first be added to a [GraphViewport]'s [GraphViewport.viewportController].
 class EdgeWidget extends LeafRenderObjectWidget {
+  /// The default value for [hitboxThickness] when it is not supplied to the constructor.
+  static const double kDefaultHitboxThickness = 40.0;
+
   /// Constructs an [EdgeWidget].
   const EdgeWidget({
     super.key,
@@ -20,7 +23,8 @@ class EdgeWidget extends LeafRenderObjectWidget {
     this.onTapDown,
     this.onTap,
     this.onLongPress,
-  });
+    this.hitboxThickness = kDefaultHitboxThickness,
+  }) : assert(hitboxThickness >= 1.0);
 
   /// The text that is shown at the center of this edge.
   ///
@@ -56,6 +60,11 @@ class EdgeWidget extends LeafRenderObjectWidget {
   /// [GraphViewport.edgeHitboxThickness].
   final GestureGraphViewportLongPressCallback? onLongPress;
 
+  /// The thickness of the gesture hitbox for all edges displayed by this GraphView.
+  ///
+  /// Defaults to [kDefaultHitboxThickness].
+  final double hitboxThickness;
+
   @override
   GraphEdgeRenderObject createRenderObject(BuildContext context) {
     final EdgeStyle? themeStyle = Theme.of(context).extension<EdgeStyle>();
@@ -71,6 +80,7 @@ class EdgeWidget extends LeafRenderObjectWidget {
       textBackgroundColor: effectiveStyle.textBackgroundColor!,
       color: effectiveStyle.lineColor!,
       shadow: effectiveStyle.shadow!,
+      hitboxThickness: hitboxThickness,
     );
   }
 
@@ -93,6 +103,7 @@ class EdgeWidget extends LeafRenderObjectWidget {
       ..textStyle = effectiveStyle.textStyle
       ..textBackgroundColor = effectiveStyle.textBackgroundColor!
       ..color = effectiveStyle.lineColor!
-      ..shadow = effectiveStyle.shadow!;
+      ..shadow = effectiveStyle.shadow!
+      ..hitboxThickness = hitboxThickness;
   }
 }

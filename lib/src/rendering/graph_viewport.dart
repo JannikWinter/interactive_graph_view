@@ -59,7 +59,6 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
     required GraphViewportLayoutHelper layoutHelper,
     required double cacheExtent,
     required EdgeInsets boundaryInsets,
-    required double edgeHitboxThickness,
     required Color backgroundColor,
     required bool debugPaintQuadTree,
   }) : _viewportController = viewportController,
@@ -67,7 +66,6 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
        _layoutHelper = layoutHelper,
        _cacheExtent = cacheExtent,
        _boundaryInsets = boundaryInsets,
-       _edgeHitboxThickness = edgeHitboxThickness,
        _backgroundColor = backgroundColor,
        _debugPaintQuadTree = debugPaintQuadTree;
 
@@ -145,16 +143,6 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
     _backgroundColor = value;
 
     markNeedsPaint();
-  }
-
-  double _edgeHitboxThickness;
-  double get edgeHitboxThickness => _edgeHitboxThickness;
-  set edgeHitboxThickness(double value) {
-    if (_edgeHitboxThickness == value) return;
-
-    _edgeHitboxThickness = value;
-
-    markNeedsLayout();
   }
 
   bool _debugPaintQuadTree;
@@ -270,8 +258,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
       ..startNodeBorderRadius = startNode.borderRadius
       ..endNodeCenter = endNode.parentData.positionWithDragOffset
       ..endNodeSize = endNode.size
-      ..endNodeBorderRadius = endNode.borderRadius
-      ..hitboxThickness;
+      ..endNodeBorderRadius = endNode.borderRadius;
   }
 
   void markNeedsFirstLayout() {
