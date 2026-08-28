@@ -4,7 +4,6 @@ import "package:interactive_graph_view/src/graph_viewport_controller.dart";
 
 import "../graph_viewport_edge_model.dart";
 import "../graph_viewport_node_model.dart";
-import "../graph_viewport_transform.dart";
 import "../interaction/scale_details.dart";
 import "../interaction/tap_details.dart";
 import "../rendering/edge.dart";
@@ -277,11 +276,12 @@ class GraphViewportElement<
   }
 
   void _onTapDown(TapDownDetails details) {
-    final GraphViewportTransform viewportTransform = RenderGraphViewport.of(renderObject).transform;
+    final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
+
     final GraphViewportTapDownDetails newDetails = GraphViewportTapDownDetails(
       globalPosition: details.globalPosition,
       viewportPosition: details.localPosition,
-      graphPosition: viewportTransform.toGraphSpacePosition(details.localPosition),
+      graphPosition: viewport.transform.toGraphSpacePosition(details.localPosition),
     );
 
     (widget as GraphViewport).onTapDown?.call(newDetails);
@@ -297,54 +297,73 @@ class GraphViewportElement<
 
   void _onScaleStart(ScaleStartDetails details) {
     final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
-    final GraphViewportTransform viewportTransform = viewport.transform;
+
+    final Offset globalFocalPoint = details.focalPoint;
+    final Offset viewportFocalPoint = details.localFocalPoint;
+    final Offset graphFocalPoint = viewport.transform.toGraphSpacePosition(viewportFocalPoint);
+    final int pointerCount = details.pointerCount;
+
     final GraphViewportScaleStartDetails newDetails = GraphViewportScaleStartDetails(
-      globalFocalPoint: details.focalPoint,
-      viewportFocalPoint: details.localFocalPoint,
-      graphFocalPoint: viewportTransform.toGraphSpacePosition(details.localFocalPoint),
-      pointerCount: details.pointerCount,
+      globalFocalPoint: globalFocalPoint,
+      viewportFocalPoint: viewportFocalPoint,
+      graphFocalPoint: graphFocalPoint,
+      pointerCount: pointerCount,
     );
 
     (widget as GraphViewport).onScaleStart?.call(newDetails);
-    viewportTransform.onScaleStart(newDetails);
+    viewport.transform.onScaleStart(newDetails);
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
     final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
-    final GraphViewportTransform viewportTransform = viewport.transform;
+
+    final Offset globalFocalPoint = details.focalPoint;
+    final Offset viewportFocalPoint = details.localFocalPoint;
+    final Offset graphFocalPoint = viewport.transform.toGraphSpacePosition(viewportFocalPoint);
+    final Offset viewportFocalPointDelta = details.focalPointDelta;
+    final Offset graphFocalPointDelta = viewport.transform.toGraphSpaceOffset(viewportFocalPointDelta);
+    final int pointerCount = details.pointerCount;
+    final double scale = details.scale;
+
     final GraphViewportScaleUpdateDetails newDetails = GraphViewportScaleUpdateDetails(
-      viewportFocalPointDelta: details.focalPointDelta,
-      graphFocalPointDelta: viewportTransform.toGraphSpaceOffset(details.focalPointDelta),
-      globalFocalPoint: details.focalPoint,
-      viewportFocalPoint: details.localFocalPoint,
-      graphFocalPoint: viewportTransform.toGraphSpacePosition(details.localFocalPoint),
-      scale: details.scale,
-      pointerCount: details.pointerCount,
+      globalFocalPoint: globalFocalPoint,
+      viewportFocalPoint: viewportFocalPoint,
+      graphFocalPoint: graphFocalPoint,
+      viewportFocalPointDelta: viewportFocalPointDelta,
+      graphFocalPointDelta: graphFocalPointDelta,
+      pointerCount: pointerCount,
+      scale: scale,
     );
 
     (widget as GraphViewport).onScaleUpdate?.call(newDetails);
-    viewportTransform.onScaleUpdate(newDetails);
+    viewport.transform.onScaleUpdate(newDetails);
   }
 
   void _onScaleEnd(ScaleEndDetails details) {
     final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
-    final GraphViewportTransform viewportTransform = viewport.transform;
+
+    final Velocity viewportVelocity = details.velocity;
+    final Velocity graphVelocity = Velocity(
+      pixelsPerSecond: details.velocity.pixelsPerSecond / viewport.transform.scale,
+    );
+    final double scaleVelocity = details.scaleVelocity;
+    final int pointerCount = details.pointerCount;
+
     final GraphViewportScaleEndDetails newDetails = GraphViewportScaleEndDetails(
-      viewportVelocity: details.velocity,
-      graphVelocity: Velocity(pixelsPerSecond: details.velocity.pixelsPerSecond / viewportTransform.scale),
-      scaleVelocity: details.scaleVelocity,
-      pointerCount: details.pointerCount,
+      viewportVelocity: viewportVelocity,
+      graphVelocity: graphVelocity,
+      scaleVelocity: scaleVelocity,
+      pointerCount: pointerCount,
     );
 
     (widget as GraphViewport).onScaleEnd?.call(newDetails);
-    viewportTransform.onScaleEnd(newDetails);
+    viewport.transform.onScaleEnd(newDetails);
   }
 
   void _onPointerSignal(PointerSignalEvent event) {
-    (widget as GraphViewport).onPointerSignal?.call(event);
-
     final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
-    final GraphViewportTransform viewportTransform = viewport.transform;
-    viewportTransform.onPointerSignal(event);
+
+    (widget as GraphViewport).onPointerSignal?.call(event);
+    viewport.transform.onPointerSignal(event);
   }
 }
