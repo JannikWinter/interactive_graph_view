@@ -1,11 +1,11 @@
 import "package:flutter/gestures.dart";
 import "package:flutter/widgets.dart";
 
-import "../graph_viewport_transform.dart";
 import "../interaction/drag_details.dart";
 import "../interaction/single_pointer_pan_gesture_recognizer.dart";
 import "../interaction/tap_details.dart";
 import "../rendering/graph_viewport.dart";
+import "../rendering/graph_viewport_base.dart";
 import "../rendering/node.dart";
 import "../widgets/node.dart";
 
@@ -76,15 +76,22 @@ class NodeElement extends SlottedRenderObjectElement<NodeWidgetSlot, RenderBox> 
   }
 
   void _onTapDown(TapDownDetails details) {
-    final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
-    final GraphViewportTransform viewportTransform = viewport.transform;
-    final Offset viewportPosition = details.globalPosition - viewport.globalPaintOffset;
-    final GraphViewportTapDownDetails newDetails = GraphViewportTapDownDetails(
-      globalPosition: details.globalPosition,
-      viewportPosition: viewportPosition,
-      graphPosition: viewportTransform.toGraphSpacePosition(viewportPosition),
-    );
+    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
 
+    final Offset globalPosition = details.globalPosition;
+    final Offset viewportPosition = details.globalPosition - viewportBase.globalPaintOffset;
+    final Offset graphPosition;
+    if (viewportBase is RenderGraphViewport) {
+      graphPosition = viewportBase.transform.toGraphSpacePosition(viewportPosition);
+    } else {
+      graphPosition = viewportPosition;
+    }
+
+    final newDetails = GraphViewportTapDownDetails(
+      globalPosition: globalPosition,
+      viewportPosition: viewportPosition,
+      graphPosition: graphPosition,
+    );
     (widget as NodeWidget).onTapDown?.call(newDetails);
   }
 
@@ -101,61 +108,100 @@ class NodeElement extends SlottedRenderObjectElement<NodeWidgetSlot, RenderBox> 
   }
 
   void _onDragDown(DragDownDetails details) {
-    final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
-    final GraphViewportTransform viewportTransform = viewport.transform;
-    final Offset viewportPosition = details.globalPosition - viewport.globalPaintOffset;
-    final GraphViewportDragDownDetails newDetails = GraphViewportDragDownDetails(
-      globalPosition: details.globalPosition,
+    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
+
+    final Offset globalPosition = details.globalPosition;
+    final Offset viewportPosition = details.globalPosition - viewportBase.globalPaintOffset;
+    final Offset graphPosition;
+    if (viewportBase is RenderGraphViewport) {
+      graphPosition = viewportBase.transform.toGraphSpacePosition(viewportPosition);
+    } else {
+      graphPosition = viewportPosition;
+    }
+
+    final newDetails = GraphViewportDragDownDetails(
+      globalPosition: globalPosition,
       viewportPosition: viewportPosition,
-      graphPosition: viewportTransform.toGraphSpacePosition(viewportPosition),
+      graphPosition: graphPosition,
     );
 
     (widget as NodeWidget).onDragDown?.call(newDetails);
-    viewport.onNodeDragDown(newDetails);
+    if (viewportBase is RenderGraphViewport) {
+      viewportBase.onNodeDragDown(newDetails);
+    }
   }
 
   void _onDragStart(DragStartDetails details) {
-    final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
-    final GraphViewportTransform viewportTransform = viewport.transform;
-    final Offset viewportPosition = details.globalPosition - viewport.globalPaintOffset;
-    final GraphViewportDragStartDetails newDetails = GraphViewportDragStartDetails(
-      globalPosition: details.globalPosition,
+    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
+
+    final Offset globalPosition = details.globalPosition;
+    final Offset viewportPosition = details.globalPosition - viewportBase.globalPaintOffset;
+    final Offset graphPosition;
+    if (viewportBase is RenderGraphViewport) {
+      graphPosition = viewportBase.transform.toGraphSpacePosition(viewportPosition);
+    } else {
+      graphPosition = viewportPosition;
+    }
+
+    final newDetails = GraphViewportDragStartDetails(
+      globalPosition: globalPosition,
       viewportPosition: viewportPosition,
-      graphPosition: viewportTransform.toGraphSpacePosition(viewportPosition),
+      graphPosition: graphPosition,
     );
 
     (widget as NodeWidget).onDragStart?.call(newDetails);
-    viewport.onNodeDragStart(newDetails);
+    if (viewportBase is RenderGraphViewport) {
+      viewportBase.onNodeDragStart(newDetails);
+    }
   }
 
   void _onDragUpdate(DragUpdateDetails details) {
-    final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
-    final GraphViewportTransform viewportTransform = viewport.transform;
-    final Offset viewportPosition = details.globalPosition - viewport.globalPaintOffset;
-    final GraphViewportDragUpdateDetails newDetails = GraphViewportDragUpdateDetails(
-      globalPosition: details.globalPosition,
+    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
+
+    final Offset globalPosition = details.globalPosition;
+    final Offset viewportPosition = details.globalPosition - viewportBase.globalPaintOffset;
+    final Offset viewportDelta = details.delta;
+    final Offset graphPosition;
+    final Offset graphDelta;
+    if (viewportBase is RenderGraphViewport) {
+      graphPosition = viewportBase.transform.toGraphSpacePosition(viewportPosition);
+      graphDelta = viewportBase.transform.toGraphSpaceOffset(viewportDelta);
+    } else {
+      graphPosition = viewportPosition;
+      graphDelta = viewportDelta;
+    }
+
+    final newDetails = GraphViewportDragUpdateDetails(
+      globalPosition: globalPosition,
       viewportPosition: viewportPosition,
-      graphPosition: viewportTransform.toGraphSpacePosition(viewportPosition),
-      viewportDelta: viewportTransform.toGraphSpaceOffset(details.delta),
-      graphDelta: details.delta,
+      viewportDelta: viewportDelta,
+      graphPosition: graphPosition,
+      graphDelta: graphDelta,
     );
 
     (widget as NodeWidget).onDragUpdate?.call(newDetails);
-    viewport.onNodeDragUpdate(newDetails);
+    if (viewportBase is RenderGraphViewport) {
+      viewportBase.onNodeDragUpdate(newDetails);
+    }
   }
 
   void _onDragEnd(DragEndDetails details) {
-    final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
-    final GraphViewportDragEndDetails newDetails = GraphViewportDragEndDetails();
+    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
+
+    final newDetails = GraphViewportDragEndDetails();
 
     (widget as NodeWidget).onDragEnd?.call(newDetails);
-    viewport.onNodeDragEnd(newDetails);
+    if (viewportBase is RenderGraphViewport) {
+      viewportBase.onNodeDragEnd(newDetails);
+    }
   }
 
   void _onDragCancel() {
-    final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
+    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
 
     (widget as NodeWidget).onDragCancel?.call();
-    viewport.onNodeDragCancel();
+    if (viewportBase is RenderGraphViewport) {
+      viewportBase.onNodeDragCancel();
+    }
   }
 }
