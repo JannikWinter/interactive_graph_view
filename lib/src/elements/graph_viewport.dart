@@ -8,7 +8,6 @@ import "../interaction/tap_details.dart";
 import "../rendering/edge.dart";
 import "../rendering/graph_element.dart";
 import "../rendering/graph_viewport.dart";
-import "../rendering/graph_viewport_base.dart";
 import "../rendering/node.dart";
 import "../widgets/edge.dart";
 import "../widgets/graph_viewport.dart";
@@ -295,7 +294,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   }
 
   void _onTapDown(TapDownDetails details) {
-    final GraphViewportTransform viewportTransform = RenderGraphViewportBase.of(renderObject).transform;
+    final GraphViewportTransform viewportTransform = RenderGraphViewport.of(renderObject).transform;
     final GraphViewportTapDownDetails newDetails = GraphViewportTapDownDetails(
       globalPosition: details.globalPosition,
       viewportPosition: details.localPosition,
@@ -314,8 +313,8 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   }
 
   void _onScaleStart(ScaleStartDetails details) {
-    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
-    final GraphViewportTransform viewportTransform = viewportBase.transform;
+    final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
+    final GraphViewportTransform viewportTransform = viewport.transform;
     final GraphViewportScaleStartDetails newDetails = GraphViewportScaleStartDetails(
       globalFocalPoint: details.focalPoint,
       viewportFocalPoint: details.localFocalPoint,
@@ -327,8 +326,8 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
-    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
-    final GraphViewportTransform viewportTransform = viewportBase.transform;
+    final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
+    final GraphViewportTransform viewportTransform = viewport.transform;
     final GraphViewportScaleUpdateDetails newDetails = GraphViewportScaleUpdateDetails(
       viewportFocalPointDelta: details.focalPointDelta,
       graphFocalPointDelta: viewportTransform.toGraphSpaceOffset(details.focalPointDelta),
@@ -343,8 +342,8 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   }
 
   void _onScaleEnd(ScaleEndDetails details) {
-    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
-    final GraphViewportTransform viewportTransform = viewportBase.transform;
+    final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
+    final GraphViewportTransform viewportTransform = viewport.transform;
     final GraphViewportScaleEndDetails newDetails = GraphViewportScaleEndDetails(
       viewportVelocity: details.velocity,
       graphVelocity: Velocity(pixelsPerSecond: details.velocity.pixelsPerSecond / viewportTransform.scale),

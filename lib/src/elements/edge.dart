@@ -4,7 +4,7 @@ import "package:flutter/widgets.dart";
 import "../graph_viewport_transform.dart";
 import "../interaction/tap_details.dart";
 import "../rendering/edge.dart";
-import "../rendering/graph_viewport_base.dart";
+import "../rendering/graph_viewport.dart";
 import "../widgets/edge.dart";
 
 class EdgeElement extends LeafRenderObjectElement {
@@ -51,9 +51,9 @@ class EdgeElement extends LeafRenderObjectElement {
   }
 
   void _onTapDown(TapDownDetails details) {
-    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
-    final GraphViewportTransform viewportTransform = viewportBase.transform;
-    final Offset viewportPosition = details.globalPosition - viewportBase.globalPaintOffset;
+    final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
+    final GraphViewportTransform viewportTransform = viewport.transform;
+    final Offset viewportPosition = details.globalPosition - viewport.globalPaintOffset;
     final GraphViewportTapDownDetails newDetails = GraphViewportTapDownDetails(
       globalPosition: details.globalPosition,
       viewportPosition: viewportPosition,
