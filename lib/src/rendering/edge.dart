@@ -26,6 +26,7 @@ final class GraphEdgeRenderObject extends GraphElementRenderObject {
     required Color textBackgroundColor,
     required Color color,
     required List<LineShadow> shadow,
+    required double hitboxThickness,
   }) : _text = text,
        _arrowStyle = arrowStyle,
        _curveStyle = curveStyle,
@@ -33,7 +34,8 @@ final class GraphEdgeRenderObject extends GraphElementRenderObject {
        _textStyle = textStyle,
        _textBackgroundColor = textBackgroundColor,
        _color = color,
-       _shadow = shadow {
+       _shadow = shadow,
+       _hitboxThickness = hitboxThickness {
     _recreateTextPainter();
   }
 
@@ -128,6 +130,16 @@ final class GraphEdgeRenderObject extends GraphElementRenderObject {
     markNeedsPaint();
   }
 
+  double _hitboxThickness;
+  double get hitboxThickness => _hitboxThickness;
+  set hitboxThickness(double value) {
+    if (_hitboxThickness == value) return;
+
+    _hitboxThickness = value;
+
+    markNeedsLayout();
+  }
+
   late Path _hitTestPath;
   late Path _basicLinePath;
   late Path _linePath;
@@ -154,7 +166,7 @@ final class GraphEdgeRenderObject extends GraphElementRenderObject {
     final Offset startToEnd = parentData.centerToCenter;
     final Offset endToStart = parentData.centerToCenterBackwards;
     final Offset direction = startToEnd / startToEnd.distance;
-    final Offset rotated1 = Offset(-direction.dy, direction.dx) * parentData.hitboxThickness / 2;
+    final Offset rotated1 = Offset(-direction.dy, direction.dx) * hitboxThickness / 2;
     final Offset rotated2 = -rotated1;
 
     if (_textPainter != null) {
