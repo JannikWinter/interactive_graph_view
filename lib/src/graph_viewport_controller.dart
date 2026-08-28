@@ -4,7 +4,7 @@ import "package:flutter/widgets.dart";
 
 import "edge_data.dart";
 import "node_data.dart";
-import "rendering/graph_viewport_base.dart";
+import "rendering/graph_viewport.dart";
 
 /// This callback is called whenever nodes were dragged and that drag ended.
 typedef NodesMovedCallback<NodeIdType> = void Function(Set<NodeIdType> nodeIds, Offset offset);
@@ -24,7 +24,7 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   Map<EdgeIdType, EdgeData<NodeIdType, EdgeIdType>> _edges;
   final NodesMovedCallback<NodeIdType>? _onNodesMoved;
 
-  RenderGraphViewportBase<NodeIdType, EdgeIdType>? _viewport;
+  RenderGraphViewport<NodeIdType, EdgeIdType>? _viewport;
 
   /// Whether this viewport controller is attached to any [GraphViewport].
   bool get isAttached => _viewport != null;
@@ -32,7 +32,7 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   /// Notifies this viewport controller that it has been attached to [viewport].
   ///
   /// This method is called internally and you should usually not call it yourself.
-  void onAttach(RenderGraphViewportBase<NodeIdType, EdgeIdType> viewport) {
+  void onAttach(RenderGraphViewport<NodeIdType, EdgeIdType> viewport) {
     assert(!isAttached);
 
     _viewport = viewport;
@@ -41,7 +41,7 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   /// Notifies this viewport controller that it has been detached from [viewport].
   ///
   /// This method is called internally and you should usually not call it yourself.
-  void onDetach(RenderGraphViewportBase<NodeIdType, EdgeIdType>? viewport) {
+  void onDetach(RenderGraphViewport<NodeIdType, EdgeIdType>? viewport) {
     assert(_viewport == viewport);
 
     _viewport = null;
