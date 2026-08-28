@@ -15,6 +15,7 @@ import "../widgets/graph_viewport.dart";
 import "edge.dart";
 import "edge_parent_data.dart";
 import "graph_child.dart";
+import "graph_viewport_base.dart";
 import "node.dart";
 import "node_parent_data.dart";
 import "quad_tree.dart";
@@ -25,7 +26,7 @@ class RenderGraphViewport<
   NodeModelType extends GraphViewportNodeModel,
   EdgeModelType extends GraphViewportEdgeModel<NodeIdType>
 >
-    extends RenderBox {
+    extends RenderGraphViewportBase {
   static RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>? maybeOf<
     NodeIdType,
     EdgeIdType,
@@ -34,11 +35,9 @@ class RenderGraphViewport<
   >(
     RenderObject? object,
   ) {
-    while (object != null) {
-      if (object is RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>) {
-        return object;
-      }
-      object = object.parent;
+    final RenderGraphViewportBase? viewportBase = RenderGraphViewportBase.maybeOf(object);
+    if (viewportBase is RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>) {
+      return viewportBase;
     }
     return null;
   }
@@ -69,26 +68,19 @@ class RenderGraphViewport<
     return viewport!;
   }
 
-  Offset get globalPaintOffset {
-    final translation = getTransformTo(null).getTranslation();
-
-    return Offset(translation.x, translation.y);
-  }
-
   RenderGraphViewport({
     required GraphViewportController<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> controller,
     required GraphViewportTransform transform,
     required GraphViewportLayoutHelper layoutHelper,
     required double cacheExtent,
     required EdgeInsets boundaryInsets,
-    required Color backgroundColor,
+    required super.backgroundColor,
     required bool debugPaintQuadTree,
   }) : _controller = controller,
        _transform = transform,
        _layoutHelper = layoutHelper,
        _cacheExtent = cacheExtent,
        _boundaryInsets = boundaryInsets,
-       _backgroundColor = backgroundColor,
        _debugPaintQuadTree = debugPaintQuadTree;
 
   final GraphViewportLayoutHelper _layoutHelper;
@@ -157,16 +149,6 @@ class RenderGraphViewport<
     _boundaryInsets = value;
 
     markNeedsLayout();
-  }
-
-  Color get backgroundColor => _backgroundColor;
-  Color _backgroundColor;
-  set backgroundColor(Color value) {
-    if (_backgroundColor == value) return;
-
-    _backgroundColor = value;
-
-    markNeedsPaint();
   }
 
   bool _debugPaintQuadTree;
@@ -504,15 +486,6 @@ class RenderGraphViewport<
         );
       },
     );
-  }
-
-  @override
-  void setupParentData(GraphChildRenderObject child) {
-    if (child is GraphEdgeRenderObject && !child.hasParentData) {
-      child.parentData = GraphViewportEdgeParentData();
-    } else if (child is GraphNodeRenderObject && !child.hasParentData) {
-      child.parentData = GraphViewportNodeParentData();
-    }
   }
 
   @override

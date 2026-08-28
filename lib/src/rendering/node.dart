@@ -218,6 +218,9 @@ final class GraphNodeRenderObject extends GraphChildRenderObject
   @override
   void markParentNeedsLayout() {
     super.markParentNeedsLayout();
-    (parent as RenderGraphViewport).markNeedsLayoutForNodeChange(this);
+
+    if (parent is RenderGraphViewport) {
+      (parent as RenderGraphViewport).markNeedsLayoutForNodeChange(this);
+    }
   }
 }
