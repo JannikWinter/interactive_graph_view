@@ -5,11 +5,11 @@ import "package:flutter/widgets.dart";
 
 import "../widgets/node.dart";
 import "../widgets/node_overlay.dart";
-import "graph_element.dart";
+import "graph_child.dart";
 import "graph_viewport.dart";
 import "node_parent_data.dart";
 
-final class GraphNodeRenderObject extends GraphElementRenderObject
+final class GraphNodeRenderObject extends GraphChildRenderObject
     with SlottedContainerRenderObjectMixin<NodeWidgetSlot, RenderBox> {
   GraphNodeRenderObject({
     required BoxConstraints contentConstraints,

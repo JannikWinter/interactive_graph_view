@@ -1,7 +1,7 @@
 import "package:flutter/gestures.dart";
 import "package:flutter/rendering.dart";
 
-abstract base class GraphElementRenderObject extends RenderObject {
+abstract base class GraphChildRenderObject extends RenderObject {
   PointerDownEventListener? onPointerDown;
   PointerPanZoomStartEventListener? onPointerPanZoomStart;
 
@@ -9,7 +9,7 @@ abstract base class GraphElementRenderObject extends RenderObject {
 
   @override
   void debugAssertDoesMeetConstraints() {
-    // Constraints are never given to GraphElements, so nothing to check here
+    // Constraints are never given to Graph children, so nothing to check here
   }
 
   @override
@@ -25,8 +25,8 @@ abstract base class GraphElementRenderObject extends RenderObject {
   /// absorbs the hit (preventing objects below this one from being hit).
   ///
   /// The caller is responsible for transforming [position] from global
-  /// coordinates to its location relative to the origin of this [GraphElementRenderObject].
-  /// This [GraphElementRenderObject] is responsible for checking whether the given position is
+  /// coordinates to its location relative to the origin of this [GraphChildRenderObject].
+  /// This [GraphChildRenderObject] is responsible for checking whether the given position is
   /// within its bounds.
   ///
   /// If transforming is necessary, [HitTestResult.addWithPaintTransform],
@@ -41,7 +41,7 @@ abstract base class GraphElementRenderObject extends RenderObject {
   /// called. For example, a render object might be a child of a [RenderOpacity]
   /// object, which calls [hitTest] on its children when its opacity is zero
   /// even though it does not [paint] its children.
-  void hitTest(BoxHitTestResult result, Offset position);
+  bool hitTest(BoxHitTestResult result, Offset position);
 
   @override
   void handleEvent(PointerEvent event, covariant HitTestEntry<HitTestTarget> entry) {
