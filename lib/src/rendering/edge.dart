@@ -12,9 +12,9 @@ import "../style/curve_style.dart";
 import "../style/line_shadow.dart";
 import "../style/line_style.dart";
 import "edge_parent_data.dart";
-import "graph_element.dart";
+import "graph_child.dart";
 
-final class GraphEdgeRenderObject extends GraphElementRenderObject {
+final class GraphEdgeRenderObject extends GraphChildRenderObject {
   static const double _hitTestPathStepSize = 5.0;
 
   GraphEdgeRenderObject({

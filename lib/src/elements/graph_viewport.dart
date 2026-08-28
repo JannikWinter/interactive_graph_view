@@ -6,7 +6,7 @@ import "../graph_viewport_transform.dart";
 import "../interaction/scale_details.dart";
 import "../interaction/tap_details.dart";
 import "../rendering/edge.dart";
-import "../rendering/graph_element.dart";
+import "../rendering/graph_child.dart";
 import "../rendering/graph_viewport.dart";
 import "../rendering/node.dart";
 import "../widgets/edge.dart";
@@ -225,7 +225,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   }
 
   @override
-  void insertRenderObjectChild(GraphElementRenderObject child, GraphViewportChildSlot slot) {
+  void insertRenderObjectChild(GraphChildRenderObject child, GraphViewportChildSlot slot) {
     renderObject.setupParentData(child);
 
     switch (child) {
@@ -239,7 +239,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
 
   @override
   void moveRenderObjectChild(
-    GraphElementRenderObject child,
+    GraphChildRenderObject child,
     GraphViewportChildSlot oldSlot,
     GraphViewportChildSlot newSlot,
   ) {
@@ -251,7 +251,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   }
 
   @override
-  void removeRenderObjectChild(GraphElementRenderObject child, GraphViewportChildSlot slot) {
+  void removeRenderObjectChild(GraphChildRenderObject child, GraphViewportChildSlot slot) {
     switch (child) {
       case GraphNodeRenderObject():
         renderObject.dropNode((slot as GraphViewportNodeSlot).nodeId);

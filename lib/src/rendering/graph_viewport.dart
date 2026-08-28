@@ -13,7 +13,7 @@ import "../interaction/drag_details.dart";
 import "../node_data.dart";
 import "edge.dart";
 import "edge_parent_data.dart";
-import "graph_element.dart";
+import "graph_child.dart";
 import "node.dart";
 import "node_parent_data.dart";
 import "quad_tree.dart";
@@ -484,7 +484,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
   }
 
   @override
-  void setupParentData(GraphElementRenderObject child) {
+  void setupParentData(GraphChildRenderObject child) {
     if (child is GraphEdgeRenderObject && !child.hasParentData) {
       child.parentData = GraphViewportEdgeParentData();
     } else if (child is GraphNodeRenderObject && !child.hasParentData) {
@@ -729,14 +729,14 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
     final animationData = _showOnScreenAnimationData!;
     _showOnScreenAnimationData = null;
 
-    final Set<GraphElementRenderObject> targetRenderObjects = {
+    final Set<GraphChildRenderObject> targetRenderObjects = {
       ...animationData.targetNodeIds.map((nodeId) => getNode(nodeId)!),
       ...animationData.targetEdgeIds.map((edgeId) => getEdge(edgeId)!),
     };
 
     final Rect? targetGraphSpaceRect = targetRenderObjects.fold(
       null,
-      (Rect? previousValue, GraphElementRenderObject childRenderObject) {
+      (Rect? previousValue, GraphChildRenderObject childRenderObject) {
         final Rect childRect = childRenderObject.paintBounds;
         return previousValue?.expandToInclude(childRect) ?? childRect;
       },
@@ -858,7 +858,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
       return super.showOnScreen(descendant: descendant, rect: rect, duration: duration, curve: curve);
     }
 
-    assert(descendant is GraphElementRenderObject);
+    assert(descendant is GraphChildRenderObject);
 
     transform.showInViewport(
       targetRect: rect ?? descendant.paintBounds,
