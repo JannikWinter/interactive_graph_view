@@ -55,7 +55,7 @@ class GraphViewExampleHomePage extends StatefulWidget {
   State<GraphViewExampleHomePage> createState() => _GraphViewExampleHomePageState();
 }
 
-class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
+class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> with TickerProviderStateMixin {
   final Map<String, ExampleNode> _nodes = Map.fromIterable(
     {
       ExampleNode(
@@ -112,6 +112,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
   );
 
   late final GraphViewportController<String, String> _graphViewportController;
+  late final GraphViewportTransform _graphViewportTransform;
 
   @override
   void initState() {
@@ -123,6 +124,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
         (edge) => EdgeData(edgeId: edge.id, startNodeId: edge.startNodeId, endNodeId: edge.endNodeId),
       ),
     );
+    _graphViewportTransform = GraphViewportTransform(vsync: this);
   }
 
   @override
@@ -131,8 +133,9 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
       appBar: AppBar(
         title: Text("Graph View Demo"),
       ),
-      body: GraphView<String, String>(
+      body: GraphViewport<String, String>(
         viewportController: _graphViewportController,
+        transform: _graphViewportTransform,
         nodeBuilder: (context, nodeId) {
           final ExampleNode node = _nodes[nodeId]!;
           return NodeWidget.basic(

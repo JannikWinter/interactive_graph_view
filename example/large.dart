@@ -44,7 +44,7 @@ class GraphViewExampleHomePage extends StatefulWidget {
   State<GraphViewExampleHomePage> createState() => _GraphViewExampleHomePageState();
 }
 
-class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
+class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> with TickerProviderStateMixin {
   static const NodeStyle _selectedNodeStyle = NodeStyle(
     borderSide: BorderSide(
       color: Colors.red,
@@ -80,6 +80,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
   }, key: (edge) => edge.id);
 
   late final GraphViewportController<String, String> _graphViewportController;
+  late final GraphViewportTransform _graphViewportTransform;
 
   late Offset _tapDownPosition;
 
@@ -106,6 +107,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
         }
       },
     );
+    _graphViewportTransform = GraphViewportTransform(vsync: this);
   }
 
   @override
@@ -113,7 +115,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
     return Scaffold(
       appBar: AppBar(title: Text("Graph View Demo")),
       body: HorizontalOrVertical(
-        primary: GraphView<String, String>(
+        primary: GraphViewport<String, String>(
           // If this is set to true, every hot-reload and every rebuild of the viewport, for example by hot-reloading
           // or calling setState() on a parent, will rebuild *all* children (nodes and edges). This is very useful for
           // during development, but should generally be set to false.
@@ -122,6 +124,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
           rebuildAllChildrenOnWidgetUpdate: true,
 
           viewportController: _graphViewportController,
+          transform: _graphViewportTransform,
           onTapDown: (details) {
             _tapDownPosition = details.graphPosition;
           },
