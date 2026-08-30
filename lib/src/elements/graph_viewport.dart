@@ -286,10 +286,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   void _handlePointerSignal(PointerSignalEvent event) {
     GestureBinding.instance.pointerSignalResolver.register(
       event,
-      (PointerSignalEvent event) {
-        final GraphViewport widget = this.widget as GraphViewport;
-        widget.onPointerSignal?.call(event);
-      },
+      _onPointerSignal,
     );
   }
 
@@ -323,6 +320,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     );
 
     (widget as GraphViewport).onScaleStart?.call(newDetails);
+    viewportTransform.onScaleStart(newDetails);
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
@@ -339,6 +337,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     );
 
     (widget as GraphViewport).onScaleUpdate?.call(newDetails);
+    viewportTransform.onScaleUpdate(newDetails);
   }
 
   void _onScaleEnd(ScaleEndDetails details) {
@@ -352,5 +351,14 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     );
 
     (widget as GraphViewport).onScaleEnd?.call(newDetails);
+    viewportTransform.onScaleEnd(newDetails);
+  }
+
+  void _onPointerSignal(PointerSignalEvent event) {
+    (widget as GraphViewport).onPointerSignal?.call(event);
+
+    final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
+    final GraphViewportTransform viewportTransform = viewport.transform;
+    viewportTransform.onPointerSignal(event);
   }
 }

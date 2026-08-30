@@ -5,7 +5,6 @@ import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
 import "../interaction/gesture_callbacks.dart";
 import "../interaction/interaction_config.dart";
-import "../interaction/scale_details.dart";
 import "../style/graph_style.dart";
 import "graph_viewport.dart";
 
@@ -212,43 +211,14 @@ class GraphViewState<NodeIdType, EdgeIdType> extends State<GraphView<NodeIdType,
       onDoubleTap: widget.onDoubleTap,
       nodeBuilder: widget.nodeBuilder,
       edgeBuilder: widget.edgeBuilder,
-      onScaleStart: (details) {
-        _onScaleStart(details);
-        widget.onScaleStart?.call(details);
-      },
-      onScaleUpdate: (details) {
-        _onScaleUpdate(details);
-        widget.onScaleUpdate?.call(details);
-      },
-      onScaleEnd: (details) {
-        _onScaleEnd(details);
-        widget.onScaleEnd?.call(details);
-      },
-      onPointerSignal: (event) {
-        _onPointerSignal(event);
-        widget.onPointerSignal?.call(event);
-      },
+      onScaleStart: widget.onScaleStart,
+      onScaleUpdate: widget.onScaleUpdate,
+      onScaleEnd: widget.onScaleEnd,
+      onPointerSignal: widget.onPointerSignal,
     );
-  }
-
-  // TODO: move to viewport element
-  void _onScaleStart(GraphViewportScaleStartDetails details) {
-    _viewportTransform.onScaleStart(details);
-  }
-
-  void _onScaleUpdate(GraphViewportScaleUpdateDetails details) {
-    _viewportTransform.onScaleUpdate(details);
-  }
-
-  void _onScaleEnd(GraphViewportScaleEndDetails details) {
-    _viewportTransform.onScaleEnd(details);
   }
 
   void _onTransformSettled(Offset position, double scale) {
     widget.onTransformSettled?.call(position, scale);
-  }
-
-  void _onPointerSignal(PointerSignalEvent event) {
-    _viewportTransform.onPointerSignal(event);
   }
 }
