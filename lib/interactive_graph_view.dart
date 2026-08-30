@@ -1,7 +1,7 @@
 export "src/node_data.dart" show NodeData;
 export "src/edge_data.dart" show EdgeData;
 export "src/graph_viewport_controller.dart" show GraphViewportController, NodesMovedCallback;
-export "src/graph_viewport_transform.dart" show GraphViewportTransform, TransformSettleListener;
+export "src/graph_viewport_transform.dart" show GraphViewportTransform, TransformSettleCallback;
 export "src/interaction/drag_details.dart"
     show
         GraphViewportDragDownDetails,
