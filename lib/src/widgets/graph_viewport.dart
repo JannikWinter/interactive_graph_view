@@ -27,7 +27,7 @@ typedef EdgeBuilder<EdgeIdType> = EdgeWidget Function(BuildContext context, Edge
 /// panning and scaling is not handled for you.
 /// If you do not need to do that flexibility, [GraphView] is probably the widget you want to use instead.
 ///
-/// The graph's nodes and edges are added and removed through the [viewportController]
+/// The graph's nodes and edges are added and removed through the [controller]
 /// and built and styled as [NodeWidget]s and [EdgeWidget]s in the [nodeBuilder] and [edgeBuilder] respectively.
 ///
 /// Nodes and edges are only identified by their IDs. The respective ID type is supplied through
@@ -44,7 +44,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// Constructs a [GraphViewport].
   const GraphViewport({
     super.key,
-    required this.viewportController,
+    required this.controller,
     required this.nodeBuilder,
     required this.edgeBuilder,
     required this.transform,
@@ -65,7 +65,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// {@template graph_viewport.viewport_controller}
   /// The viewport controller through which the graph's elements are controlled programmatically.
   /// {@endtemplate}
-  final GraphViewportController<NodeIdType, EdgeIdType> viewportController;
+  final GraphViewportController<NodeIdType, EdgeIdType> controller;
 
   /// {@template graph_viewport.node_builder}
   /// The widget builder function for nodes.
@@ -206,7 +206,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     final GraphStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
 
     return RenderGraphViewport<NodeIdType, EdgeIdType>(
-      viewportController: viewportController,
+      controller: controller,
       transform: transform,
       layoutHelper: context as GraphViewportElement<NodeIdType, EdgeIdType>,
       cacheExtent: cacheExtent,
@@ -226,7 +226,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     final GraphStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
 
     renderObject
-      ..viewportController = viewportController
+      ..controller = controller
       ..transform = transform
       ..cacheExtent = cacheExtent
       ..boundaryInsets = boundaryInsets

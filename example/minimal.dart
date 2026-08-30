@@ -68,7 +68,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
         title: Text("Graph View Demo"),
       ),
       body: GraphViewport<String, String>(
-        viewportController: _graphViewportController,
+        controller: _graphViewportController,
         transform: _graphViewportTransform,
         nodeBuilder: (context, nodeId) {
           return NodeWidget.basic(

@@ -54,14 +54,14 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
   }
 
   RenderGraphViewport({
-    required GraphViewportController<NodeIdType, EdgeIdType> viewportController,
+    required GraphViewportController<NodeIdType, EdgeIdType> controller,
     required GraphViewportTransform transform,
     required GraphViewportLayoutHelper layoutHelper,
     required double cacheExtent,
     required EdgeInsets boundaryInsets,
     required Color backgroundColor,
     required bool debugPaintQuadTree,
-  }) : _viewportController = viewportController,
+  }) : _controller = controller,
        _transform = transform,
        _layoutHelper = layoutHelper,
        _cacheExtent = cacheExtent,
@@ -85,17 +85,17 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
   final Set<NodeIdType> _nodeIdsNeedingLayout = {};
   final Set<EdgeIdType> _edgeIdsNeedingLayout = {};
 
-  GraphViewportController<NodeIdType, EdgeIdType> get viewportController => _viewportController;
-  GraphViewportController<NodeIdType, EdgeIdType> _viewportController;
-  set viewportController(GraphViewportController<NodeIdType, EdgeIdType> value) {
-    if (_viewportController == value) return;
+  GraphViewportController<NodeIdType, EdgeIdType> get controller => _controller;
+  GraphViewportController<NodeIdType, EdgeIdType> _controller;
+  set controller(GraphViewportController<NodeIdType, EdgeIdType> value) {
+    if (_controller == value) return;
 
-    assert(_viewportController.isAttached);
+    assert(_controller.isAttached);
     assert(!value.isAttached);
 
-    _viewportController.onDetach(this);
+    _controller.onDetach(this);
 
-    _viewportController = value;
+    _controller = value;
 
     value.onAttach(this);
 
@@ -197,7 +197,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
   }
 
   Iterable<EdgeIdType> getConnectingEdgeIds(NodeIdType nodeId) {
-    return viewportController.allEdges.entries
+    return controller.allEdges.entries
         .where((edgeEntry) => edgeEntry.value.startNodeId == nodeId || edgeEntry.value.endNodeId == nodeId)
         .map((edgeEntry) => edgeEntry.key);
   }
@@ -239,7 +239,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
   }
 
   GraphViewportNodeParentData _setChildNodeParentData(NodeIdType nodeId, GraphNodeRenderObject node) {
-    final NodeData<NodeIdType> nodeData = viewportController.allNodes[nodeId]!;
+    final NodeData<NodeIdType> nodeData = controller.allNodes[nodeId]!;
     final bool isBeingDragged = inFlightNodeIds.contains(nodeId);
 
     return node.parentData
@@ -248,7 +248,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
   }
 
   GraphViewportEdgeParentData _setChildEdgeParentData(EdgeIdType edgeId, GraphEdgeRenderObject edge) {
-    final EdgeData<NodeIdType, EdgeIdType> edgeData = viewportController.allEdges[edgeId]!;
+    final EdgeData<NodeIdType, EdgeIdType> edgeData = controller.allEdges[edgeId]!;
     final GraphNodeRenderObject startNode = _nodes[edgeData.startNodeId]!;
     final GraphNodeRenderObject endNode = _nodes[edgeData.endNodeId]!;
 
@@ -350,7 +350,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
       for (final EdgeIdType edgeId in usedEdgeIds) {
         _reuseOrBuildEdge(edgeId);
 
-        final EdgeData<NodeIdType, EdgeIdType> edgeData = viewportController.allEdges[edgeId]!;
+        final EdgeData<NodeIdType, EdgeIdType> edgeData = controller.allEdges[edgeId]!;
 
         usedNodeIds.addAll([edgeData.startNodeId, edgeData.endNodeId]);
       }
@@ -401,7 +401,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
     final GraphViewportNodeSlot slot = GraphViewportNodeSlot(nodeId);
 
     assert(
-      viewportController.containsNode(nodeId),
+      controller.containsNode(nodeId),
       "The node $nodeId was marked for layout but does not exist in the ViewportController.\n"
       "This can happen when a node gets removed via ViewportController.removeNode() but its connecting edges are not.",
     );
@@ -422,7 +422,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
   GraphEdgeRenderObject _reuseOrBuildEdge(EdgeIdType edgeId) {
     final GraphViewportEdgeSlot slot = GraphViewportEdgeSlot(edgeId);
 
-    assert(viewportController.containsEdge(edgeId));
+    assert(controller.containsEdge(edgeId));
 
     if (!_edges.containsKey(edgeId) || _edgeIdsNeedingRebuild.contains(edgeId)) {
       invokeLayoutCallback((BoxConstraints _) {
@@ -496,7 +496,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
   void attach(PipelineOwner owner) {
     super.attach(owner);
 
-    _viewportController.onAttach(this);
+    _controller.onAttach(this);
 
     _isFirstLayout = true;
 
@@ -515,8 +515,8 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
   void detach() {
     super.detach();
 
-    if (_viewportController.isAttached) {
-      _viewportController.onDetach(this);
+    if (_controller.isAttached) {
+      _controller.onDetach(this);
     }
 
     transform.removeListener(_onTransformChanged);
@@ -698,7 +698,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
 
     _isDraggingNodes = false;
 
-    _viewportController.notifyNodesMoved(movedNodeIds, dragOffset);
+    _controller.notifyNodesMoved(movedNodeIds, dragOffset);
   }
 
   void onNodeDragCancel() {
