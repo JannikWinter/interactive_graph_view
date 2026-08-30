@@ -10,7 +10,7 @@ import "../style/edge_style.dart";
 ///
 /// To display this edge, it should be constructed as a child of a [GraphViewport] through [GraphViewport.edgeBuilder].
 ///
-/// To build an edge, its ID should first be added to a [GraphViewport]'s [GraphViewport.viewportController].
+/// To build an edge, its ID should first be added to a [GraphViewport]'s [GraphViewport.controller].
 class EdgeWidget extends LeafRenderObjectWidget {
   /// The default value for [hitboxThickness] when it is not supplied to the constructor.
   static const double kDefaultHitboxThickness = 40.0;

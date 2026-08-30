@@ -123,7 +123,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
           // child rebuilds.
           rebuildAllChildrenOnWidgetUpdate: true,
 
-          viewportController: _graphViewportController,
+          controller: _graphViewportController,
           transform: _graphViewportTransform,
           onTapDown: (details) {
             _tapDownPosition = details.graphPosition;

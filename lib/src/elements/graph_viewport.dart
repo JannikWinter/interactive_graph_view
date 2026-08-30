@@ -71,7 +71,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   Map<NodeIdType, Element> _lastNodes = {};
   Map<EdgeIdType, Element> _lastEdges = {};
 
-  late GraphViewportController<NodeIdType, EdgeIdType> _viewportController;
+  late GraphViewportController<NodeIdType, EdgeIdType> _controller;
   late NodeBuilder<NodeIdType> _nodeBuilder;
   late EdgeBuilder<EdgeIdType> _edgeBuilder;
 
@@ -145,13 +145,13 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   }
 
   void _buildAllNodes() {
-    for (final NodeIdType nodeId in _viewportController.allNodes.keys) {
+    for (final NodeIdType nodeId in _controller.allNodes.keys) {
       _nodes[nodeId] = _buildNode(nodeId);
     }
   }
 
   void _buildAllEdges() {
-    for (final EdgeIdType edgeId in _viewportController.allEdges.keys) {
+    for (final EdgeIdType edgeId in _controller.allEdges.keys) {
       _edges[edgeId] = _buildEdge(edgeId);
     }
   }
@@ -162,7 +162,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
 
     final GraphViewport<NodeIdType, EdgeIdType> widget = this.widget as GraphViewport<NodeIdType, EdgeIdType>;
 
-    _viewportController = widget.viewportController;
+    _controller = widget.controller;
     _nodeBuilder = widget.nodeBuilder;
     _edgeBuilder = widget.edgeBuilder;
 
@@ -192,7 +192,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   void update(GraphViewport<NodeIdType, EdgeIdType> newWidget) {
     super.update(newWidget);
 
-    _viewportController = newWidget.viewportController;
+    _controller = newWidget.controller;
     _nodeBuilder = newWidget.nodeBuilder;
     _edgeBuilder = newWidget.edgeBuilder;
 
