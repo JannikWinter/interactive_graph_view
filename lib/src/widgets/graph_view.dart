@@ -132,7 +132,7 @@ class GraphView<NodeIdType, EdgeIdType> extends StatefulWidget {
   final EdgeBuilder<EdgeIdType> edgeBuilder;
 
   /// The callback function for when the viewport transform, that was initiated by the user, stops moving.
-  final TransformSettleListener? onTransformSettled;
+  final TransformSettleCallback? onTransformSettled;
 
   /// {@macro graph_viewport.on_tap_down}
   final GestureGraphViewportTapDownCallback? onTapDown;
@@ -180,8 +180,8 @@ class GraphViewState<NodeIdType, EdgeIdType> extends State<GraphView<NodeIdType,
       initialScale: widget.initialScale,
       vsync: this,
       interactionConfig: widget.interactionConfig,
+      onTransformSettled: _onTransformSettled,
     );
-    _viewportTransform.addSettleListener(_onTransformSettled);
   }
 
   @override
