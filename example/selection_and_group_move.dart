@@ -29,7 +29,7 @@ class GraphViewExampleHomePage extends StatefulWidget {
   State<GraphViewExampleHomePage> createState() => _GraphViewExampleHomePageState();
 }
 
-class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
+class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> with TickerProviderStateMixin {
   final Map<String, ExampleNode> _nodes = Map.fromIterable(
     {
       ExampleNode(id: "node1", position: Offset(-50, -50)),
@@ -49,6 +49,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
   );
 
   late final GraphViewportController<String, String> _graphViewportController;
+  late final GraphViewportTransform _graphViewportTransform;
 
   final Set<String> _selectedNodeIds = {};
 
@@ -80,6 +81,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
         }
       },
     );
+    _graphViewportTransform = GraphViewportTransform(vsync: this);
   }
 
   @override
@@ -88,8 +90,9 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
       appBar: AppBar(
         title: Text("Graph View Demo"),
       ),
-      body: GraphView<String, String>(
+      body: GraphViewport<String, String>(
         viewportController: _graphViewportController,
+        transform: _graphViewportTransform,
         nodeBuilder: (context, nodeId) {
           final bool isSelected = _selectedNodeIds.contains(nodeId);
           return NodeWidget.basic(
