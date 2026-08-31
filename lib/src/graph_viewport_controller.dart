@@ -6,23 +6,17 @@ import "edge_data.dart";
 import "node_data.dart";
 import "rendering/graph_viewport.dart";
 
-/// This callback is called whenever nodes were dragged and that drag ended.
-typedef NodesMovedCallback<NodeIdType> = void Function(Set<NodeIdType> nodeIds, Offset offset);
-
 /// The controller that is used to programmatically control a [GraphViewport].
 class GraphViewportController<NodeIdType, EdgeIdType> {
   /// Constructs a viewport controller with all [initialNodeIds] and [initialEdgeIds] that exist.
   GraphViewportController({
     required Iterable<NodeData<NodeIdType>> initialNodes,
     required Iterable<EdgeData<NodeIdType, EdgeIdType>> initialEdges,
-    NodesMovedCallback<NodeIdType>? onNodesMoved,
   }) : _nodes = {for (final nodeData in initialNodes) nodeData.nodeId: nodeData},
-       _edges = {for (final edgeData in initialEdges) edgeData.edgeId: edgeData},
-       _onNodesMoved = onNodesMoved;
+       _edges = {for (final edgeData in initialEdges) edgeData.edgeId: edgeData};
 
   Map<NodeIdType, NodeData<NodeIdType>> _nodes;
   Map<EdgeIdType, EdgeData<NodeIdType, EdgeIdType>> _edges;
-  final NodesMovedCallback<NodeIdType>? _onNodesMoved;
 
   RenderGraphViewport<NodeIdType, EdgeIdType>? _viewport;
 
@@ -46,15 +40,6 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
 
     _viewport = null;
   }
-
-  /// The IDs of all the nodes that are marked to be dragged, when any node is dragged.
-  ///
-  /// See [NodeWidget.isDragEnabled].
-  ///
-  /// When the drag gesture on a node ended, the [NodesMovedCallback] (supplied in [GraphViewportController.new])
-  /// will be called.
-  Set<NodeIdType> get movingNodeIds => _viewport!.movingNodeIds;
-  set movingNodeIds(Set<NodeIdType> value) => _viewport!.movingNodeIds = Set.from(value);
 
   /// Mark a node for rebuilding.
   ///
@@ -178,13 +163,6 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
     _edges = {for (final edgeData in edges) edgeData.edgeId: edgeData};
 
     _viewport!.markNeedsLayout();
-  }
-
-  /// Notifies the [NodesMovedCallback], which was supplied in [GraphViewportController.new].
-  ///
-  /// This method is called internally and you should usually not call this method yourself.
-  void notifyNodesMoved(Set<NodeIdType> movedNodeIds, Offset offset) {
-    _onNodesMoved?.call(movedNodeIds, offset);
   }
 
   /// {@macro render_graph_viewport_base.show_nodes_on_screen}

@@ -11,6 +11,7 @@ import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
 import "../interaction/drag_details.dart";
 import "../node_data.dart";
+import "../widgets/graph_viewport.dart";
 import "edge.dart";
 import "edge_parent_data.dart";
 import "graph_child.dart";
@@ -73,6 +74,8 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
 
   final Map<NodeIdType, GraphNodeRenderObject> _nodes = {};
   final Map<EdgeIdType, GraphEdgeRenderObject> _edges = {};
+
+  NodesMovedCallback<NodeIdType>? onNodesMoved;
 
   late bool _isFirstLayout;
 
@@ -698,7 +701,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
 
     _isDraggingNodes = false;
 
-    _controller.notifyNodesMoved(movedNodeIds, dragOffset);
+    onNodesMoved?.call(movedNodeIds, dragOffset);
   }
 
   void onNodeDragCancel() {
