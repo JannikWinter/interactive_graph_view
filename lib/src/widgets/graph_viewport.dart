@@ -21,6 +21,9 @@ typedef NodeBuilder<NodeIdType> = NodeWidget Function(BuildContext context, Node
 /// Returns an [EdgeWidget] for a supplied edge ID.
 typedef EdgeBuilder<EdgeIdType> = EdgeWidget Function(BuildContext context, EdgeIdType edgeId);
 
+/// The callback for when nodes were dragged and that drag ended.
+typedef NodesMovedCallback<NodeIdType> = void Function(Set<NodeIdType> nodeIds, Offset offset);
+
 /// A widget for interacting with and styling a graph.
 ///
 /// Compared to [GraphView] (which uses this widget internally), this widget gives you more flexibility, as
@@ -53,6 +56,8 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     this.boundaryInsets = kDefaultBoundaryInsets,
     this.debugPaintQuadTree = false,
     this.rebuildAllChildrenOnWidgetUpdate = kDefaultRebuildAllChildrenOnWidgetUpdate,
+    this.movingNodeIds = const {},
+    this.onNodesMoved,
     this.onScaleStart,
     this.onScaleUpdate,
     this.onScaleEnd,
@@ -152,6 +157,10 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   ///
   /// Defaults to [kDefaultRebuildAllChildrenOnWidgetUpdate].
   final bool rebuildAllChildrenOnWidgetUpdate;
+
+  final Set<NodeIdType> movingNodeIds;
+
+  final NodesMovedCallback<NodeIdType>? onNodesMoved;
 
   /// {@template graph_viewport.on_tap_down}
   /// This callback will be called when a TapDown gesture was registered on the viewport,

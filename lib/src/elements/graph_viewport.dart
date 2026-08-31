@@ -183,6 +183,9 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     renderObject.onPointerPanZoomStart = _handlePointerPanZoomStart;
     renderObject.onPointerSignal = _handlePointerSignal;
 
+    renderObject.movingNodeIds = widget.movingNodeIds;
+    renderObject.onNodesMoved = widget.onNodesMoved;
+
     _buildAllNodes();
     _buildAllEdges();
     renderObject.markNeedsFirstLayout();
@@ -208,6 +211,9 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     renderObject.onPointerDown = _handlePointerDown;
     renderObject.onPointerPanZoomStart = _handlePointerPanZoomStart;
     renderObject.onPointerSignal = _handlePointerSignal;
+
+    renderObject.movingNodeIds = newWidget.movingNodeIds;
+    renderObject.onNodesMoved = newWidget.onNodesMoved;
 
     if (newWidget.rebuildAllChildrenOnWidgetUpdate) {
       _buildAllNodes();
