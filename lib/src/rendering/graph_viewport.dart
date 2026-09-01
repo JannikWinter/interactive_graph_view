@@ -77,7 +77,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
 
   NodesMovedCallback<NodeIdType>? onNodesMoved;
 
-  late bool _isFirstLayout;
+  bool _isFirstLayout = true;
 
   late final QuadTree<NodeIdType, EdgeIdType> _childQuadTree = QuadTree.fromInnermostQTSize(
     innermostDimension: 100,
@@ -102,7 +102,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
 
     value.onAttach(this);
 
-    markNeedsLayout();
+    markNeedsFirstLayout();
   }
 
   GraphViewportTransform get transform => _transform;
@@ -297,41 +297,42 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
     }
   }
 
-  late Rect _lastFrameContentRect;
+  Rect _lastFrameContentRect = Rect.zero;
 
   @override
   void performLayout() {
+    size = constraints.biggest;
+    transform.applyViewportDimensions(size, boundaryInsets);
+
     if (_isFirstLayout) {
       _isFirstLayout = false;
+      _nodeIdsNeedingRebuild.clear();
+      _nodeIdsNeedingLayout.clear();
+      _edgeIdsNeedingRebuild.clear();
+      _edgeIdsNeedingLayout.clear();
       // baue alles zum ersten Mal
 
       _childQuadTree.clear();
 
-      for (final nodeEntry in _nodes.entries) {
-        final NodeIdType nodeId = nodeEntry.key;
-        final GraphNodeRenderObject node = nodeEntry.value;
-        _layoutNode(nodeId, node);
-      }
+      invokeLayoutCallback((BoxConstraints _) {
+        _layoutHelper.startLayout();
 
-      for (final edgeEntry in _edges.entries) {
-        final EdgeIdType edgeId = edgeEntry.key;
-        final GraphEdgeRenderObject edge = edgeEntry.value;
-        _layoutEdge(edgeId, edge);
-      }
+        for (final NodeIdType nodeId in _controller.allNodes.keys) {
+          _layoutHelper.buildChild(GraphViewportNodeSlot(nodeId));
+        }
 
-      transform.applyContentDimensions(_childQuadTree.contentRect);
-      _lastFrameContentRect = _childQuadTree.contentRect;
-    }
+        for (final EdgeIdType edgeId in _controller.allEdges.keys) {
+          _layoutHelper.buildChild(GraphViewportEdgeSlot(edgeId));
+        }
 
-    if (!hasSize || size != constraints.biggest) {
-      size = constraints.biggest;
-    }
-    transform.applyViewportDimensions(size, boundaryInsets);
-
-    {
+        _layoutHelper.endLayout();
+      });
+    } else {
       // frage QuadTree, was gerade sichtbar ist und baue nur diese Elemente + aktive ELemente +  die Elemente, die geändert wurden
 
-      _layoutHelper.startLayout();
+      invokeLayoutCallback((BoxConstraints _) {
+        _layoutHelper.startLayout();
+      });
 
       final Rect visibleRect = transform.visibleRect.inflate(cacheExtent);
 
@@ -366,13 +367,12 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
         _layoutHelper.endLayout();
       });
     }
+    
 
     assert(_nodeIdsNeedingRebuild.isEmpty);
     assert(_edgeIdsNeedingRebuild.isEmpty);
 
     {
-      final Rect oldContentRect = _lastFrameContentRect;
-
       for (final NodeIdType nodeId in _nodes.keys) {
         final GraphNodeRenderObject node = _nodes[nodeId]!;
         _layoutNode(nodeId, node);
@@ -391,7 +391,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
         newContentRect = newContentRect.expandToInclude(movingNode.semanticBounds);
       }
 
-      if (oldContentRect != newContentRect) {
+      if (_lastFrameContentRect != newContentRect) {
         transform.applyContentDimensions(newContentRect);
         _lastFrameContentRect = newContentRect;
       }
