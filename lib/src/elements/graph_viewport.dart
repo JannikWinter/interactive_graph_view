@@ -1,7 +1,6 @@
 import "package:flutter/gestures.dart";
 import "package:flutter/widgets.dart";
 
-import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
 import "../interaction/scale_details.dart";
 import "../interaction/tap_details.dart";
@@ -71,7 +70,6 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   Map<NodeIdType, Element> _lastNodes = {};
   Map<EdgeIdType, Element> _lastEdges = {};
 
-  late GraphViewportController<NodeIdType, EdgeIdType> _controller;
   late NodeBuilder<NodeIdType> _nodeBuilder;
   late EdgeBuilder<EdgeIdType> _edgeBuilder;
 
@@ -144,40 +142,36 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     return newEdgeElement;
   }
 
-  void _buildAllNodes() {
-    for (final NodeIdType nodeId in _controller.allNodes.keys) {
-      _nodes[nodeId] = _buildNode(nodeId);
-    }
-  }
-
-  void _buildAllEdges() {
-    for (final EdgeIdType edgeId in _controller.allEdges.keys) {
-      _edges[edgeId] = _buildEdge(edgeId);
-    }
-  }
-
   @override
   void mount(Element? parent, Object? newSlot) {
     super.mount(parent, newSlot);
 
-    final GraphViewport<NodeIdType, EdgeIdType> widget = this.widget as GraphViewport<NodeIdType, EdgeIdType>;
+    _initialize(widget as GraphViewport<NodeIdType, EdgeIdType>);
+  }
 
-    _controller = widget.controller;
+  @override
+  void update(GraphViewport<NodeIdType, EdgeIdType> newWidget) {
+    super.update(newWidget);
+
+    _initialize(newWidget);
+  }
+
+  void _initialize(GraphViewport<NodeIdType, EdgeIdType> widget) {
     _nodeBuilder = widget.nodeBuilder;
     _edgeBuilder = widget.edgeBuilder;
 
     _scaleRecognizer = ScaleGestureRecognizer(debugOwner: this, trackpadScrollCausesScale: true);
-    _scaleRecognizer.onStart = (widget.onScaleStart != null) ? _onScaleStart : null;
-    _scaleRecognizer.onUpdate = (widget.onScaleUpdate != null) ? _onScaleUpdate : null;
-    _scaleRecognizer.onEnd = (widget.onScaleEnd != null) ? _onScaleEnd : null;
+    _scaleRecognizer.onStart = _onScaleStart;
+    _scaleRecognizer.onUpdate = _onScaleUpdate;
+    _scaleRecognizer.onEnd = _onScaleEnd;
 
     _tapRecognizer = TapGestureRecognizer(debugOwner: this);
-    _tapRecognizer.onTapDown = (widget.onTapDown != null) ? _onTapDown : null;
-    _tapRecognizer.onTap = (widget.onTap != null) ? _onTap : null;
+    _tapRecognizer.onTapDown = _onTapDown;
+    _tapRecognizer.onTap = _onTap;
 
     _doubleTapRecognizer = DoubleTapGestureRecognizer(debugOwner: this);
-    _doubleTapRecognizer.onDoubleTapDown = (widget.onTapDown != null) ? _onTapDown : null;
-    _doubleTapRecognizer.onDoubleTap = (widget.onDoubleTap != null) ? _onDoubleTap : null;
+    _doubleTapRecognizer.onDoubleTapDown = _onTapDown;
+    _doubleTapRecognizer.onDoubleTap = _onDoubleTap;
 
     renderObject.onPointerDown = _handlePointerDown;
     renderObject.onPointerPanZoomStart = _handlePointerPanZoomStart;
@@ -185,41 +179,13 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
 
     renderObject.movingNodeIds = widget.movingNodeIds;
     renderObject.onNodesMoved = widget.onNodesMoved;
-
-    _buildAllNodes();
-    _buildAllEdges();
-    renderObject.markNeedsFirstLayout();
   }
 
   @override
-  void update(GraphViewport<NodeIdType, EdgeIdType> newWidget) {
-    super.update(newWidget);
+  void reassemble() {
+    super.reassemble();
 
-    _controller = newWidget.controller;
-    _nodeBuilder = newWidget.nodeBuilder;
-    _edgeBuilder = newWidget.edgeBuilder;
-
-    _scaleRecognizer.onStart = (newWidget.onScaleStart != null) ? _onScaleStart : null;
-    _scaleRecognizer.onUpdate = (newWidget.onScaleUpdate != null) ? _onScaleUpdate : null;
-    _scaleRecognizer.onEnd = (newWidget.onScaleEnd != null) ? _onScaleEnd : null;
-
-    _tapRecognizer.onTapDown = (newWidget.onTapDown != null) ? _onTapDown : null;
-    _tapRecognizer.onTap = (newWidget.onTap != null) ? _onTap : null;
-
-    _doubleTapRecognizer.onDoubleTap = (newWidget.onDoubleTap != null) ? _onDoubleTap : null;
-
-    renderObject.onPointerDown = _handlePointerDown;
-    renderObject.onPointerPanZoomStart = _handlePointerPanZoomStart;
-    renderObject.onPointerSignal = _handlePointerSignal;
-
-    renderObject.movingNodeIds = newWidget.movingNodeIds;
-    renderObject.onNodesMoved = newWidget.onNodesMoved;
-
-    if (newWidget.rebuildAllChildrenOnWidgetUpdate) {
-      _buildAllNodes();
-      _buildAllEdges();
-      renderObject.markNeedsFirstLayout();
-    }
+    // TODO: implement for hot reload
   }
 
   @override

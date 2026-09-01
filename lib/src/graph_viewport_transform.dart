@@ -68,7 +68,7 @@ class GraphViewportTransform extends ChangeNotifier {
   }
 
   Offset _clampPosition(Offset value) {
-    if (!hasViewportSize || !hasViewportBoundaryInsets) {
+    if (!hasViewportSize || !hasViewportBoundaryInsets || !hasContentRect) {
       return value;
     }
 

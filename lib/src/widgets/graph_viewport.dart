@@ -42,8 +42,6 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// The default value for [boundaryInsets] when it is not supplied to the constructor.
   static const EdgeInsets kDefaultBoundaryInsets = EdgeInsets.zero;
 
-  static const bool kDefaultRebuildAllChildrenOnWidgetUpdate = true;
-
   /// Constructs a [GraphViewport].
   const GraphViewport({
     super.key,
@@ -55,7 +53,6 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     this.cacheExtent = kDefaultCacheExtent,
     this.boundaryInsets = kDefaultBoundaryInsets,
     this.debugPaintQuadTree = false,
-    this.rebuildAllChildrenOnWidgetUpdate = kDefaultRebuildAllChildrenOnWidgetUpdate,
     this.movingNodeIds = const {},
     this.onNodesMoved,
     this.onScaleStart,
@@ -143,20 +140,6 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   ///
   /// Defaults to `false`.
   final bool debugPaintQuadTree;
-
-  /// {@template graph_viewport.rebuild_all_children_on_widget_update}
-  /// Whether all children should be rebuilt when this widget's configuration changes (see [Element.update]).
-  ///
-  /// This should be set to `true` when you wish to see the changes, e.g. in your [nodeBuilder] and [edgeBuilder],
-  /// on hot reload.
-  ///
-  /// Otherwise, for performance reasons, this should probably be set to false and rebuilds of nodes and edges
-  /// should be initiated through [GraphViewportController.rebuildNode] and [GraphViewportController.rebuildEdge]
-  /// respectively.
-  /// {@endtemplate}
-  ///
-  /// Defaults to [kDefaultRebuildAllChildrenOnWidgetUpdate].
-  final bool rebuildAllChildrenOnWidgetUpdate;
 
   final Set<NodeIdType> movingNodeIds;
 
