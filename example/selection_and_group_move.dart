@@ -54,11 +54,14 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
   final Set<String> _selectedNodeIds = {};
 
   void _toggleNodeSelection(String nodeId) {
-    if (_selectedNodeIds.contains(nodeId)) {
-      _selectedNodeIds.remove(nodeId);
-    } else {
-      _selectedNodeIds.add(nodeId);
-    }
+    setState(() {
+      if (_selectedNodeIds.contains(nodeId)) {
+        _selectedNodeIds.remove(nodeId);
+      } else {
+        _selectedNodeIds.add(nodeId);
+      }
+    });
+    _graphViewportController.rebuildNode(nodeId);
   }
 
   @override
@@ -70,16 +73,6 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
       initialEdges: _edges.values.map(
         (edge) => EdgeData(edgeId: edge.id, startNodeId: edge.startNodeId, endNodeId: edge.endNodeId),
       ),
-
-      onNodesMoved: (nodeIds, offset) {
-        for (String nodeId in nodeIds) {
-          // Reflect the dragged node offset back to the graph structure.
-          _nodes[nodeId]!.position += offset;
-
-          // Rebuild the node at the new position.
-          _graphViewportController.rebuildNode(nodeId);
-        }
-      },
     );
     _graphViewportTransform = GraphViewportTransform(vsync: this);
   }
@@ -93,6 +86,16 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
       body: GraphViewport<String, String>(
         controller: _graphViewportController,
         transform: _graphViewportTransform,
+        movingNodeIds: _selectedNodeIds,
+        onNodesMoved: (nodeIds, offset) {
+          for (String nodeId in nodeIds) {
+            // Reflect the dragged node offset back to the graph structure.
+            _nodes[nodeId]!.position += offset;
+
+            // Rebuild the node at the new position.
+            _graphViewportController.insertNode(NodeData(nodeId: nodeId, position: _nodes[nodeId]!.position));
+          }
+        },
         nodeBuilder: (context, nodeId) {
           final bool isSelected = _selectedNodeIds.contains(nodeId);
           return NodeWidget.basic(
@@ -111,12 +114,6 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
             onTap: () {
               // Toggle the selection state.
               _toggleNodeSelection(nodeId);
-
-              // Rebuild this node with the new selection state applied.
-              _graphViewportController.rebuildNode(nodeId);
-
-              // Tell the viewport, which nodes should move when dragging a drag-enabled node.
-              _graphViewportController.movingNodeIds = _selectedNodeIds;
             },
           );
         },
