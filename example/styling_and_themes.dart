@@ -111,19 +111,14 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
     key: (edge) => edge.id,
   );
 
-  late final GraphViewportController<String, String> _graphViewportController;
+  late final GraphViewportController<String, String, ExampleNode, ExampleEdge> _graphViewportController;
   late final GraphViewportTransform _graphViewportTransform;
 
   @override
   void initState() {
     super.initState();
 
-    _graphViewportController = GraphViewportController(
-      initialNodes: _nodes.values.map((node) => NodeData(nodeId: node.id, position: node.position)),
-      initialEdges: _edges.values.map(
-        (edge) => EdgeData(edgeId: edge.id, startNodeId: edge.startNodeId, endNodeId: edge.endNodeId),
-      ),
-    );
+    _graphViewportController = GraphViewportController(initialNodes: _nodes, initialEdges: _edges);
     _graphViewportTransform = GraphViewportTransform(vsync: this);
   }
 
@@ -133,11 +128,10 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
       appBar: AppBar(
         title: Text("Graph View Demo"),
       ),
-      body: GraphViewport<String, String>(
+      body: GraphViewport<String, String, ExampleNode, ExampleEdge>(
         controller: _graphViewportController,
         transform: _graphViewportTransform,
-        nodeBuilder: (context, nodeId) {
-          final ExampleNode node = _nodes[nodeId]!;
+        nodeBuilder: (context, nodeId, node) {
           return NodeWidget.basic(
             text: nodeId,
             isDragEnabled: false,
@@ -148,8 +142,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
             style: node.inlineStyle,
           );
         },
-        edgeBuilder: (context, edgeId) {
-          final ExampleEdge edge = _edges[edgeId]!;
+        edgeBuilder: (context, edgeId, edge) {
           return EdgeWidget(
             text: edge.showText ? edgeId : null,
 
@@ -164,20 +157,28 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
   }
 }
 
-class ExampleNode {
-  ExampleNode({
+class ExampleNode extends StaticGraphViewportNodeModel {
+  const ExampleNode({
     required this.id,
     required this.position,
     this.inlineStyle,
   });
 
   final String id;
-  Offset position;
-  NodeStyle? inlineStyle;
+
+  @override
+  final Offset position;
+
+  final NodeStyle? inlineStyle;
+
+  @override
+  bool shouldRebuild(ExampleNode previous) {
+    return false;
+  }
 }
 
-class ExampleEdge {
-  ExampleEdge({
+class ExampleEdge extends StaticGraphViewportEdgeModel<String> {
+  const ExampleEdge({
     required this.id,
     required this.startNodeId,
     required this.endNodeId,
@@ -186,8 +187,19 @@ class ExampleEdge {
   });
 
   final String id;
-  String startNodeId;
-  String endNodeId;
-  EdgeStyle? inlineStyle;
-  bool showText;
+
+  @override
+  final String startNodeId;
+
+  @override
+  final String endNodeId;
+
+  final EdgeStyle? inlineStyle;
+
+  final bool showText;
+
+  @override
+  bool shouldRebuild(ExampleEdge previous) {
+    return false;
+  }
 }

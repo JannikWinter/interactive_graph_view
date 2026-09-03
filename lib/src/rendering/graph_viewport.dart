@@ -5,12 +5,12 @@ import "package:flutter/gestures.dart";
 import "package:flutter/rendering.dart";
 import "package:flutter/widgets.dart";
 
-import "../edge_data.dart";
+import "../graph_viewport_edge_model.dart";
 import "../elements/graph_viewport.dart";
 import "../graph_viewport_controller.dart";
 import "../graph_viewport_transform.dart";
 import "../interaction/drag_details.dart";
-import "../node_data.dart";
+import "../graph_viewport_node_model.dart";
 import "../widgets/graph_viewport.dart";
 import "edge.dart";
 import "edge_parent_data.dart";
@@ -19,10 +19,23 @@ import "node.dart";
 import "node_parent_data.dart";
 import "quad_tree.dart";
 
-class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
-  static RenderGraphViewport<NodeIdType, EdgeIdType>? maybeOf<NodeIdType, EdgeIdType>(RenderObject? object) {
+class RenderGraphViewport<
+  NodeIdType,
+  EdgeIdType,
+  NodeModelType extends GraphViewportNodeModel,
+  EdgeModelType extends GraphViewportEdgeModel<NodeIdType>
+>
+    extends RenderBox {
+  static RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>? maybeOf<
+    NodeIdType,
+    EdgeIdType,
+    NodeModelType extends GraphViewportNodeModel,
+    EdgeModelType extends GraphViewportEdgeModel<NodeIdType>
+  >(
+    RenderObject? object,
+  ) {
     while (object != null) {
-      if (object is RenderGraphViewport<NodeIdType, EdgeIdType>) {
+      if (object is RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>) {
         return object;
       }
       object = object.parent;
@@ -30,8 +43,16 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
     return null;
   }
 
-  static RenderGraphViewport<NodeIdType, EdgeIdType> of<NodeIdType, EdgeIdType>(RenderObject? object) {
-    final RenderGraphViewport<NodeIdType, EdgeIdType>? viewport = maybeOf<NodeIdType, EdgeIdType>(object);
+  static RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> of<
+    NodeIdType,
+    EdgeIdType,
+    NodeModelType extends GraphViewportNodeModel,
+    EdgeModelType extends GraphViewportEdgeModel<NodeIdType>
+  >(RenderObject? object) {
+    final RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>? viewport =
+        maybeOf<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>(
+          object,
+        );
     assert(() {
       if (viewport == null) {
         throw FlutterError(
@@ -55,7 +76,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
   }
 
   RenderGraphViewport({
-    required GraphViewportController<NodeIdType, EdgeIdType> controller,
+    required GraphViewportController<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> controller,
     required GraphViewportTransform transform,
     required GraphViewportLayoutHelper layoutHelper,
     required double cacheExtent,
@@ -88,9 +109,9 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
   final Set<NodeIdType> _nodeIdsNeedingLayout = {};
   final Set<EdgeIdType> _edgeIdsNeedingLayout = {};
 
-  GraphViewportController<NodeIdType, EdgeIdType> get controller => _controller;
-  GraphViewportController<NodeIdType, EdgeIdType> _controller;
-  set controller(GraphViewportController<NodeIdType, EdgeIdType> value) {
+  GraphViewportController<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> get controller => _controller;
+  GraphViewportController<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> _controller;
+  set controller(GraphViewportController<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> value) {
     if (_controller == value) return;
 
     assert(_controller.isAttached);
@@ -242,7 +263,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
   }
 
   GraphViewportNodeParentData _setChildNodeParentData(NodeIdType nodeId, GraphNodeRenderObject node) {
-    final NodeData<NodeIdType> nodeData = controller.allNodes[nodeId]!;
+    final NodeModelType nodeData = controller.allNodes[nodeId]!;
     final bool isBeingDragged = inFlightNodeIds.contains(nodeId);
 
     return node.parentData
@@ -251,7 +272,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
   }
 
   GraphViewportEdgeParentData _setChildEdgeParentData(EdgeIdType edgeId, GraphEdgeRenderObject edge) {
-    final EdgeData<NodeIdType, EdgeIdType> edgeData = controller.allEdges[edgeId]!;
+    final EdgeModelType edgeData = controller.allEdges[edgeId]!;
     final GraphNodeRenderObject startNode = _nodes[edgeData.startNodeId]!;
     final GraphNodeRenderObject endNode = _nodes[edgeData.endNodeId]!;
 
@@ -354,7 +375,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
       for (final EdgeIdType edgeId in usedEdgeIds) {
         _reuseOrBuildEdge(edgeId);
 
-        final EdgeData<NodeIdType, EdgeIdType> edgeData = controller.allEdges[edgeId]!;
+        final EdgeModelType edgeData = controller.allEdges[edgeId]!;
 
         usedNodeIds.addAll([edgeData.startNodeId, edgeData.endNodeId]);
       }
@@ -367,7 +388,6 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderBox {
         _layoutHelper.endLayout();
       });
     }
-    
 
     assert(_nodeIdsNeedingRebuild.isEmpty);
     assert(_edgeIdsNeedingRebuild.isEmpty);

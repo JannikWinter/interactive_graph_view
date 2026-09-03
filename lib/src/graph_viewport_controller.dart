@@ -2,23 +2,41 @@ import "dart:collection";
 
 import "package:flutter/widgets.dart";
 
-import "edge_data.dart";
-import "node_data.dart";
+import "graph_viewport_edge_model.dart";
+import "graph_viewport_node_model.dart";
 import "rendering/graph_viewport.dart";
 
 /// The controller that is used to programmatically control a [GraphViewport].
-class GraphViewportController<NodeIdType, EdgeIdType> {
+class GraphViewportController<
+  NodeIdType,
+  EdgeIdType,
+  NodeModelType extends GraphViewportNodeModel,
+  EdgeModelType extends GraphViewportEdgeModel<NodeIdType>
+> {
   /// Constructs a viewport controller with all [initialNodeIds] and [initialEdgeIds] that exist.
   GraphViewportController({
-    required Iterable<NodeData<NodeIdType>> initialNodes,
-    required Iterable<EdgeData<NodeIdType, EdgeIdType>> initialEdges,
-  }) : _nodes = {for (final nodeData in initialNodes) nodeData.nodeId: nodeData},
-       _edges = {for (final edgeData in initialEdges) edgeData.edgeId: edgeData};
+    required Map<NodeIdType, NodeModelType> initialNodes,
+    required Map<EdgeIdType, EdgeModelType> initialEdges,
+  }) : _nodes = Map.from(initialNodes),
+       _edges = Map.from(initialEdges) {
+    for (final (nodeId, node) in _nodes.entries.map((e) => (e.key, e.value))) {
+      if (node is DynamicGraphViewportNodeModel) {
+        assert(node.onNeedsRebuild == null);
+        node.onNeedsRebuild = () => _viewport!.markNodeNeedsRebuild(nodeId);
+      }
+    }
+    for (final (edgeId, edge) in _edges.entries.map((e) => (e.key, e.value))) {
+      if (edge is DynamicGraphViewportEdgeModel<NodeIdType>) {
+        assert(edge.onNeedsRebuild == null);
+        edge.onNeedsRebuild = () => _viewport!.markEdgeNeedsRebuild(edgeId);
+      }
+    }
+  }
 
-  Map<NodeIdType, NodeData<NodeIdType>> _nodes;
-  Map<EdgeIdType, EdgeData<NodeIdType, EdgeIdType>> _edges;
+  Map<NodeIdType, NodeModelType> _nodes;
+  Map<EdgeIdType, EdgeModelType> _edges;
 
-  RenderGraphViewport<NodeIdType, EdgeIdType>? _viewport;
+  RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>? _viewport;
 
   /// Whether this viewport controller is attached to any [GraphViewport].
   bool get isAttached => _viewport != null;
@@ -26,7 +44,7 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   /// Notifies this viewport controller that it has been attached to [viewport].
   ///
   /// This method is called internally and you should usually not call it yourself.
-  void onAttach(RenderGraphViewport<NodeIdType, EdgeIdType> viewport) {
+  void onAttach(RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> viewport) {
     assert(!isAttached);
 
     _viewport = viewport;
@@ -35,7 +53,7 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   /// Notifies this viewport controller that it has been detached from [viewport].
   ///
   /// This method is called internally and you should usually not call it yourself.
-  void onDetach(RenderGraphViewport<NodeIdType, EdgeIdType>? viewport) {
+  void onDetach(RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>? viewport) {
     assert(_viewport == viewport);
 
     _viewport = null;
@@ -62,21 +80,57 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   /// Insert a node into the [GraphViewport] that this controller is attached to.
   ///
   /// The framework will automatically build this node with [GraphViewport.nodeBuilder] in the next frame.
-  void insertNode(NodeData<NodeIdType> node) {
-    if (_nodes[node.nodeId] == node) return;
+  void setNode(NodeIdType nodeId, NodeModelType node) {
+    final NodeModelType? previous = _nodes[nodeId];
 
-    _nodes[node.nodeId] = node;
-    _viewport!.markNodeNeedsRebuild(node.nodeId);
+    if (previous == node) return;
+
+    _nodes[nodeId] = node;
+
+    if (previous is DynamicGraphViewportNodeModel) {
+      assert(previous.onNeedsRebuild != null);
+      previous.onNeedsRebuild = null;
+    }
+
+    switch (node) {
+      case StaticGraphViewportNodeModel():
+        if (previous is! StaticGraphViewportNodeModel || node.shouldRebuild(previous)) {
+          _viewport!.markNodeNeedsRebuild(nodeId);
+        }
+
+      case DynamicGraphViewportNodeModel():
+        assert(node.onNeedsRebuild == null);
+        node.onNeedsRebuild = () => _viewport!.markNodeNeedsRebuild(nodeId);
+        _viewport!.markNodeNeedsRebuild(nodeId);
+    }
   }
 
   /// Insert an edge into the [GraphViewport] that this controller is attached to.
   ///
   /// The framework will automatically build this node with [GraphViewport.edgeBuilder] in the next frame.
-  void insertEdge(EdgeData<NodeIdType, EdgeIdType> edge) {
-    if (_edges[edge.edgeId] == edge) return;
+  void setEdge(EdgeIdType edgeId, EdgeModelType edge) {
+    final EdgeModelType? previous = _edges[edgeId];
 
-    _edges[edge.edgeId] = edge;
-    _viewport!.markEdgeNeedsRebuild(edge.edgeId);
+    if (previous == edge) return;
+
+    _edges[edgeId] = edge;
+
+    if (previous is DynamicGraphViewportEdgeModel<NodeIdType>) {
+      assert(previous.onNeedsRebuild != null);
+      previous.onNeedsRebuild = null;
+    }
+
+    switch (edge) {
+      case StaticGraphViewportEdgeModel<NodeIdType>():
+        if (previous is! StaticGraphViewportEdgeModel<NodeIdType> || edge.shouldRebuild(previous)) {
+          _viewport!.markEdgeNeedsRebuild(edgeId);
+        }
+
+      case DynamicGraphViewportEdgeModel<NodeIdType>():
+        assert(edge.onNeedsRebuild == null);
+        edge.onNeedsRebuild = () => _viewport!.markEdgeNeedsRebuild(edgeId);
+        _viewport!.markEdgeNeedsRebuild(edgeId);
+    }
   }
 
   /// Whether the [GraphViewport] that this controller is attached to contains a node with the given [nodeId].
@@ -95,6 +149,13 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   ) {
     assert(_nodes.containsKey(nodeId));
 
+    final NodeModelType node = _nodes[nodeId]!;
+
+    if (node is DynamicGraphViewportNodeModel) {
+      assert(node.onNeedsRebuild != null);
+      node.onNeedsRebuild = null;
+    }
+
     _nodes.remove(nodeId);
     _viewport!.removeNode(nodeId);
 
@@ -104,6 +165,13 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   /// Remove an edge from the [GraphViewport] that this controller is attached to.
   void removeEdge(EdgeIdType edgeId) {
     assert(_edges.containsKey(edgeId));
+
+    final EdgeModelType edge = _edges[edgeId]!;
+
+    if (edge is DynamicGraphViewportEdgeModel<NodeIdType>) {
+      assert(edge.onNeedsRebuild != null);
+      edge.onNeedsRebuild = null;
+    }
 
     _edges.remove(edgeId);
     _viewport!.removeEdge(edgeId);
@@ -119,21 +187,31 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   ///
   /// Nodes that both were contained in the viewport before and are also contained in [nodeIds] will **not** be rebuilt
   /// automatically.
-  void setNodes(Iterable<NodeData<NodeIdType>> nodes) {
+  void setNodes(Map<NodeIdType, NodeModelType> nodes) {
     final Set<NodeIdType> previousNodeIds = _nodes.keys.toSet();
-    final Set<NodeIdType> newNodeIds = nodes.map((node) => node.nodeId).toSet();
+    final Set<NodeIdType> newNodeIds = nodes.keys.toSet();
 
     final Set<NodeIdType> removedNodeIds = previousNodeIds.difference(newNodeIds);
     final Set<NodeIdType> addedNodeIds = newNodeIds.difference(previousNodeIds);
 
     for (final nodeId in removedNodeIds) {
+      final NodeModelType node = _nodes[nodeId]!;
+      if (node is DynamicGraphViewportNodeModel) {
+        assert(node.onNeedsRebuild != null);
+        node.onNeedsRebuild = null;
+      }
       _viewport!.removeNode(nodeId);
     }
     for (final nodeId in addedNodeIds) {
+      final NodeModelType node = nodes[nodeId]!;
+      if (node is DynamicGraphViewportNodeModel) {
+        assert(node.onNeedsRebuild == null);
+        node.onNeedsRebuild = () => _viewport!.markNodeNeedsRebuild(nodeId);
+      }
       _viewport!.markNodeNeedsRebuild(nodeId);
     }
 
-    _nodes = {for (final nodeData in nodes) nodeData.nodeId: nodeData};
+    _nodes = Map.from(nodes);
 
     _viewport!.markNeedsLayout();
   }
@@ -146,21 +224,31 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   ///
   /// Edges that both were contained in the viewport before and are also contained in [edgeIds] will **not** be rebuilt
   /// automatically.
-  void setEdges(Iterable<EdgeData<NodeIdType, EdgeIdType>> edges) {
+  void setEdges(Map<EdgeIdType, EdgeModelType> edges) {
     final Set<EdgeIdType> previousEdgeIds = _edges.keys.toSet();
-    final Set<EdgeIdType> newEdgeIds = edges.map((edge) => edge.edgeId).toSet();
+    final Set<EdgeIdType> newEdgeIds = edges.keys.toSet();
 
     final Set<EdgeIdType> removedEdgeIds = previousEdgeIds.difference(newEdgeIds);
     final Set<EdgeIdType> addedEdgeIds = newEdgeIds.difference(previousEdgeIds);
 
     for (final edgeId in removedEdgeIds) {
+      final EdgeModelType edge = _edges[edgeId]!;
+      if (edge is DynamicGraphViewportEdgeModel<NodeIdType>) {
+        assert(edge.onNeedsRebuild != null);
+        edge.onNeedsRebuild = null;
+      }
       _viewport!.removeEdge(edgeId);
     }
     for (final edgeId in addedEdgeIds) {
+      final EdgeModelType edge = edges[edgeId]!;
+      if (edge is DynamicGraphViewportEdgeModel<NodeIdType>) {
+        assert(edge.onNeedsRebuild == null);
+        edge.onNeedsRebuild = () => _viewport!.markEdgeNeedsRebuild(edgeId);
+      }
       _viewport!.markEdgeNeedsRebuild(edgeId);
     }
 
-    _edges = {for (final edgeData in edges) edgeData.edgeId: edgeData};
+    _edges = Map.from(edges);
 
     _viewport!.markNeedsLayout();
   }
@@ -196,8 +284,8 @@ class GraphViewportController<NodeIdType, EdgeIdType> {
   );
 
   /// An iterable over all node IDs managed by this controller.
-  UnmodifiableMapView<NodeIdType, NodeData<NodeIdType>> get allNodes => UnmodifiableMapView(_nodes);
+  UnmodifiableMapView<NodeIdType, NodeModelType> get allNodes => UnmodifiableMapView(_nodes);
 
   /// An iterable over all edge IDs managed by this controller.
-  UnmodifiableMapView<EdgeIdType, EdgeData<NodeIdType, EdgeIdType>> get allEdges => UnmodifiableMapView(_edges);
+  UnmodifiableMapView<EdgeIdType, EdgeModelType> get allEdges => UnmodifiableMapView(_edges);
 }
