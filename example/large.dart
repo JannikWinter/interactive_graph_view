@@ -84,7 +84,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
 
     _graphViewportController = GraphViewportController(
       initialNodes: _nodes.values.map(
-        (node) => NodeData(nodeId: node.id, position: node.position),
+        (node) => GraphViewportNodeModel(nodeId: node.id, position: node.position),
       ),
       initialEdges: _edges.values.map(
         (edge) => EdgeData(
@@ -114,7 +114,9 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
               _nodes[nodeId]!.position += offset;
 
               // Rebuild the node at the new position.
-              _graphViewportController.insertNode(NodeData(nodeId: nodeId, position: _nodes[nodeId]!.position));
+              _graphViewportController.insertNode(
+                GraphViewportNodeModel(nodeId: nodeId, position: _nodes[nodeId]!.position),
+              );
             }
           },
           onTapDown: (details) {
@@ -330,7 +332,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
     final ExampleNode newNode = ExampleNode(position: _tapDownPosition);
     _nodes[newNode.id] = newNode;
     _graphViewportController.insertNode(
-      NodeData(nodeId: newNode.id, position: position),
+      GraphViewportNodeModel(nodeId: newNode.id, position: position),
     );
 
     return newNode.id;

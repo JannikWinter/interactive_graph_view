@@ -45,7 +45,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
     key: (edge) => edge.id,
   );
 
-  late final GraphViewportController<String, String> _graphViewportController;
+  late final GraphViewportController<String, String, ExampleNode> _graphViewportController;
   late final GraphViewportTransform _graphViewportTransform;
 
   @override
@@ -53,7 +53,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
     super.initState();
 
     _graphViewportController = GraphViewportController(
-      initialNodes: _nodes.values.map((node) => NodeData(nodeId: node.id, position: node.position)),
+      initialNodes: _nodes,
       initialEdges: _edges.values.map(
         (edge) => EdgeData(edgeId: edge.id, startNodeId: edge.startNodeId, endNodeId: edge.endNodeId),
       ),
@@ -67,7 +67,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
       appBar: AppBar(
         title: Text("Graph View Demo"),
       ),
-      body: GraphViewport<String, String>(
+      body: GraphViewport<String, String, ExampleNode>(
         controller: _graphViewportController,
         transform: _graphViewportTransform,
         nodeBuilder: (context, nodeId) {
@@ -84,12 +84,21 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
   }
 }
 
-class ExampleNode {
-  ExampleNode({required this.id, required this.position});
+class ExampleNode extends DynamicGraphViewportNodeModel {
+  ExampleNode({required this.id, required Offset position}) : _position = position;
 
   final String id;
 
-  Offset position;
+  Offset _position;
+
+  @override
+  Offset get position => _position;
+
+  set position(Offset position) {
+    if (_position == position) return;
+    _position = position;
+    notifyNeedsRebuild();
+  }
 }
 
 class ExampleEdge {

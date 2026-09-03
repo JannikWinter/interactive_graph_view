@@ -1,6 +1,7 @@
 import "package:flutter/gestures.dart";
 import "package:flutter/widgets.dart";
 
+import "../graph_viewport_node_model.dart";
 import "../graph_viewport_transform.dart";
 import "../interaction/scale_details.dart";
 import "../interaction/tap_details.dart";
@@ -53,7 +54,9 @@ abstract interface class GraphViewportLayoutHelper {
   void endLayout();
 }
 
-class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement implements GraphViewportLayoutHelper {
+class GraphViewportElement<NodeIdType, EdgeIdType, NodeModelType extends GraphViewportNodeModel>
+    extends RenderObjectElement
+    implements GraphViewportLayoutHelper {
   GraphViewportElement(GraphViewport super.widget);
 
   late ScaleGestureRecognizer _scaleRecognizer;
@@ -61,8 +64,8 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   late DoubleTapGestureRecognizer _doubleTapRecognizer;
 
   @override
-  RenderGraphViewport<NodeIdType, EdgeIdType> get renderObject =>
-      super.renderObject as RenderGraphViewport<NodeIdType, EdgeIdType>;
+  RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType> get renderObject =>
+      super.renderObject as RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType>;
 
   Map<NodeIdType, Element> _nodes = {};
   Map<EdgeIdType, Element> _edges = {};
@@ -146,17 +149,17 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   void mount(Element? parent, Object? newSlot) {
     super.mount(parent, newSlot);
 
-    _initialize(widget as GraphViewport<NodeIdType, EdgeIdType>);
+    _initialize(widget as GraphViewport<NodeIdType, EdgeIdType, NodeModelType>);
   }
 
   @override
-  void update(GraphViewport<NodeIdType, EdgeIdType> newWidget) {
+  void update(GraphViewport<NodeIdType, EdgeIdType, NodeModelType> newWidget) {
     super.update(newWidget);
 
     _initialize(newWidget);
   }
 
-  void _initialize(GraphViewport<NodeIdType, EdgeIdType> widget) {
+  void _initialize(GraphViewport<NodeIdType, EdgeIdType, NodeModelType> widget) {
     _nodeBuilder = widget.nodeBuilder;
     _edgeBuilder = widget.edgeBuilder;
 

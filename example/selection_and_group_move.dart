@@ -69,7 +69,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
     super.initState();
 
     _graphViewportController = GraphViewportController(
-      initialNodes: _nodes.values.map((node) => NodeData(nodeId: node.id, position: node.position)),
+      initialNodes: _nodes.values.map((node) => GraphViewportNodeModel(nodeId: node.id, position: node.position)),
       initialEdges: _edges.values.map(
         (edge) => EdgeData(edgeId: edge.id, startNodeId: edge.startNodeId, endNodeId: edge.endNodeId),
       ),
@@ -93,7 +93,9 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
             _nodes[nodeId]!.position += offset;
 
             // Rebuild the node at the new position.
-            _graphViewportController.insertNode(NodeData(nodeId: nodeId, position: _nodes[nodeId]!.position));
+            _graphViewportController.insertNode(
+              GraphViewportNodeModel(nodeId: nodeId, position: _nodes[nodeId]!.position),
+            );
           }
         },
         nodeBuilder: (context, nodeId) {

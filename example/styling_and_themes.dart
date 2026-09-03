@@ -119,7 +119,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
     super.initState();
 
     _graphViewportController = GraphViewportController(
-      initialNodes: _nodes.values.map((node) => NodeData(nodeId: node.id, position: node.position)),
+      initialNodes: _nodes.values.map((node) => GraphViewportNodeModel(nodeId: node.id, position: node.position)),
       initialEdges: _edges.values.map(
         (edge) => EdgeData(edgeId: edge.id, startNodeId: edge.startNodeId, endNodeId: edge.endNodeId),
       ),

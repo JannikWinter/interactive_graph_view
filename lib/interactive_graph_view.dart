@@ -1,4 +1,5 @@
-export "src/node_data.dart" show NodeData;
+export "src/graph_viewport_node_model.dart"
+    show GraphViewportNodeModel, StaticGraphViewportNodeModel, DynamicGraphViewportNodeModel;
 export "src/edge_data.dart" show EdgeData;
 export "src/graph_viewport_controller.dart" show GraphViewportController;
 export "src/graph_viewport_transform.dart" show GraphViewportTransform, TransformSettleCallback;

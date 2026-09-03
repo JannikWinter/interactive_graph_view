@@ -4,6 +4,7 @@ import "package:flutter/widgets.dart";
 
 import "../elements/graph_viewport.dart";
 import "../graph_viewport_controller.dart";
+import "../graph_viewport_node_model.dart";
 import "../graph_viewport_transform.dart";
 import "../interaction/gesture_callbacks.dart";
 import "../rendering/graph_viewport.dart";
@@ -35,7 +36,7 @@ typedef NodesMovedCallback<NodeIdType> = void Function(Set<NodeIdType> nodeIds, 
 ///
 /// Nodes and edges are only identified by their IDs. The respective ID type is supplied through
 /// the generic types [NodeIdType] and [EdgeIdType].
-class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
+class GraphViewport<NodeIdType, EdgeIdType, NodeModelType extends GraphViewportNodeModel> extends RenderObjectWidget {
   /// The default value for [cacheExtent] when it is not supplied to the constructor.
   static const double kDefaultCacheExtent = 50.0;
 
@@ -67,7 +68,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// {@template graph_viewport.viewport_controller}
   /// The viewport controller through which the graph's elements are controlled programmatically.
   /// {@endtemplate}
-  final GraphViewportController<NodeIdType, EdgeIdType> controller;
+  final GraphViewportController<NodeIdType, EdgeIdType, NodeModelType> controller;
 
   /// {@template graph_viewport.node_builder}
   /// The widget builder function for nodes.
@@ -188,19 +189,19 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
 
   @override
   RenderObjectElement createElement() {
-    return GraphViewportElement<NodeIdType, EdgeIdType>(this);
+    return GraphViewportElement<NodeIdType, EdgeIdType, NodeModelType>(this);
   }
 
   @override
-  RenderGraphViewport<NodeIdType, EdgeIdType> createRenderObject(BuildContext context) {
+  RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType> createRenderObject(BuildContext context) {
     final GraphStyle? themeStyle = Theme.of(context).extension<GraphStyle>();
     final GraphStyle fallbackStyle = GraphStyle.fallback();
     final GraphStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
 
-    return RenderGraphViewport<NodeIdType, EdgeIdType>(
+    return RenderGraphViewport(
       controller: controller,
       transform: transform,
-      layoutHelper: context as GraphViewportElement<NodeIdType, EdgeIdType>,
+      layoutHelper: context as GraphViewportElement<NodeIdType, EdgeIdType, NodeModelType>,
       cacheExtent: cacheExtent,
       boundaryInsets: boundaryInsets,
       debugPaintQuadTree: debugPaintQuadTree,
@@ -211,7 +212,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   @override
   void updateRenderObject(
     BuildContext context,
-    RenderGraphViewport<NodeIdType, EdgeIdType> renderObject,
+    RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType> renderObject,
   ) {
     final GraphStyle? themeStyle = Theme.of(context).extension<GraphStyle>();
     final GraphStyle fallbackStyle = GraphStyle.fallback();
