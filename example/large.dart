@@ -70,7 +70,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
     ),
   }, key: (edge) => edge.id);
 
-  late final GraphViewportController<String, String> _graphViewportController;
+  late final GraphViewportController<String, String, ExampleNode, ExampleEdge> _graphViewportController;
   late final GraphViewportTransform _graphViewportTransform;
 
   late Offset _tapDownPosition;
@@ -83,16 +83,8 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
     super.initState();
 
     _graphViewportController = GraphViewportController(
-      initialNodes: _nodes.values.map(
-        (node) => NodeData(nodeId: node.id, position: node.position),
-      ),
-      initialEdges: _edges.values.map(
-        (edge) => EdgeData(
-          edgeId: edge.id,
-          startNodeId: edge.startNodeId,
-          endNodeId: edge.endNodeId,
-        ),
-      ),
+      initialNodes: _nodes,
+      initialEdges: _edges,
     );
     _graphViewportTransform = GraphViewportTransform(vsync: this);
   }
@@ -104,7 +96,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
         title: Text("Graph View Demo"),
       ),
       body: HorizontalOrVertical(
-        primary: GraphViewport<String, String>(
+        primary: GraphViewport<String, String, ExampleNode, ExampleEdge>(
           controller: _graphViewportController,
           transform: _graphViewportTransform,
           movingNodeIds: _selectedNodeIds,
@@ -112,9 +104,6 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
             for (String nodeId in nodeIds) {
               // Reflect the dragged node offset back to the graph structure.
               _nodes[nodeId]!.position += offset;
-
-              // Rebuild the node at the new position.
-              _graphViewportController.insertNode(NodeData(nodeId: nodeId, position: _nodes[nodeId]!.position));
             }
           },
           onTapDown: (details) {
@@ -136,7 +125,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
             // Clear the selection.
             _clearSelection();
           },
-          nodeBuilder: (context, nodeId) {
+          nodeBuilder: (context, nodeId, node) {
             final bool isSelected = _selectedNodeIds.contains(nodeId);
             final ExampleNode node = _nodes[nodeId]!;
 
@@ -179,7 +168,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
               },
             );
           },
-          edgeBuilder: (context, edgeId) {
+          edgeBuilder: (context, edgeId, edge) {
             final bool isSelected = _selectedEdgeIds.contains(edgeId);
             final ExampleEdge edge = _edges[edgeId]!;
 
@@ -219,56 +208,22 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
           onDeleteEdge: (edgeId) {
             _deleteEdge(edgeId);
           },
-          onNodeTextChanged: (nodeId, text) {
-            _nodes[nodeId]!.text = text;
-            _graphViewportController.rebuildNode(nodeId);
-          },
-          onNodeBackgroundColorChanged: (nodeId, backgroundColor) {
-            _nodes[nodeId]!.backgroundColor = backgroundColor;
-            _graphViewportController.rebuildNode(nodeId);
-          },
-          onNodeTextColorChanged: (nodeId, textColor) {
-            _nodes[nodeId]!.textColor = textColor;
-            _graphViewportController.rebuildNode(nodeId);
-          },
-          onNodeBorderRadiusChanged: (nodeId, borderRadius) {
-            _nodes[nodeId]!.borderRadius = borderRadius;
-            _graphViewportController.rebuildNode(nodeId);
-          },
-          onEdgeShowTextChanged: (edgeId, showText) {
-            _edges[edgeId]!.showText = showText;
-            _graphViewportController.rebuildEdge(edgeId);
-          },
-          onEdgeTextChanged: (edgeId, text) {
-            _edges[edgeId]!.text = text;
-            _graphViewportController.rebuildEdge(edgeId);
-          },
-          onEdgeTextBackgroundColorChanged: (edgeId, textBackgroundColor) {
-            _edges[edgeId]!.textBackgroundColor = textBackgroundColor;
-            _graphViewportController.rebuildEdge(edgeId);
-          },
-          onEdgeTextColorChanged: (edgeId, textColor) {
-            _edges[edgeId]!.textColor = textColor;
-            _graphViewportController.rebuildEdge(edgeId);
-          },
-          onEdgeLineColorChanged: (edgeId, lineColor) {
-            _edges[edgeId]!.lineColor = lineColor;
-            _graphViewportController.rebuildEdge(edgeId);
-          },
-          onEdgeLineStyleChanged: (edgeId, lineStyle) {
-            _edges[edgeId]!.lineStyle = lineStyle;
-            _graphViewportController.rebuildEdge(edgeId);
-          },
-          onEdgeOverrideArrowStyleChanged: (edgeId, overrideArrowStyle) {
-            _edges[edgeId]!.overrideArrowStyle = overrideArrowStyle;
-            _graphViewportController.rebuildEdge(edgeId);
-          },
-          onEdgeArrowChanged: (edgeId, arrowWidth, arrowLength) {
-            _edges[edgeId]!
-              ..arrowWidth = arrowWidth
-              ..arrowLength = arrowLength;
-            _graphViewportController.rebuildEdge(edgeId);
-          },
+          onNodeTextChanged: (nodeId, text) => _nodes[nodeId]!.text = text,
+          onNodeBackgroundColorChanged: (nodeId, backgroundColor) => _nodes[nodeId]!.backgroundColor = backgroundColor,
+          onNodeTextColorChanged: (nodeId, textColor) => _nodes[nodeId]!.textColor = textColor,
+          onNodeBorderRadiusChanged: (nodeId, borderRadius) => _nodes[nodeId]!.borderRadius = borderRadius,
+          onEdgeShowTextChanged: (edgeId, showText) => _edges[edgeId]!.showText = showText,
+          onEdgeTextChanged: (edgeId, text) => _edges[edgeId]!.text = text,
+          onEdgeTextBackgroundColorChanged: (edgeId, textBackgroundColor) =>
+              _edges[edgeId]!.textBackgroundColor = textBackgroundColor,
+          onEdgeTextColorChanged: (edgeId, textColor) => _edges[edgeId]!.textColor = textColor,
+          onEdgeLineColorChanged: (edgeId, lineColor) => _edges[edgeId]!.lineColor = lineColor,
+          onEdgeLineStyleChanged: (edgeId, lineStyle) => _edges[edgeId]!.lineStyle = lineStyle,
+          onEdgeOverrideArrowStyleChanged: (edgeId, overrideArrowStyle) =>
+              _edges[edgeId]!.overrideArrowStyle = overrideArrowStyle,
+          onEdgeArrowChanged: (edgeId, arrowWidth, arrowLength) => _edges[edgeId]!
+            ..arrowWidth = arrowWidth
+            ..arrowLength = arrowLength,
         ),
       ),
     );
@@ -278,46 +233,48 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
     setState(() {
       if (_selectedNodeIds.contains(nodeId)) {
         _selectedNodeIds.remove(nodeId);
+        _nodes[nodeId]!.isSelected = false;
       } else {
         _selectedNodeIds.add(nodeId);
+        _nodes[nodeId]!.isSelected = true;
       }
     });
-    _graphViewportController.rebuildNode(nodeId);
   }
 
   void _singleSelectNode(String nodeId) {
     setState(() {
       _clearSelection();
       _selectedNodeIds.add(nodeId);
+      _nodes[nodeId]!.isSelected = true;
     });
-    _graphViewportController.rebuildNode(nodeId);
   }
 
   void _toggleEdgeSelection(String edgeId) {
     setState(() {
       if (_selectedEdgeIds.contains(edgeId)) {
         _selectedEdgeIds.remove(edgeId);
+        _edges[edgeId]!.isSelected = false;
       } else {
         _selectedEdgeIds.add(edgeId);
+        _edges[edgeId]!.isSelected = true;
       }
     });
-    _graphViewportController.rebuildEdge(edgeId);
   }
 
   void _singleSelectEdge(String edgeId) {
     setState(() {
       _clearSelection();
       _selectedEdgeIds.add(edgeId);
+      _edges[edgeId]!.isSelected = true;
     });
-    _graphViewportController.rebuildEdge(edgeId);
   }
 
   void _clearSelection() {
     for (final String selectedNodeId in _selectedNodeIds) {
-      _graphViewportController.rebuildNode(selectedNodeId);
+      _nodes[selectedNodeId]!.isSelected = false;
     }
     for (final String selectedEdgeId in _selectedEdgeIds) {
-      _graphViewportController.rebuildEdge(selectedEdgeId);
+      _edges[selectedEdgeId]!.isSelected = false;
     }
 
     setState(() {
@@ -329,9 +286,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
   String _createNode(Offset position) {
     final ExampleNode newNode = ExampleNode(position: _tapDownPosition);
     _nodes[newNode.id] = newNode;
-    _graphViewportController.insertNode(
-      NodeData(nodeId: newNode.id, position: position),
-    );
+    _graphViewportController.setNode(newNode.id, newNode);
 
     return newNode.id;
   }
@@ -342,13 +297,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
       endNodeId: endNodeId,
     );
     _edges[newEdge.id] = newEdge;
-    _graphViewportController.insertEdge(
-      EdgeData(
-        edgeId: newEdge.id,
-        startNodeId: startNodeId,
-        endNodeId: endNodeId,
-      ),
-    );
+    _graphViewportController.setEdge(newEdge.id, newEdge);
 
     return newEdge.id;
   }
@@ -363,71 +312,207 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
     }
 
     _nodes.remove(nodeId);
-    _selectedNodeIds.remove(nodeId);
     _graphViewportController.removeNode(nodeId);
 
-    setState(() {});
+    setState(() {
+      _selectedNodeIds.remove(nodeId);
+    });
   }
 
   void _deleteEdge(String edgeId) {
     _edges.remove(edgeId);
-    _selectedEdgeIds.remove(edgeId);
     _graphViewportController.removeEdge(edgeId);
+
+    setState(() {
+      _selectedEdgeIds.remove(edgeId);
+    });
   }
 }
 
-class ExampleNode {
+class ExampleNode extends DynamicGraphViewportNodeModel {
   ExampleNode({
     String? id,
-    required this.position,
+    required Offset position,
     String? text,
-    this.backgroundColor,
-    this.textColor,
-    this.borderRadius,
-  }) : id = id ?? _newRandomId() {
-    this.text = text ?? this.id;
+    Color? backgroundColor,
+    Color? textColor,
+    Radius? borderRadius,
+    bool isSelected = false,
+  }) : id = id ?? _newRandomId(),
+       _position = position,
+       _backgroundColor = backgroundColor,
+       _textColor = textColor,
+       _borderRadius = borderRadius,
+       _isSelected = isSelected {
+    _text = text ?? this.id;
   }
 
   final String id;
 
-  Offset position;
+  @override
+  Offset get position => _position;
+  Offset _position;
+  set position(Offset value) {
+    if (_position == value) return;
+    _position = value;
+    notifyNeedsRebuild();
+  }
 
-  late String text;
-  Color? backgroundColor;
-  Color? textColor;
-  Radius? borderRadius;
+  String get text => _text;
+  late String _text;
+  set text(String value) {
+    if (_text == value) return;
+    _text = value;
+    notifyNeedsRebuild();
+  }
+
+  Color? get backgroundColor => _backgroundColor;
+  Color? _backgroundColor;
+  set backgroundColor(Color? value) {
+    if (_backgroundColor == value) return;
+    _backgroundColor = value;
+    notifyNeedsRebuild();
+  }
+
+  Color? get textColor => _textColor;
+  Color? _textColor;
+  set textColor(Color? value) {
+    if (_textColor == value) return;
+    _textColor = value;
+    notifyNeedsRebuild();
+  }
+
+  Radius? get borderRadius => _borderRadius;
+  Radius? _borderRadius;
+  set borderRadius(Radius? value) {
+    if (_borderRadius == value) return;
+    _borderRadius = value;
+    notifyNeedsRebuild();
+  }
+
+  bool get isSelected => _isSelected;
+  bool _isSelected;
+  set isSelected(bool value) {
+    if (_isSelected == value) return;
+    _isSelected = value;
+    notifyNeedsRebuild();
+  }
 }
 
-class ExampleEdge {
+class ExampleEdge extends DynamicGraphViewportEdgeModel<String> {
   ExampleEdge({
     String? id,
     required this.startNodeId,
     required this.endNodeId,
-    this.showText = false,
-    this.text = "",
-    this.textBackgroundColor,
-    this.textColor,
-    this.lineColor,
-    this.lineStyle,
-    this.overrideArrowStyle = false,
-    this.arrowWidth = 10,
-    this.arrowLength = 10,
-  }) : id = id ?? _newRandomId();
+    bool showText = false,
+    String text = "",
+    Color? textBackgroundColor,
+    Color? textColor,
+    Color? lineColor,
+    LineStyle? lineStyle,
+    bool overrideArrowStyle = false,
+    double arrowWidth = 10,
+    double arrowLength = 10,
+    bool isSelected = false,
+  }) : id = id ?? _newRandomId(),
+       _showText = showText,
+       _text = text,
+       _textBackgroundColor = textBackgroundColor,
+       _textColor = textColor,
+       _lineColor = lineColor,
+       _lineStyle = lineStyle,
+       _overrideArrowStyle = overrideArrowStyle,
+       _arrowWidth = arrowWidth,
+       _arrowLength = arrowLength,
+       _isSelected = isSelected;
 
   final String id;
 
-  String startNodeId;
-  String endNodeId;
+  @override
+  final String startNodeId;
 
-  bool showText;
-  String text;
-  Color? textBackgroundColor;
-  Color? textColor;
-  Color? lineColor;
-  LineStyle? lineStyle;
-  bool overrideArrowStyle;
-  double arrowWidth;
-  double arrowLength;
+  @override
+  final String endNodeId;
+
+  bool get showText => _showText;
+  bool _showText;
+  set showText(bool value) {
+    if (_showText == value) return;
+    _showText = value;
+    notifyNeedsRebuild();
+  }
+
+  String get text => _text;
+  String _text;
+  set text(String value) {
+    if (_text == value) return;
+    _text = value;
+    notifyNeedsRebuild();
+  }
+
+  Color? get textBackgroundColor => _textBackgroundColor;
+  Color? _textBackgroundColor;
+  set textBackgroundColor(Color? value) {
+    if (_textBackgroundColor == value) return;
+    _textBackgroundColor = value;
+    notifyNeedsRebuild();
+  }
+
+  Color? get textColor => _textColor;
+  Color? _textColor;
+  set textColor(Color? value) {
+    if (_textColor == value) return;
+    _textColor = value;
+    notifyNeedsRebuild();
+  }
+
+  Color? get lineColor => _lineColor;
+  Color? _lineColor;
+  set lineColor(Color? value) {
+    if (_lineColor == value) return;
+    _lineColor = value;
+    notifyNeedsRebuild();
+  }
+
+  LineStyle? get lineStyle => _lineStyle;
+  LineStyle? _lineStyle;
+  set lineStyle(LineStyle? value) {
+    if (_lineStyle == value) return;
+    _lineStyle = value;
+    notifyNeedsRebuild();
+  }
+
+  bool get overrideArrowStyle => _overrideArrowStyle;
+  bool _overrideArrowStyle;
+  set overrideArrowStyle(bool value) {
+    if (_overrideArrowStyle == value) return;
+    _overrideArrowStyle = value;
+    notifyNeedsRebuild();
+  }
+
+  double get arrowWidth => _arrowWidth;
+  double _arrowWidth;
+  set arrowWidth(double value) {
+    if (_arrowWidth == value) return;
+    _arrowWidth = value;
+    notifyNeedsRebuild();
+  }
+
+  double get arrowLength => _arrowLength;
+  double _arrowLength;
+  set arrowLength(double value) {
+    if (_arrowLength == value) return;
+    _arrowLength = value;
+    notifyNeedsRebuild();
+  }
+
+  bool get isSelected => _isSelected;
+  bool _isSelected;
+  set isSelected(bool value) {
+    if (_isSelected == value) return;
+    _isSelected = value;
+    notifyNeedsRebuild();
+  }
 }
 
 // =============================

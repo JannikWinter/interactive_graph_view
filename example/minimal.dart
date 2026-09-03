@@ -45,19 +45,14 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
     key: (edge) => edge.id,
   );
 
-  late final GraphViewportController<String, String> _graphViewportController;
+  late final GraphViewportController<String, String, ExampleNode, ExampleEdge> _graphViewportController;
   late final GraphViewportTransform _graphViewportTransform;
 
   @override
   void initState() {
     super.initState();
 
-    _graphViewportController = GraphViewportController(
-      initialNodes: _nodes.values.map((node) => NodeData(nodeId: node.id, position: node.position)),
-      initialEdges: _edges.values.map(
-        (edge) => EdgeData(edgeId: edge.id, startNodeId: edge.startNodeId, endNodeId: edge.endNodeId),
-      ),
-    );
+    _graphViewportController = GraphViewportController(initialNodes: _nodes, initialEdges: _edges);
     _graphViewportTransform = GraphViewportTransform(vsync: this);
   }
 
@@ -67,16 +62,16 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
       appBar: AppBar(
         title: Text("Graph View Demo"),
       ),
-      body: GraphViewport<String, String>(
+      body: GraphViewport<String, String, ExampleNode, ExampleEdge>(
         controller: _graphViewportController,
         transform: _graphViewportTransform,
-        nodeBuilder: (context, nodeId) {
+        nodeBuilder: (context, nodeId, node) {
           return NodeWidget.basic(
             text: nodeId,
             isDragEnabled: false,
           );
         },
-        edgeBuilder: (context, edgeId) {
+        edgeBuilder: (context, edgeId, edge) {
           return EdgeWidget();
         },
       ),
@@ -84,19 +79,33 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
   }
 }
 
-class ExampleNode {
-  ExampleNode({required this.id, required this.position});
+class ExampleNode extends StaticGraphViewportNodeModel {
+  const ExampleNode({required this.id, required this.position});
 
   final String id;
 
-  Offset position;
+  @override
+  final Offset position;
+
+  @override
+  bool shouldRebuild(ExampleNode previous) {
+    return false;
+  }
 }
 
-class ExampleEdge {
-  ExampleEdge({required this.id, required this.startNodeId, required this.endNodeId});
+class ExampleEdge extends StaticGraphViewportEdgeModel<String> {
+  const ExampleEdge({required this.id, required this.startNodeId, required this.endNodeId});
 
   final String id;
 
-  String startNodeId;
-  String endNodeId;
+  @override
+  final String startNodeId;
+
+  @override
+  final String endNodeId;
+
+  @override
+  bool shouldRebuild(ExampleEdge previous) {
+    return false;
+  }
 }

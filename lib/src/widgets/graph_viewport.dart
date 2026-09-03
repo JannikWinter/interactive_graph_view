@@ -4,6 +4,8 @@ import "package:flutter/widgets.dart";
 
 import "../elements/graph_viewport.dart";
 import "../graph_viewport_controller.dart";
+import "../graph_viewport_edge_model.dart";
+import "../graph_viewport_node_model.dart";
 import "../graph_viewport_transform.dart";
 import "../interaction/gesture_callbacks.dart";
 import "../rendering/graph_viewport.dart";
@@ -14,12 +16,14 @@ import "node.dart";
 /// The widget builder function for nodes.
 ///
 /// Returns a [NodeWidget] for a supplied node ID.
-typedef NodeBuilder<NodeIdType> = NodeWidget Function(BuildContext context, NodeIdType nodeId);
+typedef NodeBuilder<NodeIdType, NodeModelType extends GraphViewportNodeModel> =
+    NodeWidget Function(BuildContext context, NodeIdType nodeId, NodeModelType node);
 
 /// The widget builder function for edges.
 ///
 /// Returns an [EdgeWidget] for a supplied edge ID.
-typedef EdgeBuilder<EdgeIdType> = EdgeWidget Function(BuildContext context, EdgeIdType edgeId);
+typedef EdgeBuilder<EdgeIdType, EdgeModelType extends GraphViewportEdgeModel> =
+    EdgeWidget Function(BuildContext context, EdgeIdType edgeId, EdgeModelType edge);
 
 /// The callback for when nodes were dragged and that drag ended.
 typedef NodesMovedCallback<NodeIdType> = void Function(Set<NodeIdType> nodeIds, Offset offset);
@@ -35,7 +39,13 @@ typedef NodesMovedCallback<NodeIdType> = void Function(Set<NodeIdType> nodeIds, 
 ///
 /// Nodes and edges are only identified by their IDs. The respective ID type is supplied through
 /// the generic types [NodeIdType] and [EdgeIdType].
-class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
+class GraphViewport<
+  NodeIdType,
+  EdgeIdType,
+  NodeModelType extends GraphViewportNodeModel,
+  EdgeModelType extends GraphViewportEdgeModel<NodeIdType>
+>
+    extends RenderObjectWidget {
   /// The default value for [cacheExtent] when it is not supplied to the constructor.
   static const double kDefaultCacheExtent = 50.0;
 
@@ -67,7 +77,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// {@template graph_viewport.viewport_controller}
   /// The viewport controller through which the graph's elements are controlled programmatically.
   /// {@endtemplate}
-  final GraphViewportController<NodeIdType, EdgeIdType> controller;
+  final GraphViewportController<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> controller;
 
   /// {@template graph_viewport.node_builder}
   /// The widget builder function for nodes.
@@ -83,7 +93,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// If [rebuildAllChildrenOnWidgetUpdate] is set to `true`, all nodes are also rebuild when the widget configuration
   /// changes.
   /// {@endtemplate}
-  final NodeBuilder<NodeIdType> nodeBuilder;
+  final NodeBuilder<NodeIdType, NodeModelType> nodeBuilder;
 
   /// {@template graph_viewport.edge_builder}
   /// The widget builder function for edges.
@@ -99,7 +109,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// If [rebuildAllChildrenOnWidgetUpdate] is set to `true`, all edges are also rebuild when the widget configuration
   /// changes.
   /// {@endtemplate}
-  final EdgeBuilder<EdgeIdType> edgeBuilder;
+  final EdgeBuilder<EdgeIdType, EdgeModelType> edgeBuilder;
 
   /// The viewport transform through which the viewport's visible area is controlled programmatically.
   final GraphViewportTransform transform;
@@ -188,19 +198,19 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
 
   @override
   RenderObjectElement createElement() {
-    return GraphViewportElement<NodeIdType, EdgeIdType>(this);
+    return GraphViewportElement<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>(this);
   }
 
   @override
-  RenderGraphViewport<NodeIdType, EdgeIdType> createRenderObject(BuildContext context) {
+  RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> createRenderObject(BuildContext context) {
     final GraphStyle? themeStyle = Theme.of(context).extension<GraphStyle>();
     final GraphStyle fallbackStyle = GraphStyle.fallback();
     final GraphStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
 
-    return RenderGraphViewport<NodeIdType, EdgeIdType>(
+    return RenderGraphViewport(
       controller: controller,
       transform: transform,
-      layoutHelper: context as GraphViewportElement<NodeIdType, EdgeIdType>,
+      layoutHelper: context as GraphViewportElement<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>,
       cacheExtent: cacheExtent,
       boundaryInsets: boundaryInsets,
       debugPaintQuadTree: debugPaintQuadTree,
@@ -211,7 +221,7 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   @override
   void updateRenderObject(
     BuildContext context,
-    RenderGraphViewport<NodeIdType, EdgeIdType> renderObject,
+    RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> renderObject,
   ) {
     final GraphStyle? themeStyle = Theme.of(context).extension<GraphStyle>();
     final GraphStyle fallbackStyle = GraphStyle.fallback();

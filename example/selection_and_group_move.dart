@@ -48,7 +48,7 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
     key: (edge) => edge.id,
   );
 
-  late final GraphViewportController<String, String> _graphViewportController;
+  late final GraphViewportController<String, String, ExampleNode, ExampleEdge> _graphViewportController;
   late final GraphViewportTransform _graphViewportTransform;
 
   final Set<String> _selectedNodeIds = {};
@@ -57,23 +57,19 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
     setState(() {
       if (_selectedNodeIds.contains(nodeId)) {
         _selectedNodeIds.remove(nodeId);
+        _nodes[nodeId]!.isSelected = false;
       } else {
         _selectedNodeIds.add(nodeId);
+        _nodes[nodeId]!.isSelected = true;
       }
     });
-    _graphViewportController.rebuildNode(nodeId);
   }
 
   @override
   void initState() {
     super.initState();
 
-    _graphViewportController = GraphViewportController(
-      initialNodes: _nodes.values.map((node) => NodeData(nodeId: node.id, position: node.position)),
-      initialEdges: _edges.values.map(
-        (edge) => EdgeData(edgeId: edge.id, startNodeId: edge.startNodeId, endNodeId: edge.endNodeId),
-      ),
-    );
+    _graphViewportController = GraphViewportController(initialNodes: _nodes, initialEdges: _edges);
     _graphViewportTransform = GraphViewportTransform(vsync: this);
   }
 
@@ -83,24 +79,20 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
       appBar: AppBar(
         title: Text("Graph View Demo"),
       ),
-      body: GraphViewport<String, String>(
+      body: GraphViewport<String, String, ExampleNode, ExampleEdge>(
         controller: _graphViewportController,
         transform: _graphViewportTransform,
         movingNodeIds: _selectedNodeIds,
         onNodesMoved: (nodeIds, offset) {
           for (String nodeId in nodeIds) {
-            // Reflect the dragged node offset back to the graph structure.
+            // Reflect the dragged node offset back to the graph structure and trigger a rebuild.
             _nodes[nodeId]!.position += offset;
-
-            // Rebuild the node at the new position.
-            _graphViewportController.insertNode(NodeData(nodeId: nodeId, position: _nodes[nodeId]!.position));
           }
         },
-        nodeBuilder: (context, nodeId) {
-          final bool isSelected = _selectedNodeIds.contains(nodeId);
+        nodeBuilder: (context, nodeId, node) {
           return NodeWidget.basic(
             text: nodeId,
-            style: isSelected
+            style: node.isSelected
                 ? NodeStyle(
                     borderSide: BorderSide(
                       color: Colors.red,
@@ -110,14 +102,14 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
                 : null,
 
             // Only enable dragging on selected nodes.
-            isDragEnabled: isSelected,
+            isDragEnabled: node.isSelected,
             onTap: () {
               // Toggle the selection state.
               _toggleNodeSelection(nodeId);
             },
           );
         },
-        edgeBuilder: (context, edgeId) {
+        edgeBuilder: (context, edgeId, edge) {
           return EdgeWidget();
         },
       ),
@@ -125,19 +117,44 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> wit
   }
 }
 
-class ExampleNode {
-  ExampleNode({required this.id, required this.position});
+class ExampleNode extends DynamicGraphViewportNodeModel {
+  ExampleNode({required this.id, required Offset position, bool isSelected = false})
+    : _position = position,
+      _isSelected = isSelected;
 
   final String id;
 
-  Offset position;
+  @override
+  Offset get position => _position;
+  Offset _position;
+  set position(Offset value) {
+    if (_position == value) return;
+    _position = value;
+    notifyNeedsRebuild();
+  }
+
+  bool get isSelected => _isSelected;
+  bool _isSelected;
+  set isSelected(bool value) {
+    if (_isSelected == value) return;
+    _isSelected = value;
+    notifyNeedsRebuild();
+  }
 }
 
-class ExampleEdge {
-  ExampleEdge({required this.id, required this.startNodeId, required this.endNodeId});
+class ExampleEdge extends StaticGraphViewportEdgeModel<String> {
+  const ExampleEdge({required this.id, required this.startNodeId, required this.endNodeId});
 
   final String id;
 
-  String startNodeId;
-  String endNodeId;
+  @override
+  final String startNodeId;
+
+  @override
+  final String endNodeId;
+
+  @override
+  bool shouldRebuild(ExampleEdge previous) {
+    return false;
+  }
 }
