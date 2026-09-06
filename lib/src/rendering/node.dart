@@ -152,13 +152,15 @@ final class GraphNodeRenderObject extends GraphChildRenderObject
     transform.translateByDouble(-child.size.width / 2, -child.size.height / 2, 0, 1);
   }
 
+  Rect get _simpleBounds => Rect.fromCenter(center: Offset.zero, width: size.width, height: size.height);
+
   @override
-  Rect get semanticBounds => Rect.fromCenter(center: Offset.zero, width: size.width, height: size.height);
+  Rect get semanticBounds => _simpleBounds;
 
   @override
   Rect get paintBounds {
     if (overlay == null) {
-      return semanticBounds;
+      return _simpleBounds;
     } else {
       final Rect overlayBounds = Rect.fromLTWH(
         overlayPaintOffset.dx,
@@ -166,7 +168,20 @@ final class GraphNodeRenderObject extends GraphChildRenderObject
         overlay!.size.width,
         overlay!.size.height,
       );
-      return semanticBounds.expandToInclude(overlayBounds);
+      return _simpleBounds.expandToInclude(overlayBounds);
+    }
+  }
+
+  Rect get symmetricPaintBounds {
+    final Rect paintBounds = this.paintBounds;
+    if (paintBounds.center == Offset.zero) {
+      return paintBounds;
+    } else {
+      return Rect.fromCenter(
+        center: Offset.zero,
+        width: paintBounds.width + paintBounds.center.dx.abs() * 2,
+        height: paintBounds.height + paintBounds.center.dy.abs() * 2,
+      );
     }
   }
 
