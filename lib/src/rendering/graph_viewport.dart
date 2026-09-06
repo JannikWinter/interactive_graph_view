@@ -491,7 +491,7 @@ class RenderGraphViewport<
       offset,
       paintBounds,
       (context, offset) {
-        context.canvas.drawColor(backgroundColor, BlendMode.src);
+        context.canvas.drawColor(backgroundColor, BlendMode.srcOver);
 
         context.pushTransform(
           needsCompositing,
