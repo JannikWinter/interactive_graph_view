@@ -46,27 +46,30 @@ class RenderGraphViewportProxy extends RenderGraphViewportBase with RenderObject
 
   GraphViewportEdgeParentData _setChildEdgeParentData(GraphEdgeRenderObject edge) {
     return edge.parentData
-      ..startNodeCenter = Offset(-size.width / 2, 0)
-      ..endNodeCenter = Offset(size.width / 2, 0);
+      ..startNodeCenter = Offset(-constraints.biggest.width / 2, 0)
+      ..endNodeCenter = Offset(constraints.biggest.width / 2, 0);
   }
 
   @override
   void performLayout() {
-    size = constraints.biggest;
-    _childTransformationMatrix = Matrix4.identity()..translateByDouble(size.width / 2, size.height / 2, 0, 1);
-
     switch (child) {
       case GraphNodeRenderObject():
-        _setChildNodeParentData(child as GraphNodeRenderObject);
+        final GraphNodeRenderObject node = child as GraphNodeRenderObject;
+        _setChildNodeParentData(node);
+        node.layout(constraints, parentUsesSize: true);
+        size = constraints.constrain(node.symmetricPaintBounds.size);
 
       case GraphEdgeRenderObject():
-        _setChildEdgeParentData(child as GraphEdgeRenderObject);
+        final GraphEdgeRenderObject edge = child as GraphEdgeRenderObject;
+        _setChildEdgeParentData(edge);
+        edge.layout(constraints);
+        size = constraints.constrain(edge.paintBounds.size);
 
       default:
         throw AssertionError("Unknown child type in RenderGraphViewportProxy: ${child.runtimeType}");
     }
 
-    child!.layout(constraints);
+    _childTransformationMatrix = Matrix4.identity()..translateByDouble(size.width / 2, size.height / 2, 0, 1);
   }
 
   @override
