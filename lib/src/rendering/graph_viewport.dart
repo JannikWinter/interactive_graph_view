@@ -471,8 +471,17 @@ class RenderGraphViewport<
   }
 
   @override
-  void applyPaintTransform(covariant RenderObject child, Matrix4 transform) {
+  void applyPaintTransform(GraphChildRenderObject child, Matrix4 transform) {
     transform.multiply(this.transform.childTransformMatrix);
+
+    if (child is GraphNodeRenderObject) {
+      transform.translateByDouble(
+        child.parentData.positionWithDragOffset.dx,
+        child.parentData.positionWithDragOffset.dy,
+        0,
+        1,
+      );
+    }
   }
 
   @override
@@ -498,7 +507,7 @@ class RenderGraphViewport<
             }
 
             for (final GraphNodeRenderObject node in _nodes.values) {
-              context.paintChild(node, offset);
+              context.paintChild(node, offset + node.parentData.positionWithDragOffset);
             }
           },
         );

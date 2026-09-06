@@ -101,7 +101,6 @@ final class GraphNodeRenderObject extends GraphChildRenderObject
   void paint(PaintingContext context, Offset offset) {
     context.canvas.save();
     context.canvas.translate(offset.dx, offset.dy);
-    context.canvas.translate(parentData.positionWithDragOffset.dx, parentData.positionWithDragOffset.dy);
 
     if (clipBehavior != Clip.none) {
       context.pushClipRRect(
@@ -150,23 +149,20 @@ final class GraphNodeRenderObject extends GraphChildRenderObject
 
   @override
   void applyPaintTransform(RenderBox child, Matrix4 transform) {
-    transform.translateByDouble(parentData.positionWithDragOffset.dx, parentData.positionWithDragOffset.dy, 0, 1);
     transform.translateByDouble(-child.size.width / 2, -child.size.height / 2, 0, 1);
   }
 
   @override
-  Rect get semanticBounds =>
-      Rect.fromCenter(center: parentData.positionWithDragOffset, width: size.width, height: size.height);
+  Rect get semanticBounds => Rect.fromCenter(center: Offset.zero, width: size.width, height: size.height);
 
   @override
   Rect get paintBounds {
     if (overlay == null) {
       return semanticBounds;
     } else {
-      final Offset overlayLeftTop = parentData.positionWithDragOffset + overlayPaintOffset;
       final Rect overlayBounds = Rect.fromLTWH(
-        overlayLeftTop.dx,
-        overlayLeftTop.dy,
+        overlayPaintOffset.dx,
+        overlayPaintOffset.dy,
         overlay!.size.width,
         overlay!.size.height,
       );
