@@ -1,5 +1,5 @@
 import "package:flutter/foundation.dart";
-import "package:flutter/material.dart" show ThemeExtension, Colors;
+import "package:flutter/material.dart" show ThemeExtension, Colors, BuildContext, Theme;
 import "package:flutter/painting.dart";
 
 import "../util/nullable.dart";
@@ -22,6 +22,14 @@ import "../util/nullable.dart";
 /// ```
 @immutable
 class GraphStyle extends ThemeExtension<GraphStyle> {
+  static GraphStyle getEffectiveStyle(BuildContext context, {GraphStyle? style}) {
+    final GraphStyle fallbackStyle = GraphStyle.fallback();
+    final GraphStyle? themeStyle = Theme.of(context).extension<GraphStyle>();
+    final GraphStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+
+    return effectiveStyle;
+  }
+
   /// Constructs a graph style.
   const GraphStyle({
     this.backgroundColor,

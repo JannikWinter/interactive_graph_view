@@ -1,6 +1,6 @@
-import "package:flutter/foundation.dart";
-import "package:flutter/material.dart" show ThemeExtension, Colors;
-import "package:flutter/painting.dart";
+import "package:flutter/foundation.dart" show immutable;
+import "package:flutter/material.dart" show ThemeExtension, Theme, Colors;
+import "package:flutter/widgets.dart" show BuildContext, TextStyle, Color, DefaultTextStyle;
 
 import "../util/nullable.dart";
 import "arrow_style.dart";
@@ -26,6 +26,15 @@ import "line_style.dart";
 /// ```
 @immutable
 class EdgeStyle extends ThemeExtension<EdgeStyle> {
+  static EdgeStyle getEffectiveStyle(BuildContext context, {EdgeStyle? style}) {
+    final TextStyle defaultTextStyle = DefaultTextStyle.of(context).style;
+    final EdgeStyle fallbackStyle = EdgeStyle.fallback().merge(EdgeStyle(textStyle: defaultTextStyle));
+    final EdgeStyle? themeStyle = Theme.of(context).extension<EdgeStyle>();
+    final EdgeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+
+    return effectiveStyle;
+  }
+
   /// Constructs an edge style.
   const EdgeStyle({
     this.lineColor,

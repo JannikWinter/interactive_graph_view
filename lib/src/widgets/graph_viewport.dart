@@ -203,9 +203,7 @@ class GraphViewport<
 
   @override
   RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> createRenderObject(BuildContext context) {
-    final GraphStyle? themeStyle = Theme.of(context).extension<GraphStyle>();
-    final GraphStyle fallbackStyle = GraphStyle.fallback();
-    final GraphStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+    final GraphStyle effectiveStyle = GraphStyle.getEffectiveStyle(context, style: style);
 
     return RenderGraphViewport(
       controller: controller,
@@ -223,9 +221,7 @@ class GraphViewport<
     BuildContext context,
     RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> renderObject,
   ) {
-    final GraphStyle? themeStyle = Theme.of(context).extension<GraphStyle>();
-    final GraphStyle fallbackStyle = GraphStyle.fallback();
-    final GraphStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+    final GraphStyle effectiveStyle = GraphStyle.getEffectiveStyle(context, style: style);
 
     renderObject
       ..controller = controller

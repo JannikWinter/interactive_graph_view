@@ -1,5 +1,6 @@
 import "package:flutter/foundation.dart" show immutable;
-import "package:flutter/material.dart" show BoxConstraints, Colors, ThemeExtension;
+import "package:flutter/material.dart"
+    show BoxConstraints, Colors, ThemeExtension, Theme, BuildContext, DefaultTextStyle;
 import "package:flutter/painting.dart";
 
 import "../util/nullable.dart";
@@ -25,6 +26,15 @@ import "../util/nullable.dart";
 /// ```
 @immutable
 class NodeStyle extends ThemeExtension<NodeStyle> {
+  static NodeStyle getEffectiveStyle(BuildContext context, {NodeStyle? style}) {
+    final TextStyle defaultTextStyle = DefaultTextStyle.of(context).style;
+    final NodeStyle fallbackStyle = NodeStyle.fallback().merge(NodeStyle(textStyle: defaultTextStyle));
+    final NodeStyle? themeStyle = Theme.of(context).extension<NodeStyle>();
+    final NodeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+
+    return effectiveStyle;
+  }
+
   /// Constructs a node style.
   const NodeStyle({
     this.textStyle = const TextStyle(),
