@@ -173,9 +173,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
 
   @override
   GraphNodeRenderObject createRenderObject(BuildContext context) {
-    final NodeStyle? themeStyle = Theme.of(context).extension<NodeStyle>();
-    final NodeStyle fallbackStyle = NodeStyle.fallback();
-    final NodeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+    final NodeStyle effectiveStyle = NodeStyle.getEffectiveStyle(context, style: style);
 
     return GraphNodeRenderObject(
       overlayConfig: overlay,
@@ -192,9 +190,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
 
   @override
   void updateRenderObject(BuildContext context, GraphNodeRenderObject renderObject) {
-    final NodeStyle? themeStyle = Theme.of(context).extension<NodeStyle>();
-    final NodeStyle fallbackStyle = NodeStyle.fallback();
-    final NodeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+    final NodeStyle effectiveStyle = NodeStyle.getEffectiveStyle(context, style: style);
 
     renderObject
       ..overlayConfig = overlay
@@ -233,12 +229,9 @@ class BasicNodeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final NodeStyle? themeStyle = Theme.of(context).extension<NodeStyle>();
-    final NodeStyle fallbackStyle = NodeStyle.fallback();
-    final NodeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
-
+    final NodeStyle effectiveStyle = NodeStyle.getEffectiveStyle(context, style: style);
     final EdgeInsets effectivePadding = effectiveStyle.padding!;
-    final TextStyle effectiveTextStyle = DefaultTextStyle.of(context).style.merge(effectiveStyle.textStyle);
+    final TextStyle effectiveTextStyle = effectiveStyle.textStyle;
 
     return Padding(
       padding: effectivePadding,
@@ -273,10 +266,7 @@ class BasicNodeBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final NodeStyle? themeStyle = Theme.of(context).extension<NodeStyle>();
-    final NodeStyle fallbackStyle = NodeStyle.fallback();
-    final NodeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
-
+    final NodeStyle effectiveStyle = NodeStyle.getEffectiveStyle(context, style: style);
     final Color effectiveBackgroundColor = effectiveStyle.backgroundColor!;
     final BorderSide effectiveBorderSide = effectiveStyle.borderSide!;
     final Radius effectiveBorderRadius = effectiveStyle.borderRadius!;

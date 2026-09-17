@@ -67,9 +67,7 @@ class EdgeWidget extends LeafRenderObjectWidget {
 
   @override
   GraphEdgeRenderObject createRenderObject(BuildContext context) {
-    final EdgeStyle? themeStyle = Theme.of(context).extension<EdgeStyle>();
-    final EdgeStyle fallbackStyle = EdgeStyle.fallback();
-    final EdgeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+    final EdgeStyle effectiveStyle = EdgeStyle.getEffectiveStyle(context, style: style);
 
     return GraphEdgeRenderObject(
       text: text,
@@ -91,9 +89,7 @@ class EdgeWidget extends LeafRenderObjectWidget {
 
   @override
   void updateRenderObject(BuildContext context, GraphEdgeRenderObject renderObject) {
-    final EdgeStyle? themeStyle = Theme.of(context).extension<EdgeStyle>();
-    final EdgeStyle fallbackStyle = EdgeStyle.fallback();
-    final EdgeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+    final EdgeStyle effectiveStyle = EdgeStyle.getEffectiveStyle(context, style: style);
 
     renderObject
       ..text = text
