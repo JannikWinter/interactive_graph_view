@@ -1,5 +1,5 @@
-import "package:flutter/material.dart" show Theme;
 import "package:flutter/widgets.dart";
+import "package:material_ui/material_ui.dart" show Theme;
 
 import "../elements/edge.dart";
 import "../interaction/gesture_callbacks.dart";

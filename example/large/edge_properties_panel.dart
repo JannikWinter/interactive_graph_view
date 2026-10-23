@@ -1,5 +1,6 @@
-import "package:flutter/material.dart";
 import "package:flutter/services.dart" show FilteringTextInputFormatter, LengthLimitingTextInputFormatter;
+import "package:material_ui/material_ui.dart";
+
 import "package:interactive_graph_view/interactive_graph_view.dart"
     show LineStyle, SolidLineStyle, DashedLineStyle, DottedLineStyle;
 

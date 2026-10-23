@@ -1,6 +1,6 @@
 import "dart:math";
 
-import "package:flutter/material.dart";
+import "package:material_ui/material_ui.dart";
 
 import "package:interactive_graph_view/interactive_graph_view.dart";
 

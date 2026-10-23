@@ -3,8 +3,8 @@ import "dart:math";
 import "dart:ui";
 
 import "package:flutter/foundation.dart";
-import "package:flutter/material.dart" show Colors;
 import "package:flutter/rendering.dart";
+import "package:material_ui/material_ui.dart" show Colors;
 import "package:path_drawing/path_drawing.dart";
 
 import "../style/arrow_style.dart";

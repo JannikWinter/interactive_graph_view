@@ -1,6 +1,6 @@
 import "package:flutter/gestures.dart";
-import "package:flutter/material.dart" show Theme;
 import "package:flutter/widgets.dart";
+import "package:material_ui/material_ui.dart" show Theme;
 
 import "../elements/graph_viewport.dart";
 import "../graph_viewport_controller.dart";

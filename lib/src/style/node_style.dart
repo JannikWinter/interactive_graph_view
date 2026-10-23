@@ -1,6 +1,6 @@
 import "package:flutter/foundation.dart" show immutable;
-import "package:flutter/material.dart" show BoxConstraints, Colors, ThemeExtension;
 import "package:flutter/painting.dart";
+import "package:material_ui/material_ui.dart" show BoxConstraints, Colors, ThemeExtension;
 
 import "../util/nullable.dart";
 
