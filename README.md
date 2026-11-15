@@ -30,16 +30,52 @@ $ flutter pub add interactive_graph_view
 
 ## Usage
 
-### 1. Import the package
+### 1. Import the package:
 
 ```dart
 import "package:interactive_graph_view/interactive_graph_view.dart";
 ```
 
-### 2. Create and save a `GraphViewportController` in your `StatefulWidget` and give it your graph structure's IDs
+### 2. Create model classes for your nodes and edges:
 
 ```dart
-class YourWidget extends StatefulWidget {
+class ExampleNode extends StaticGraphViewportNodeModel {
+  const ExampleNode({required this.id, required this.position});
+
+  final String id;
+
+  @override
+  final Offset position;
+
+  @override
+  bool shouldRebuild(ExampleNode previous) {
+    return previous.position != position;
+  }
+}
+
+class ExampleEdge extends StaticGraphViewportEdgeModel<String> {
+  const ExampleEdge({required this.id, required this.startNodeId, required this.endNodeId});
+
+  final String id;
+
+  @override
+  final String startNodeId;
+
+  @override
+  final String endNodeId;
+
+  @override
+  bool shouldRebuild(ExampleEdge previous) {
+    return previous.startNodeId != startNodeId
+        || previous.endNodeId != endNodeId;
+  }
+}
+```
+
+### 3. Create and save `GraphViewportTransform` and a `GraphViewportController` in your `StatefulWidget` and give the controller your graph data:
+
+```dart
+class YourWidget extends StatefulWidget with TickerProviderStateMixin {
   const YourWidget({super.key});
 
   @override
@@ -47,31 +83,30 @@ class YourWidget extends StatefulWidget {
 }
 
 class _YourWidgetState extends State<YourWidget> {
-  final Map<NodeId, ExampleNode> _nodes = {
+  final Map<String, ExampleNode> _nodes = {
     "node-1": ExampleNode(position: (0, -75), text: "Hello"),
     "node-2": ExampleNode(position: (0, 75), text: "World"),
   };
-  final Map<EdgeId, ExampleEdge> _edges = {
+  final Map<String, ExampleEdge> _edges = {
     "edge-1": ExampleEdge(startNodeId: "node-1", endNodeId: "node-2", text: "wonderful"),
   }
 
-  late final GraphViewportController<String, String> _graphViewportController;
+  late final GraphViewportController<String, String, ExampleNode, ExampleEdge> _graphViewportController;
+  late final GraphViewportTransform _graphViewportTransform;
 
   @override
   void initState() {
     super.initState();
 
-    _graphViewportController = GraphViewportController(
-      initialNodeIds: _nodes.keys,
-      initialEdgeIds: _edges.keys,
-    );
+    _graphViewportController = GraphViewportController(initialNodes: _nodes, initialEdges: _edges);
+    _graphViewportTransform = GraphViewportTransform(vsync: this);
   }
 
   // ...
 }
 ```
 
-### 3. Build the `GraphView` or `GraphViewport` in your widget's build() method
+### 4. Build the `GraphViewport` in your widget's build() method
 
 ```dart
 @override
@@ -80,21 +115,17 @@ Widget build(BuildContext context) {
     appBar: AppBar(
       title: Text("Graph View Demo"),
     ),
-    body: GraphView<String, String>(
-      viewportController: _graphViewportController,
-      nodeBuilder: (context, nodeId) {
-        final ExampleNode node = _nodes[nodeId]!;
+    body: GraphViewport<String, String, ExampleNode, ExampleEdge>(
+      controller: _graphViewportController,
+      transform: _graphViewportTransform,
+      nodeBuilder: (context, nodeId, node) {
         return NodeWidget.basic(
-          position: node.position,
           text: node.text,
           isDragEnabled: true,
         );
       },
-      edgeBuilder: (context, edgeId) {
-        final ExampleEdge edge = _edges[edgeId]!;
+      edgeBuilder: (context, edgeId, edge) {
         return EdgeWidget(
-          startNodeId: edge.startNodeId,
-          endNodeId: edge.endNodeId,
           text: edge.text,
         );
       },

@@ -1,30 +1,93 @@
+import "dart:async";
+import "dart:collection";
+
 import "package:flutter/gestures.dart";
 import "package:flutter/rendering.dart";
 import "package:flutter/widgets.dart";
 
+import "../graph_viewport_edge_model.dart";
 import "../elements/graph_viewport.dart";
+import "../graph_viewport_controller.dart";
+import "../graph_viewport_transform.dart";
+import "../interaction/drag_details.dart";
+import "../graph_viewport_node_model.dart";
+import "../widgets/graph_viewport.dart";
 import "edge.dart";
 import "edge_parent_data.dart";
-import "graph_element.dart";
-import "graph_viewport_base.dart";
+import "graph_child.dart";
 import "node.dart";
 import "node_parent_data.dart";
 import "quad_tree.dart";
 
-class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBase<NodeIdType, EdgeIdType> {
+class RenderGraphViewport<
+  NodeIdType,
+  EdgeIdType,
+  NodeModelType extends GraphViewportNodeModel,
+  EdgeModelType extends GraphViewportEdgeModel<NodeIdType>
+>
+    extends RenderBox {
+  static RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>? maybeOf<
+    NodeIdType,
+    EdgeIdType,
+    NodeModelType extends GraphViewportNodeModel,
+    EdgeModelType extends GraphViewportEdgeModel<NodeIdType>
+  >(
+    RenderObject? object,
+  ) {
+    while (object != null) {
+      if (object is RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>) {
+        return object;
+      }
+      object = object.parent;
+    }
+    return null;
+  }
+
+  static RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> of<
+    NodeIdType,
+    EdgeIdType,
+    NodeModelType extends GraphViewportNodeModel,
+    EdgeModelType extends GraphViewportEdgeModel<NodeIdType>
+  >(RenderObject? object) {
+    final RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>? viewport =
+        maybeOf<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>(
+          object,
+        );
+    assert(() {
+      if (viewport == null) {
+        throw FlutterError(
+          "RenderGraphViewport.of() was called with a render object that was "
+          "not a descendant of a RenderGraphViewport.\n"
+          "No RenderGraphViewport render object ancestor could be found starting "
+          "from the object that was passed to RenderGraphViewport.of().\n"
+          "The render object where the viewport search started was:\n"
+          "  $object",
+        );
+      }
+      return true;
+    }());
+    return viewport!;
+  }
+
+  Offset get globalPaintOffset {
+    final translation = getTransformTo(null).getTranslation();
+
+    return Offset(translation.x, translation.y);
+  }
+
   RenderGraphViewport({
-    required super.viewportController,
-    required super.transform,
+    required GraphViewportController<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> controller,
+    required GraphViewportTransform transform,
     required GraphViewportLayoutHelper layoutHelper,
     required double cacheExtent,
     required EdgeInsets boundaryInsets,
-    required double edgeHitboxThickness,
     required Color backgroundColor,
     required bool debugPaintQuadTree,
-  }) : _layoutHelper = layoutHelper,
+  }) : _controller = controller,
+       _transform = transform,
+       _layoutHelper = layoutHelper,
        _cacheExtent = cacheExtent,
        _boundaryInsets = boundaryInsets,
-       _edgeHitboxThickness = edgeHitboxThickness,
        _backgroundColor = backgroundColor,
        _debugPaintQuadTree = debugPaintQuadTree;
 
@@ -33,7 +96,9 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   final Map<NodeIdType, GraphNodeRenderObject> _nodes = {};
   final Map<EdgeIdType, GraphEdgeRenderObject> _edges = {};
 
-  late bool _isFirstLayout;
+  NodesMovedCallback<NodeIdType>? onNodesMoved;
+
+  bool _isFirstLayout = true;
 
   late final QuadTree<NodeIdType, EdgeIdType> _childQuadTree = QuadTree.fromInnermostQTSize(
     innermostDimension: 100,
@@ -43,6 +108,36 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   final Set<EdgeIdType> _edgeIdsNeedingRebuild = {};
   final Set<NodeIdType> _nodeIdsNeedingLayout = {};
   final Set<EdgeIdType> _edgeIdsNeedingLayout = {};
+
+  GraphViewportController<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> get controller => _controller;
+  GraphViewportController<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> _controller;
+  set controller(GraphViewportController<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> value) {
+    if (_controller == value) return;
+
+    assert(_controller.isAttached);
+    assert(!value.isAttached);
+
+    _controller.onDetach(this);
+
+    _controller = value;
+
+    value.onAttach(this);
+
+    markNeedsFirstLayout();
+  }
+
+  GraphViewportTransform get transform => _transform;
+  GraphViewportTransform _transform;
+  set transform(GraphViewportTransform value) {
+    if (_transform == value) return;
+
+    _transform.removeListener(markNeedsLayout);
+    value.addListener(markNeedsLayout);
+
+    _transform = value;
+
+    markNeedsLayout();
+  }
 
   double get cacheExtent => _cacheExtent;
   double _cacheExtent;
@@ -74,16 +169,6 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     markNeedsPaint();
   }
 
-  double _edgeHitboxThickness;
-  double get edgeHitboxThickness => _edgeHitboxThickness;
-  set edgeHitboxThickness(double value) {
-    if (_edgeHitboxThickness == value) return;
-
-    _edgeHitboxThickness = value;
-
-    markNeedsLayout();
-  }
-
   bool _debugPaintQuadTree;
   bool get debugPaintQuadTree => _debugPaintQuadTree;
   set debugPaintQuadTree(bool value) {
@@ -94,28 +179,21 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     markNeedsPaint();
   }
 
-  @override
   GraphNodeRenderObject? getNode(NodeIdType nodeId) => _nodes[nodeId];
 
-  @override
   GraphEdgeRenderObject? getEdge(EdgeIdType edgeId) => _edges[edgeId];
 
-  @protected
-  @override
   void markNodeNeedsRebuild(NodeIdType nodeId) {
     _nodeIdsNeedingRebuild.add(nodeId);
     markNodeNeedsLayout(nodeId);
   }
 
-  @protected
-  @override
   void markEdgeNeedsRebuild(EdgeIdType edgeId) {
     _edgeIdsNeedingRebuild.add(edgeId);
     markEdgeNeedsLayout(edgeId);
   }
 
   @protected
-  @override
   void markNodeNeedsLayout(NodeIdType nodeId) {
     if (_nodes.containsKey(nodeId)) {
       _nodeIdsNeedingLayout.add(nodeId);
@@ -125,7 +203,6 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   }
 
   @protected
-  @override
   void markEdgeNeedsLayout(EdgeIdType edgeId) {
     if (_edges.containsKey(edgeId)) {
       _edgeIdsNeedingLayout.add(edgeId);
@@ -134,17 +211,17 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     markNeedsLayout();
   }
 
-  @override
-  void markNeedsLayoutForNodeChange(NodeIdType nodeId) {
+  void markNeedsLayoutForNodeChange(GraphNodeRenderObject node) {
+    final NodeIdType nodeId = _nodes.entries.firstWhere((entry) => entry.value == node).key;
+
     for (final EdgeIdType edgeId in getConnectingEdgeIds(nodeId)) {
       markEdgeNeedsLayout(edgeId);
     }
     markNeedsLayout();
   }
 
-  @override
   Iterable<EdgeIdType> getConnectingEdgeIds(NodeIdType nodeId) {
-    return _edges.entries
+    return controller.allEdges.entries
         .where((edgeEntry) => edgeEntry.value.startNodeId == nodeId || edgeEntry.value.endNodeId == nodeId)
         .map((edgeEntry) => edgeEntry.key);
   }
@@ -173,14 +250,12 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     dropChild(edge);
   }
 
-  @override
   void removeNode(NodeIdType nodeId) {
     _childQuadTree.removeNode(nodeId);
     _nodeIdsNeedingRebuild.remove(nodeId);
     _nodeIdsNeedingLayout.remove(nodeId);
   }
 
-  @override
   void removeEdge(EdgeIdType edgeId) {
     _childQuadTree.removeEdge(edgeId);
     _edgeIdsNeedingRebuild.remove(edgeId);
@@ -188,33 +263,26 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   }
 
   GraphViewportNodeParentData _setChildNodeParentData(NodeIdType nodeId, GraphNodeRenderObject node) {
-    final GraphViewportNodeParentData nodeParentData = node.parentData! as GraphViewportNodeParentData;
+    final NodeModelType nodeData = controller.allNodes[nodeId]!;
+    final bool isBeingDragged = inFlightNodeIds.contains(nodeId);
 
-    if (inFlightNodeIds.contains(nodeId)) {
-      nodeParentData.dragOffset = movingNodeOffset;
-    } else {
-      nodeParentData.dragOffset = Offset.zero;
-    }
-
-    return nodeParentData;
+    return node.parentData
+      ..position = nodeData.position
+      ..dragOffset = isBeingDragged ? movingNodeOffset : Offset.zero;
   }
 
   GraphViewportEdgeParentData _setChildEdgeParentData(EdgeIdType edgeId, GraphEdgeRenderObject edge) {
-    final GraphViewportEdgeParentData edgeParentData = edge.parentData! as GraphViewportEdgeParentData;
+    final EdgeModelType edgeData = controller.allEdges[edgeId]!;
+    final GraphNodeRenderObject startNode = _nodes[edgeData.startNodeId]!;
+    final GraphNodeRenderObject endNode = _nodes[edgeData.endNodeId]!;
 
-    final GraphNodeRenderObject startNode = _nodes[edge.startNodeId]!;
-    final GraphNodeRenderObject endNode = _nodes[edge.endNodeId]!;
-
-    edgeParentData
-      ..startNodeCenter = startNode.positionWithDragOffset
+    return edge.parentData
+      ..startNodeCenter = startNode.parentData.positionWithDragOffset
       ..startNodeSize = startNode.size
       ..startNodeBorderRadius = startNode.borderRadius
-      ..endNodeCenter = endNode.positionWithDragOffset
+      ..endNodeCenter = endNode.parentData.positionWithDragOffset
       ..endNodeSize = endNode.size
-      ..endNodeBorderRadius = endNode.borderRadius
-      ..hitboxThickness;
-
-    return edgeParentData;
+      ..endNodeBorderRadius = endNode.borderRadius;
   }
 
   void markNeedsFirstLayout() {
@@ -250,41 +318,42 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     }
   }
 
-  late Rect _lastFrameContentRect;
+  Rect _lastFrameContentRect = Rect.zero;
 
   @override
   void performLayout() {
+    size = constraints.biggest;
+    transform.applyViewportDimensions(size, boundaryInsets);
+
     if (_isFirstLayout) {
       _isFirstLayout = false;
+      _nodeIdsNeedingRebuild.clear();
+      _nodeIdsNeedingLayout.clear();
+      _edgeIdsNeedingRebuild.clear();
+      _edgeIdsNeedingLayout.clear();
       // baue alles zum ersten Mal
 
       _childQuadTree.clear();
 
-      for (final nodeEntry in _nodes.entries) {
-        final NodeIdType nodeId = nodeEntry.key;
-        final GraphNodeRenderObject node = nodeEntry.value;
-        _layoutNode(nodeId, node);
-      }
+      invokeLayoutCallback((BoxConstraints _) {
+        _layoutHelper.startLayout();
 
-      for (final edgeEntry in _edges.entries) {
-        final EdgeIdType edgeId = edgeEntry.key;
-        final GraphEdgeRenderObject edge = edgeEntry.value;
-        _layoutEdge(edgeId, edge);
-      }
+        for (final NodeIdType nodeId in _controller.allNodes.keys) {
+          _layoutHelper.buildChild(GraphViewportNodeSlot(nodeId));
+        }
 
-      transform.applyContentDimensions(_childQuadTree.contentRect);
-      _lastFrameContentRect = _childQuadTree.contentRect;
-    }
+        for (final EdgeIdType edgeId in _controller.allEdges.keys) {
+          _layoutHelper.buildChild(GraphViewportEdgeSlot(edgeId));
+        }
 
-    if (!hasSize || size != constraints.biggest) {
-      size = constraints.biggest;
-    }
-    transform.applyViewportDimensions(size, boundaryInsets);
-
-    {
+        _layoutHelper.endLayout();
+      });
+    } else {
       // frage QuadTree, was gerade sichtbar ist und baue nur diese Elemente + aktive ELemente +  die Elemente, die geändert wurden
 
-      _layoutHelper.startLayout();
+      invokeLayoutCallback((BoxConstraints _) {
+        _layoutHelper.startLayout();
+      });
 
       final Rect visibleRect = transform.visibleRect.inflate(cacheExtent);
 
@@ -306,9 +375,9 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
       for (final EdgeIdType edgeId in usedEdgeIds) {
         _reuseOrBuildEdge(edgeId);
 
-        final GraphEdgeRenderObject edge = _edges[edgeId]!;
+        final EdgeModelType edgeData = controller.allEdges[edgeId]!;
 
-        usedNodeIds.addAll([edge.startNodeId, edge.endNodeId]);
+        usedNodeIds.addAll([edgeData.startNodeId, edgeData.endNodeId]);
       }
 
       for (final NodeIdType nodeId in usedNodeIds) {
@@ -324,8 +393,6 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
     assert(_edgeIdsNeedingRebuild.isEmpty);
 
     {
-      final Rect oldContentRect = _lastFrameContentRect;
-
       for (final NodeIdType nodeId in _nodes.keys) {
         final GraphNodeRenderObject node = _nodes[nodeId]!;
         _layoutNode(nodeId, node);
@@ -344,7 +411,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
         newContentRect = newContentRect.expandToInclude(movingNode.semanticBounds);
       }
 
-      if (oldContentRect != newContentRect) {
+      if (_lastFrameContentRect != newContentRect) {
         transform.applyContentDimensions(newContentRect);
         _lastFrameContentRect = newContentRect;
       }
@@ -355,6 +422,12 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
 
   GraphNodeRenderObject _reuseOrBuildNode(NodeIdType nodeId) {
     final GraphViewportNodeSlot slot = GraphViewportNodeSlot(nodeId);
+
+    assert(
+      controller.containsNode(nodeId),
+      "The node $nodeId was marked for layout but does not exist in the ViewportController.\n"
+      "This can happen when a node gets removed via ViewportController.removeNode() but its connecting edges are not.",
+    );
 
     if (!_nodes.containsKey(nodeId) || _nodeIdsNeedingRebuild.contains(nodeId)) {
       invokeLayoutCallback((BoxConstraints _) {
@@ -371,6 +444,9 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
 
   GraphEdgeRenderObject _reuseOrBuildEdge(EdgeIdType edgeId) {
     final GraphViewportEdgeSlot slot = GraphViewportEdgeSlot(edgeId);
+
+    assert(controller.containsEdge(edgeId));
+
     if (!_edges.containsKey(edgeId) || _edgeIdsNeedingRebuild.contains(edgeId)) {
       invokeLayoutCallback((BoxConstraints _) {
         _layoutHelper.buildChild(slot);
@@ -395,8 +471,17 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   }
 
   @override
-  void applyPaintTransform(covariant RenderObject child, Matrix4 transform) {
+  void applyPaintTransform(GraphChildRenderObject child, Matrix4 transform) {
     transform.multiply(this.transform.childTransformMatrix);
+
+    if (child is GraphNodeRenderObject) {
+      transform.translateByDouble(
+        child.parentData.positionWithDragOffset.dx,
+        child.parentData.positionWithDragOffset.dy,
+        0,
+        1,
+      );
+    }
   }
 
   @override
@@ -406,7 +491,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
       offset,
       paintBounds,
       (context, offset) {
-        context.canvas.drawColor(backgroundColor, BlendMode.src);
+        context.canvas.drawColor(backgroundColor, BlendMode.srcOver);
 
         context.pushTransform(
           needsCompositing,
@@ -422,7 +507,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
             }
 
             for (final GraphNodeRenderObject node in _nodes.values) {
-              context.paintChild(node, offset);
+              context.paintChild(node, offset + node.parentData.positionWithDragOffset);
             }
           },
         );
@@ -431,10 +516,10 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   }
 
   @override
-  void setupParentData(GraphElementRenderObject child) {
-    if (child is GraphEdgeRenderObject && child.parentData is! GraphViewportEdgeParentData) {
+  void setupParentData(GraphChildRenderObject child) {
+    if (child is GraphEdgeRenderObject && !child.hasParentData) {
       child.parentData = GraphViewportEdgeParentData();
-    } else if (child is GraphNodeRenderObject && child.parentData is! GraphViewportNodeParentData) {
+    } else if (child is GraphNodeRenderObject && !child.hasParentData) {
       child.parentData = GraphViewportNodeParentData();
     }
   }
@@ -442,6 +527,8 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   @override
   void attach(PipelineOwner owner) {
     super.attach(owner);
+
+    _controller.onAttach(this);
 
     _isFirstLayout = true;
 
@@ -459,6 +546,10 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
   @override
   void detach() {
     super.detach();
+
+    if (_controller.isAttached) {
+      _controller.onDetach(this);
+    }
 
     transform.removeListener(_onTransformChanged);
 
@@ -518,7 +609,7 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
         final List<GraphNodeRenderObject> nodes = _nodes.values.toList();
         for (final GraphNodeRenderObject node in nodes.reversed) {
           result.addWithPaintOffset(
-            offset: node.positionWithDragOffset,
+            offset: node.parentData.positionWithDragOffset,
             position: position,
             hitTest: node.hitTest,
           );
@@ -555,4 +646,279 @@ class RenderGraphViewport<NodeIdType, EdgeIdType> extends RenderGraphViewportBas
       _ => null,
     };
   }
+
+  Offset _startingViewportPosition = Offset.zero;
+
+  Offset _startingPointerViewportPosition = Offset.zero;
+  Offset _pointerViewportPosition = Offset.zero;
+
+  bool _isDraggingNodes = false;
+
+  Set<NodeIdType> _movingNodeIds = {};
+
+  /// The NodeIds that are marked for being moved when dragging a Node.
+  UnmodifiableSetView<NodeIdType> get movingNodeIds => UnmodifiableSetView(_movingNodeIds);
+
+  /// The NodeIds that are marked for being moved when dragging a Node.
+  set movingNodeIds(Set<NodeIdType> value) => _movingNodeIds = Set.from(value);
+
+  @protected
+  UnmodifiableSetView<NodeIdType> get inFlightNodeIds =>
+      UnmodifiableSetView(_isDraggingNodes ? Set.from(movingNodeIds) : const {});
+
+  @protected
+  UnmodifiableSetView<EdgeIdType> get inFlightEdgeIds => UnmodifiableSetView(
+    _isDraggingNodes ? Set.from(movingNodeIds.expand((nodeId) => getConnectingEdgeIds(nodeId))) : const {},
+  );
+
+  UnmodifiableSetView<NodeIdType> get animationTargetNodeIds =>
+      UnmodifiableSetView(Set.from(_showOnScreenAnimationData?.targetNodeIds ?? const {}));
+
+  UnmodifiableSetView<EdgeIdType> get animationTargetEdgeIds =>
+      UnmodifiableSetView(Set.from(_showOnScreenAnimationData?.targetEdgeIds ?? const {}));
+
+  Offset get movingNodeOffset => (_isDraggingNodes && movingNodeIds.isNotEmpty)
+      ? (_transform.position - _startingViewportPosition) +
+            ((_pointerViewportPosition - _startingPointerViewportPosition) / _transform.scale)
+      : Offset.zero;
+
+  _ShowOnScreenAnimationData<NodeIdType, EdgeIdType>? _showOnScreenAnimationData;
+
+  void onNodeDragDown(GraphViewportDragDownDetails details) {
+    transform.onNodeDragDown(details);
+
+    _startingViewportPosition = _transform.position;
+    _startingPointerViewportPosition = details.viewportPosition;
+    _pointerViewportPosition = details.viewportPosition;
+  }
+
+  void onNodeDragStart(GraphViewportDragStartDetails details) {
+    transform.onNodeDragStart(details);
+
+    _isDraggingNodes = true;
+  }
+
+  void onNodeDragUpdate(GraphViewportDragUpdateDetails details) {
+    transform.onNodeDragUpdate(details);
+
+    _pointerViewportPosition = details.viewportPosition;
+
+    for (final NodeIdType nodeId in inFlightNodeIds) {
+      markNodeNeedsLayout(nodeId);
+    }
+    for (final EdgeIdType edgeId in inFlightEdgeIds) {
+      markEdgeNeedsLayout(edgeId);
+    }
+
+    markNeedsLayout();
+  }
+
+  void onNodeDragEnd(GraphViewportDragEndDetails details) {
+    transform.onNodeDragEnd(details);
+
+    for (final NodeIdType nodeId in inFlightNodeIds) {
+      markNodeNeedsLayout(nodeId);
+    }
+    for (final EdgeIdType edgeId in inFlightEdgeIds) {
+      markEdgeNeedsLayout(edgeId);
+    }
+
+    markNeedsLayout();
+
+    final Set<NodeIdType> movedNodeIds = Set.from(movingNodeIds);
+    final Offset dragOffset = movingNodeOffset;
+
+    _isDraggingNodes = false;
+
+    onNodesMoved?.call(movedNodeIds, dragOffset);
+  }
+
+  void onNodeDragCancel() {
+    transform.onNodeDragCancel();
+
+    for (final NodeIdType nodeId in inFlightNodeIds) {
+      markNodeNeedsLayout(nodeId);
+    }
+    for (final EdgeIdType edgeId in inFlightEdgeIds) {
+      markEdgeNeedsLayout(edgeId);
+    }
+
+    markNeedsLayout();
+
+    _isDraggingNodes = false;
+  }
+
+  @protected
+  void maybeStartShowOnScreenAnimation() {
+    assert(
+      debugDoingThisLayout,
+      "RenderGraphViewportBase.maybeStartShowOnScreenAnimation should only be called from performLayout()",
+    );
+
+    if (_showOnScreenAnimationData == null) return;
+    if (_isDraggingNodes) return;
+
+    final animationData = _showOnScreenAnimationData!;
+    _showOnScreenAnimationData = null;
+
+    final Set<GraphChildRenderObject> targetRenderObjects = {
+      ...animationData.targetNodeIds.map((nodeId) => getNode(nodeId)!),
+      ...animationData.targetEdgeIds.map((edgeId) => getEdge(edgeId)!),
+    };
+
+    final Rect? targetGraphSpaceRect = targetRenderObjects.fold(
+      null,
+      (Rect? previousValue, GraphChildRenderObject childRenderObject) {
+        final Rect childRect = childRenderObject.paintBounds;
+        return previousValue?.expandToInclude(childRect) ?? childRect;
+      },
+    );
+
+    if (targetGraphSpaceRect == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) async {
+        try {
+          final bool finished = await transform.showInViewport(
+            targetRect: targetGraphSpaceRect,
+            margin: animationData.margin,
+            padding: animationData.padding,
+            duration: animationData.duration,
+            curve: animationData.curve,
+          );
+          animationData.completer.complete(finished);
+        } catch (err) {
+          animationData.completer.completeError(err);
+        }
+      },
+    );
+  }
+
+  /// {@template render_graph_viewport_base.show_nodes_on_screen}
+  /// Animate the given [nodeIds] to be visible in the viewport.
+  ///
+  /// [margin] defines the insets _(in screen space)_ of the viewport that are obscured by overlaying UI elements (e.g.
+  /// toolbars or sidebars). Defaults to [EdgeInsets.zero].
+  /// [padding] defines how far _(in screen space)_ from the ([margin]-adjusted) viewport edges the target nodes should
+  /// be inset by. Defaults to [EdgeInsets.zero].
+  ///
+  /// [duration] and [curve] together define the animation of the movement. [duration] defaults to [Duration.zero].
+  /// [curve] defaults to [Curves.linear].
+  ///
+  /// Returns a [Future] that resolves to `true` when the target was fully reached, and `false` if the animation was
+  /// stopped prematurely - e.g. because the user initiated a drag.
+  /// {@endtemplate}
+  Future<bool> showNodesOnScreen(
+    Set<NodeIdType> nodeIds, {
+    EdgeInsets margin = EdgeInsets.zero,
+    EdgeInsets padding = EdgeInsets.zero,
+    Duration duration = Duration.zero,
+    Curve curve = Curves.linear,
+  }) async {
+    if (_showOnScreenAnimationData != null) {
+      _showOnScreenAnimationData!.completer.complete(false);
+    }
+
+    final Completer<bool> completer = Completer();
+
+    _showOnScreenAnimationData = _ShowOnScreenAnimationData(
+      completer: completer,
+      targetNodeIds: nodeIds,
+
+      padding: padding,
+      margin: margin,
+      duration: duration,
+      curve: curve,
+    );
+
+    markNeedsLayout();
+
+    return completer.future;
+  }
+
+  /// {@template render_graph_viewport_base.show_edges_on_screen}
+  /// Animate the given [edgeIds] to be visible in the viewport.
+  ///
+  /// [margin] defines the insets _(in screen space)_ of the viewport that are obscured by overlaying UI elements (e.g.
+  /// toolbars or sidebars). Defaults to [EdgeInsets.zero].
+  /// [padding] defines how far _(in screen space)_ from the ([margin]-adjusted) viewport edges the target edges should
+  /// be inset by. Defaults to [EdgeInsets.zero].
+  ///
+  /// [duration] and [curve] together define the animation of the movement. [duration] defaults to [Duration.zero].
+  /// [curve] defaults to [Curves.linear].
+  ///
+  /// Returns a [Future] that resolves to `true` when the target was fully reached, and `false` if the animation was
+  /// stopped prematurely - e.g. because the user initiated a drag.
+  /// {@endtemplate}
+  Future<bool> showEdgesOnScreen(
+    Set<EdgeIdType> edgeIds, {
+    EdgeInsets margin = EdgeInsets.zero,
+    EdgeInsets padding = EdgeInsets.zero,
+    Duration duration = Duration.zero,
+    Curve curve = Curves.linear,
+  }) async {
+    if (_showOnScreenAnimationData != null) {
+      _showOnScreenAnimationData!.completer.complete(false);
+    }
+
+    final Completer<bool> completer = Completer();
+
+    _showOnScreenAnimationData = _ShowOnScreenAnimationData(
+      completer: completer,
+      targetEdgeIds: edgeIds,
+      padding: padding,
+      margin: margin,
+      duration: duration,
+      curve: curve,
+    );
+
+    markNeedsLayout();
+
+    return completer.future;
+  }
+
+  @override
+  void showOnScreen({
+    RenderObject? descendant,
+    Rect? rect,
+    EdgeInsets margin = EdgeInsets.zero,
+    EdgeInsets padding = EdgeInsets.zero,
+    Duration duration = Duration.zero,
+    Curve curve = Curves.linear,
+  }) {
+    if (descendant == null) {
+      return super.showOnScreen(descendant: descendant, rect: rect, duration: duration, curve: curve);
+    }
+
+    assert(descendant is GraphChildRenderObject);
+
+    transform.showInViewport(
+      targetRect: rect ?? descendant.paintBounds,
+      margin: margin,
+      padding: padding,
+      duration: duration,
+      curve: curve,
+    );
+  }
+}
+
+@immutable
+class _ShowOnScreenAnimationData<NodeIdType, EdgeIdType> {
+  const _ShowOnScreenAnimationData({
+    required this.completer,
+    this.targetNodeIds = const {},
+    this.targetEdgeIds = const {},
+    required this.padding,
+    required this.margin,
+    required this.duration,
+    required this.curve,
+  });
+
+  final Completer<bool> completer;
+  final Set<NodeIdType> targetNodeIds;
+  final Set<EdgeIdType> targetEdgeIds;
+  final EdgeInsets padding;
+  final EdgeInsets margin;
+  final Duration duration;
+  final Curve curve;
 }

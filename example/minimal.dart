@@ -29,7 +29,7 @@ class GraphViewExampleHomePage extends StatefulWidget {
   State<GraphViewExampleHomePage> createState() => _GraphViewExampleHomePageState();
 }
 
-class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
+class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> with TickerProviderStateMixin {
   final Map<String, ExampleNode> _nodes = Map.fromIterable(
     {
       ExampleNode(id: "node1", position: Offset(-50, -50)),
@@ -45,16 +45,15 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
     key: (edge) => edge.id,
   );
 
-  late final GraphViewportController<String, String> _graphViewportController;
+  late final GraphViewportController<String, String, ExampleNode, ExampleEdge> _graphViewportController;
+  late final GraphViewportTransform _graphViewportTransform;
 
   @override
   void initState() {
     super.initState();
 
-    _graphViewportController = GraphViewportController(
-      initialNodeIds: _nodes.keys,
-      initialEdgeIds: _edges.keys,
-    );
+    _graphViewportController = GraphViewportController(initialNodes: _nodes, initialEdges: _edges);
+    _graphViewportTransform = GraphViewportTransform(vsync: this);
   }
 
   @override
@@ -63,40 +62,50 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
       appBar: AppBar(
         title: Text("Graph View Demo"),
       ),
-      body: GraphView<String, String>(
-        viewportController: _graphViewportController,
-        nodeBuilder: (context, nodeId) {
+      body: GraphViewport<String, String, ExampleNode, ExampleEdge>(
+        controller: _graphViewportController,
+        transform: _graphViewportTransform,
+        nodeBuilder: (context, nodeId, node) {
           return NodeWidget.basic(
-            position: _nodes[nodeId]!.position,
             text: nodeId,
             isDragEnabled: false,
           );
         },
-        edgeBuilder: (context, edgeId) {
-          return EdgeWidget(
-            startNodeId: _edges[edgeId]!.startNodeId,
-            endNodeId: _edges[edgeId]!.endNodeId,
-            text: null,
-          );
+        edgeBuilder: (context, edgeId, edge) {
+          return EdgeWidget();
         },
       ),
     );
   }
 }
 
-class ExampleNode {
-  ExampleNode({required this.id, required this.position});
+class ExampleNode extends StaticGraphViewportNodeModel {
+  const ExampleNode({required this.id, required this.position});
 
   final String id;
 
-  Offset position;
+  @override
+  final Offset position;
+
+  @override
+  bool shouldRebuild(ExampleNode previous) {
+    return false;
+  }
 }
 
-class ExampleEdge {
-  ExampleEdge({required this.id, required this.startNodeId, required this.endNodeId});
+class ExampleEdge extends StaticGraphViewportEdgeModel<String> {
+  const ExampleEdge({required this.id, required this.startNodeId, required this.endNodeId});
 
   final String id;
 
-  String startNodeId;
-  String endNodeId;
+  @override
+  final String startNodeId;
+
+  @override
+  final String endNodeId;
+
+  @override
+  bool shouldRebuild(ExampleEdge previous) {
+    return false;
+  }
 }

@@ -5,37 +5,21 @@ import "package:flutter/widgets.dart";
 
 import "../widgets/node.dart";
 import "../widgets/node_overlay.dart";
-import "graph_element.dart";
+import "graph_child.dart";
 import "graph_viewport.dart";
 import "node_parent_data.dart";
 
-final class GraphNodeRenderObject<NodeIdType> extends GraphElementRenderObject
+final class GraphNodeRenderObject extends GraphChildRenderObject
     with SlottedContainerRenderObjectMixin<NodeWidgetSlot, RenderBox> {
   GraphNodeRenderObject({
-    required this.nodeId,
-    required Offset position,
     required BoxConstraints contentConstraints,
     required Radius borderRadius,
     required Clip clipBehavior,
     required NodeOverlayConfig? overlayConfig,
-  }) : _position = position,
-       _contentConstraints = contentConstraints,
+  }) : _contentConstraints = contentConstraints,
        _borderRadius = borderRadius,
        _clipBehavior = clipBehavior,
        _overlayConfig = overlayConfig;
-
-  final NodeIdType nodeId;
-
-  Offset get positionWithDragOffset => position + (parentData as GraphViewportNodeParentData).dragOffset;
-
-  Offset _position;
-  Offset get position => _position;
-  set position(Offset value) {
-    if (_position == value) return;
-
-    _position = value;
-    markNeedsLayout();
-  }
 
   BoxConstraints _contentConstraints;
   BoxConstraints get contentConstraints => _contentConstraints;
@@ -77,6 +61,9 @@ final class GraphNodeRenderObject<NodeIdType> extends GraphElementRenderObject
   RenderBox get background => childForSlot(NodeWidgetSlot.background)!;
   RenderBox? get overlay => childForSlot(NodeWidgetSlot.overlay);
 
+  @override
+  GraphViewportNodeParentData get parentData => super.parentData as GraphViewportNodeParentData;
+
   bool get hasSize => _size != null;
   Size get size {
     assert(hasSize, "GraphNodeRenderObject was not laid out: $this");
@@ -114,7 +101,6 @@ final class GraphNodeRenderObject<NodeIdType> extends GraphElementRenderObject
   void paint(PaintingContext context, Offset offset) {
     context.canvas.save();
     context.canvas.translate(offset.dx, offset.dy);
-    context.canvas.translate(positionWithDragOffset.dx, positionWithDragOffset.dy);
 
     if (clipBehavior != Clip.none) {
       context.pushClipRRect(
@@ -163,22 +149,20 @@ final class GraphNodeRenderObject<NodeIdType> extends GraphElementRenderObject
 
   @override
   void applyPaintTransform(RenderBox child, Matrix4 transform) {
-    transform.translateByDouble(positionWithDragOffset.dx, positionWithDragOffset.dy, 0, 1);
     transform.translateByDouble(-child.size.width / 2, -child.size.height / 2, 0, 1);
   }
 
   @override
-  Rect get semanticBounds => Rect.fromCenter(center: positionWithDragOffset, width: size.width, height: size.height);
+  Rect get semanticBounds => Rect.fromCenter(center: Offset.zero, width: size.width, height: size.height);
 
   @override
   Rect get paintBounds {
     if (overlay == null) {
       return semanticBounds;
     } else {
-      final Offset overlayLeftTop = positionWithDragOffset + overlayPaintOffset;
       final Rect overlayBounds = Rect.fromLTWH(
-        overlayLeftTop.dx,
-        overlayLeftTop.dy,
+        overlayPaintOffset.dx,
+        overlayPaintOffset.dy,
         overlay!.size.width,
         overlay!.size.height,
       );
@@ -230,6 +214,6 @@ final class GraphNodeRenderObject<NodeIdType> extends GraphElementRenderObject
   @override
   void markParentNeedsLayout() {
     super.markParentNeedsLayout();
-    (parent as RenderGraphViewport).markNeedsLayoutForNodeChange(nodeId);
+    (parent as RenderGraphViewport).markNeedsLayoutForNodeChange(this);
   }
 }

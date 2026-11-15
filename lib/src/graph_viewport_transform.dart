@@ -11,7 +11,7 @@ import "interaction/interaction_config.dart";
 import "interaction/scale_details.dart";
 
 /// A callback for when the move of the viewport transform, that was initiated by the user, stops moving.
-typedef TransformSettleListener = void Function(Offset position, double scale);
+typedef TransformSettleCallback = void Function(Offset position, double scale);
 
 /// The transform used by a [GraphViewport].
 ///
@@ -19,17 +19,30 @@ typedef TransformSettleListener = void Function(Offset position, double scale);
 ///
 /// You can use this class to programmatically change the visible part of the viewport.
 class GraphViewportTransform extends ChangeNotifier {
+  /// The default value for [GraphViewportTransform.new]'s [initialPosition] when it is not supplied to the constructor.
+  static const Offset kDefaultInitialPosition = Offset.zero;
+
+  /// The default value for [GraphViewportTransform.new]'s [initialPosition] when it is not supplied to the constructor.
+  static const double kDefaultInitialScale = 1.0;
+
+  /// The default value for [minScale] when it is not supplied to the constructor.
+  static const double kDefaultMinScale = 0.025;
+
+  /// The default value for [maxScale] when it is not supplied to the constructor.
+  static const double kDefaultMaxScale = 5.0;
+
   /// Constructs a transform at a given [initialPosition] and [initialScale].
   ///
   /// [minScale] must be larger than `0.0` and smaller or equal to [maxScale].
   /// [initialScale] must be between [minScale] and [maxScale], inclusively.
   GraphViewportTransform({
-    required Offset initialPosition,
-    required double initialScale,
-    required double minScale,
-    required double maxScale,
     required TickerProvider vsync,
-    required this.interactionConfig,
+    Offset initialPosition = kDefaultInitialPosition,
+    double initialScale = kDefaultInitialScale,
+    double minScale = kDefaultMinScale,
+    double maxScale = kDefaultMaxScale,
+    this.interactionConfig = const InteractionConfig(),
+    TransformSettleCallback? onTransformSettled,
   }) : assert(minScale > 0),
        assert(maxScale >= minScale),
        assert(initialScale >= minScale && initialScale <= maxScale),
@@ -37,7 +50,8 @@ class GraphViewportTransform extends ChangeNotifier {
        _scale = initialScale,
        _minScale = minScale,
        _maxScale = maxScale,
-       _vsync = vsync;
+       _vsync = vsync,
+       _onTransformSettled = onTransformSettled;
 
   /// The position at the center of the viewport.
   Offset get position => _position;
@@ -54,7 +68,7 @@ class GraphViewportTransform extends ChangeNotifier {
   }
 
   Offset _clampPosition(Offset value) {
-    if (!hasViewportSize || !hasViewportBoundaryInsets) {
+    if (!hasViewportSize || !hasViewportBoundaryInsets || !hasContentRect) {
       return value;
     }
 
@@ -132,6 +146,8 @@ class GraphViewportTransform extends ChangeNotifier {
       scale = _maxScale;
     }
   }
+
+  final TransformSettleCallback? _onTransformSettled;
 
   Size? _viewportSize;
 
@@ -576,8 +592,6 @@ class GraphViewportTransform extends ChangeNotifier {
   Offset? _lastSettledPosition;
   double? _lastSettledScale;
 
-  final Set<TransformSettleListener> _settleListeners = {};
-
   void _maybeNotifySettleListeners() {
     if (_isBeingScaled ||
         (_ballisticController != null && _ballisticController!.isAnimating) ||
@@ -595,17 +609,11 @@ class GraphViewportTransform extends ChangeNotifier {
       return;
     }
 
-    for (final TransformSettleListener listener in _settleListeners) {
-      listener(currentPosition, currentScale);
-    }
+    _lastSettledPosition = currentPosition;
+    _lastSettledScale = currentScale;
+
+    _onTransformSettled?.call(currentPosition, currentScale);
   }
-
-  /// Adds a transform settle listener to this transform, which will be called when a gesture- or animation-initiated
-  /// transform movement ended.
-  void addSettleListener(TransformSettleListener listener) => _settleListeners.add(listener);
-
-  /// Removes a transform settle listener from this transform, which was earlier add with [addSettleListener].
-  void removeSettleListener(TransformSettleListener listener) => _settleListeners.remove(listener);
 
   void _edgeMoveTick(Duration elapsed) {
     final double buildUpFraction =

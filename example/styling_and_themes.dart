@@ -55,7 +55,7 @@ class GraphViewExampleHomePage extends StatefulWidget {
   State<GraphViewExampleHomePage> createState() => _GraphViewExampleHomePageState();
 }
 
-class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
+class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> with TickerProviderStateMixin {
   final Map<String, ExampleNode> _nodes = Map.fromIterable(
     {
       ExampleNode(
@@ -111,16 +111,15 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
     key: (edge) => edge.id,
   );
 
-  late final GraphViewportController<String, String> _graphViewportController;
+  late final GraphViewportController<String, String, ExampleNode, ExampleEdge> _graphViewportController;
+  late final GraphViewportTransform _graphViewportTransform;
 
   @override
   void initState() {
     super.initState();
 
-    _graphViewportController = GraphViewportController(
-      initialNodeIds: _nodes.keys,
-      initialEdgeIds: _edges.keys,
-    );
+    _graphViewportController = GraphViewportController(initialNodes: _nodes, initialEdges: _edges);
+    _graphViewportTransform = GraphViewportTransform(vsync: this);
   }
 
   @override
@@ -129,12 +128,11 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
       appBar: AppBar(
         title: Text("Graph View Demo"),
       ),
-      body: GraphView<String, String>(
-        viewportController: _graphViewportController,
-        nodeBuilder: (context, nodeId) {
-          final ExampleNode node = _nodes[nodeId]!;
+      body: GraphViewport<String, String, ExampleNode, ExampleEdge>(
+        controller: _graphViewportController,
+        transform: _graphViewportTransform,
+        nodeBuilder: (context, nodeId, node) {
           return NodeWidget.basic(
-            position: node.position,
             text: nodeId,
             isDragEnabled: false,
 
@@ -144,11 +142,8 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
             style: node.inlineStyle,
           );
         },
-        edgeBuilder: (context, edgeId) {
-          final ExampleEdge edge = _edges[edgeId]!;
+        edgeBuilder: (context, edgeId, edge) {
           return EdgeWidget(
-            startNodeId: edge.startNodeId,
-            endNodeId: edge.endNodeId,
             text: edge.showText ? edgeId : null,
 
             // Here you can provide the inline style for this edge.
@@ -162,20 +157,28 @@ class _GraphViewExampleHomePageState extends State<GraphViewExampleHomePage> {
   }
 }
 
-class ExampleNode {
-  ExampleNode({
+class ExampleNode extends StaticGraphViewportNodeModel {
+  const ExampleNode({
     required this.id,
     required this.position,
     this.inlineStyle,
   });
 
   final String id;
-  Offset position;
-  NodeStyle? inlineStyle;
+
+  @override
+  final Offset position;
+
+  final NodeStyle? inlineStyle;
+
+  @override
+  bool shouldRebuild(ExampleNode previous) {
+    return false;
+  }
 }
 
-class ExampleEdge {
-  ExampleEdge({
+class ExampleEdge extends StaticGraphViewportEdgeModel<String> {
+  const ExampleEdge({
     required this.id,
     required this.startNodeId,
     required this.endNodeId,
@@ -184,8 +187,19 @@ class ExampleEdge {
   });
 
   final String id;
-  String startNodeId;
-  String endNodeId;
-  EdgeStyle? inlineStyle;
-  bool showText;
+
+  @override
+  final String startNodeId;
+
+  @override
+  final String endNodeId;
+
+  final EdgeStyle? inlineStyle;
+
+  final bool showText;
+
+  @override
+  bool shouldRebuild(ExampleEdge previous) {
+    return false;
+  }
 }

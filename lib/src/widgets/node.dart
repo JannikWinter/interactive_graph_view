@@ -14,16 +14,16 @@ enum NodeWidgetSlot { content, background, overlay }
 ///
 /// To display this node, it should be constructed as a child of a [GraphViewport] through [GraphViewport.nodeBuilder].
 ///
-/// To build a node, its ID should first be added to a [GraphViewport]'s [GraphViewport.viewportController].
-class NodeWidget<NodeIdType> extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, RenderBox> {
-  /// Constructs a [NodeWidget] at a given [position] while giving you full customizability for the [content],
+/// To build a node, its ID should first be added to a [GraphViewport]'s [GraphViewport.controller].
+class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, RenderBox> {
+  /// Constructs a [NodeWidget] while giving you full customizability for the [content],
   /// [background] and [overlay] widgets.
   ///
   /// If you just want to construct a simple node, which only requires a text, you probably want to use
   /// [NodeWidget.basic].
   ///
-  /// Note that only the following [NodeStyle]-properties are applied when using this constructor:
-  /// - [NodeStyle.maxWidth] will be used for wrapping the content.
+  /// Note that, when using this constructor, only the following [NodeStyle]-properties are applied:
+  /// - [NodeStyle.contentConstraints] will be used for wrapping the content.
   /// - [NodeStyle.clipBehavior], if not [Clip.none], will clip [content] and [background] according to
   /// [NodeStyle.borderRadius].
   /// - [NodeStyle.borderRadius] will be used for correctly displaying an edge's arrow near the corner of this node.
@@ -31,13 +31,12 @@ class NodeWidget<NodeIdType> extends SlottedMultiChildRenderObjectWidget<NodeWid
   /// The other properties would apply to [content] and [background], which you define yourself.
   ///
   /// To apply the style for this widget, we will search for a non-null value for each [NodeStyle]-property. The applied
-  /// `NodeStyle`s are searched in the following order:
+  /// [NodeStyle]s are searched in the following order:
   /// 1. the given [style].
   /// 2. the node style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
   /// 3. [NodeStyle.fallback] which will have a fallback value for every property.
   const NodeWidget.custom({
     super.key,
-    required this.position,
     required this.content,
     required this.background,
     this.overlay,
@@ -54,19 +53,18 @@ class NodeWidget<NodeIdType> extends SlottedMultiChildRenderObjectWidget<NodeWid
     this.onDragCancel,
   });
 
-  /// Constructs a [NodeWidget] at a given [position] with given [text], [style] and optional [overlay].
+  /// Constructs a [NodeWidget] with given [text], [style] and optional [overlay].
   ///
   /// If you want more control over the content and background of the node, you should use [NodeWidget.custom],
   /// where you define the widgets for [content] and [background] yourself.
   ///
   /// To apply the style for this widget, we will search for a non-null value for each [NodeStyle]-property. The applied
-  /// `NodeStyle`s are searched in the following order:
+  /// [NodeStyle]s are searched in the following order:
   /// 1. the given [style].
   /// 2. the node style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
   /// 3. [NodeStyle.fallback] which will have a fallback value for every property.
   factory NodeWidget.basic({
     Key? key,
-    required Offset position,
     required String text,
     NodeOverlay? overlay,
     NodeStyle? style,
@@ -83,7 +81,6 @@ class NodeWidget<NodeIdType> extends SlottedMultiChildRenderObjectWidget<NodeWid
   }) {
     return NodeWidget.custom(
       key: key,
-      position: position,
       content: BasicNodeContent(text: text, style: style),
       background: BasicNodeBackground(style: style),
       overlay: overlay,
@@ -100,11 +97,6 @@ class NodeWidget<NodeIdType> extends SlottedMultiChildRenderObjectWidget<NodeWid
       onDragCancel: onDragCancel,
     );
   }
-
-  /// The position in the [GraphViewport] where this node will be displayed.
-  ///
-  /// The node is always centered around the position.
-  final Offset position;
 
   /// The widget used to construct the content of this node.
   ///
@@ -180,15 +172,10 @@ class NodeWidget<NodeIdType> extends SlottedMultiChildRenderObjectWidget<NodeWid
   }
 
   @override
-  GraphNodeRenderObject<NodeIdType> createRenderObject(BuildContext context) {
-    final NodeIdType nodeId = (context as NodeElement<NodeIdType>).slot!.nodeId;
-    final NodeStyle? themeStyle = Theme.of(context).extension<NodeStyle>();
-    final NodeStyle fallbackStyle = NodeStyle.fallback();
-    final NodeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+  GraphNodeRenderObject createRenderObject(BuildContext context) {
+    final NodeStyle effectiveStyle = NodeStyle.getEffectiveStyle(context, style: style);
 
     return GraphNodeRenderObject(
-      nodeId: nodeId,
-      position: position,
       overlayConfig: overlay,
       contentConstraints: effectiveStyle.contentConstraints!,
       borderRadius: effectiveStyle.borderRadius!,
@@ -203,12 +190,9 @@ class NodeWidget<NodeIdType> extends SlottedMultiChildRenderObjectWidget<NodeWid
 
   @override
   void updateRenderObject(BuildContext context, GraphNodeRenderObject renderObject) {
-    final NodeStyle? themeStyle = Theme.of(context).extension<NodeStyle>();
-    final NodeStyle fallbackStyle = NodeStyle.fallback();
-    final NodeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+    final NodeStyle effectiveStyle = NodeStyle.getEffectiveStyle(context, style: style);
 
     renderObject
-      ..position = position
       ..overlayConfig = overlay
       ..contentConstraints = effectiveStyle.contentConstraints!
       ..borderRadius = effectiveStyle.borderRadius!
@@ -245,12 +229,9 @@ class BasicNodeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final NodeStyle? themeStyle = Theme.of(context).extension<NodeStyle>();
-    final NodeStyle fallbackStyle = NodeStyle.fallback();
-    final NodeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
-
+    final NodeStyle effectiveStyle = NodeStyle.getEffectiveStyle(context, style: style);
     final EdgeInsets effectivePadding = effectiveStyle.padding!;
-    final TextStyle effectiveTextStyle = DefaultTextStyle.of(context).style.merge(effectiveStyle.textStyle);
+    final TextStyle effectiveTextStyle = effectiveStyle.textStyle;
 
     return Padding(
       padding: effectivePadding,
@@ -285,10 +266,7 @@ class BasicNodeBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final NodeStyle? themeStyle = Theme.of(context).extension<NodeStyle>();
-    final NodeStyle fallbackStyle = NodeStyle.fallback();
-    final NodeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
-
+    final NodeStyle effectiveStyle = NodeStyle.getEffectiveStyle(context, style: style);
     final Color effectiveBackgroundColor = effectiveStyle.backgroundColor!;
     final BorderSide effectiveBorderSide = effectiveStyle.borderSide!;
     final Radius effectiveBorderRadius = effectiveStyle.borderRadius!;

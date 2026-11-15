@@ -12,14 +12,12 @@ import "../style/curve_style.dart";
 import "../style/line_shadow.dart";
 import "../style/line_style.dart";
 import "edge_parent_data.dart";
-import "graph_element.dart";
+import "graph_child.dart";
 
-final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
+final class GraphEdgeRenderObject extends GraphChildRenderObject {
   static const double _hitTestPathStepSize = 5.0;
 
   GraphEdgeRenderObject({
-    required NodeIdType startNodeId,
-    required NodeIdType endNodeId,
     required String? text,
     required ArrowStyle arrowStyle,
     required CurveStyle curveStyle,
@@ -28,35 +26,17 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     required Color textBackgroundColor,
     required Color color,
     required List<LineShadow> shadow,
-  }) : _startNodeId = startNodeId,
-       _endNodeId = endNodeId,
-       _text = text,
+    required double hitboxThickness,
+  }) : _text = text,
        _arrowStyle = arrowStyle,
        _curveStyle = curveStyle,
        _lineStyle = lineStyle,
        _textStyle = textStyle,
        _textBackgroundColor = textBackgroundColor,
        _color = color,
-       _shadow = shadow {
+       _shadow = shadow,
+       _hitboxThickness = hitboxThickness {
     _recreateTextPainter();
-  }
-
-  NodeIdType _startNodeId;
-  NodeIdType get startNodeId => _startNodeId;
-  set startNodeId(NodeIdType value) {
-    if (_startNodeId == value) return;
-
-    _startNodeId = value;
-    markParentNeedsLayout();
-  }
-
-  NodeIdType _endNodeId;
-  NodeIdType get endNodeId => _endNodeId;
-  set endNodeId(NodeIdType value) {
-    if (_endNodeId == value) return;
-
-    _endNodeId = value;
-    markParentNeedsLayout();
   }
 
   TextPainter? _textPainter;
@@ -150,6 +130,16 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     markNeedsPaint();
   }
 
+  double _hitboxThickness;
+  double get hitboxThickness => _hitboxThickness;
+  set hitboxThickness(double value) {
+    if (_hitboxThickness == value) return;
+
+    _hitboxThickness = value;
+
+    markNeedsLayout();
+  }
+
   late Path _hitTestPath;
   late Path _basicLinePath;
   late Path _linePath;
@@ -162,9 +152,10 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
   Path get linePath => _basicLinePath;
 
   @override
-  void performLayout() {
-    final GraphViewportEdgeParentData parentData = this.parentData as GraphViewportEdgeParentData;
+  GraphViewportEdgeParentData get parentData => super.parentData as GraphViewportEdgeParentData;
 
+  @override
+  void performLayout() {
     final Offset startNodeCenter = parentData.startNodeCenter;
     final Size startNodeSize = parentData.startNodeSize;
 
@@ -175,7 +166,7 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
     final Offset startToEnd = parentData.centerToCenter;
     final Offset endToStart = parentData.centerToCenterBackwards;
     final Offset direction = startToEnd / startToEnd.distance;
-    final Offset rotated1 = Offset(-direction.dy, direction.dx) * parentData.hitboxThickness / 2;
+    final Offset rotated1 = Offset(-direction.dy, direction.dx) * hitboxThickness / 2;
     final Offset rotated2 = -rotated1;
 
     if (_textPainter != null) {
@@ -206,24 +197,34 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
             required Size nodeSize,
             required Offset nodeCenter,
           }) {
-            final double lineSlope = (lineToNode.dy / lineToNode.dx).abs();
+            if (nodeSize.isEmpty) {
+              return nodeCenter;
+            }
+            if (lineToNode == Offset.zero) {
+              return nodeCenter;
+            }
+
+            final double dx = lineToNode.dx;
+            final double dy = lineToNode.dy;
+
+            final bool intersectsVerticalEdge = dy.abs() * nodeSize.width < dx.abs() * nodeSize.height;
 
             final double xOffset;
             final double yOffset;
-            if (lineSlope < (nodeSize.height / nodeSize.width).abs()) {
-              // horizontal
+            if (intersectsVerticalEdge) {
+              // line is flatter than the diagonal of the node and hits the left or right edge
               xOffset = nodeSize.width / 2;
-              yOffset = lineSlope * xOffset;
+              yOffset = xOffset * dy.abs() / dx.abs();
             } else {
-              // vertical
+              // line is steeper than the diagonal of the node and hits the top or bottom edge
               yOffset = nodeSize.height / 2;
-              xOffset = yOffset / lineSlope;
+              xOffset = yOffset * dx.abs() / dy.abs();
             }
 
             return nodeCenter +
                 Offset(
-                  xOffset * -lineToNode.dx.sign,
-                  yOffset * -lineToNode.dy.sign,
+                  xOffset * -dx.sign,
+                  yOffset * -dy.sign,
                 );
           }
 
@@ -402,8 +403,6 @@ final class GraphEdgeRenderObject<NodeIdType> extends GraphElementRenderObject {
 
   @override
   Rect get semanticBounds {
-    final GraphViewportEdgeParentData parentData = this.parentData as GraphViewportEdgeParentData;
-
     return Rect.fromPoints(parentData.startNodeCenter, parentData.endNodeCenter);
   }
 

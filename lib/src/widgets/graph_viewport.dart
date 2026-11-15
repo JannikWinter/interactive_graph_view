@@ -4,6 +4,8 @@ import "package:material_ui/material_ui.dart" show Theme;
 
 import "../elements/graph_viewport.dart";
 import "../graph_viewport_controller.dart";
+import "../graph_viewport_edge_model.dart";
+import "../graph_viewport_node_model.dart";
 import "../graph_viewport_transform.dart";
 import "../interaction/gesture_callbacks.dart";
 import "../rendering/graph_viewport.dart";
@@ -13,49 +15,54 @@ import "node.dart";
 
 /// The widget builder function for nodes.
 ///
-/// Returns a [NodeWidget] for a supplied node ID.
-typedef NodeBuilder<NodeIdType> = NodeWidget Function(BuildContext context, NodeIdType nodeId);
+/// Returns a [NodeWidget] for a supplied [nodeId] and node data ([node]).
+typedef NodeBuilder<NodeIdType, NodeModelType extends GraphViewportNodeModel> =
+    NodeWidget Function(BuildContext context, NodeIdType nodeId, NodeModelType node);
 
 /// The widget builder function for edges.
 ///
-/// Returns an [EdgeWidget] for a supplied edge ID.
-typedef EdgeBuilder<EdgeIdType> = EdgeWidget Function(BuildContext context, EdgeIdType edgeId);
+/// Returns an [EdgeWidget] for a supplied [edgeId] and edge data ([edge]).
+typedef EdgeBuilder<EdgeIdType, EdgeModelType extends GraphViewportEdgeModel> =
+    EdgeWidget Function(BuildContext context, EdgeIdType edgeId, EdgeModelType edge);
+
+/// The callback for when nodes were dragged and that drag ended.
+typedef NodesMovedCallback<NodeIdType> = void Function(Set<NodeIdType> nodeIds, Offset offset);
 
 /// A widget for interacting with and styling a graph.
 ///
-/// Compared to [GraphView] (which uses this widget internally), this widget gives you more flexibility, as
-/// panning and scaling is not handled for you.
-/// If you do not need to do that flexibility, [GraphView] is probably the widget you want to use instead.
-///
-/// The graph's nodes and edges are added and removed through the [viewportController]
+/// The graph's nodes and edges are added and removed through the [controller]
 /// and built and styled as [NodeWidget]s and [EdgeWidget]s in the [nodeBuilder] and [edgeBuilder] respectively.
 ///
 /// Nodes and edges are only identified by their IDs. The respective ID type is supplied through
-/// the generic types [NodeIdType] and [EdgeIdType].
-class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
+/// the generic types [NodeIdType] and [EdgeIdType]. The respective data type is supplied through the generic types
+/// [NodeModelType] and [EdgeModelType], which have to be a subclass of
+/// [GraphViewportNodeModel] and [GraphViewportEdgeModel] respectively.
+class GraphViewport<
+  NodeIdType,
+  EdgeIdType,
+  NodeModelType extends GraphViewportNodeModel,
+  EdgeModelType extends GraphViewportEdgeModel<NodeIdType>
+>
+    extends RenderObjectWidget {
   /// The default value for [cacheExtent] when it is not supplied to the constructor.
   static const double kDefaultCacheExtent = 50.0;
 
   /// The default value for [boundaryInsets] when it is not supplied to the constructor.
   static const EdgeInsets kDefaultBoundaryInsets = EdgeInsets.zero;
 
-  /// The default value for [edgeHitboxThickness] when it is not supplied to the constructor.
-  static const double kDefaultEdgeHitboxThickness = 40.0;
-  static const bool kDefaultRebuildAllChildrenOnWidgetUpdate = true;
-
   /// Constructs a [GraphViewport].
   const GraphViewport({
     super.key,
-    required this.viewportController,
+    required this.controller,
     required this.nodeBuilder,
     required this.edgeBuilder,
     required this.transform,
     this.style,
     this.cacheExtent = kDefaultCacheExtent,
     this.boundaryInsets = kDefaultBoundaryInsets,
-    this.edgeHitboxThickness = kDefaultEdgeHitboxThickness,
     this.debugPaintQuadTree = false,
-    this.rebuildAllChildrenOnWidgetUpdate = kDefaultRebuildAllChildrenOnWidgetUpdate,
+    this.movingNodeIds = const {},
+    this.onNodesMoved,
     this.onScaleStart,
     this.onScaleUpdate,
     this.onScaleEnd,
@@ -63,15 +70,11 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
     this.onTap,
     this.onDoubleTap,
     this.onPointerSignal,
-  }) : assert(cacheExtent >= 0.0),
-       assert(edgeHitboxThickness >= 1.0);
+  }) : assert(cacheExtent >= 0.0);
 
-  /// {@template graph_viewport.viewport_controller}
   /// The viewport controller through which the graph's elements are controlled programmatically.
-  /// {@endtemplate}
-  final GraphViewportController<NodeIdType, EdgeIdType> viewportController;
+  final GraphViewportController<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> controller;
 
-  /// {@template graph_viewport.node_builder}
   /// The widget builder function for nodes.
   ///
   /// Returns a [NodeWidget] for any supplied node ID.
@@ -84,10 +87,8 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// visible edges lazily.
   /// If [rebuildAllChildrenOnWidgetUpdate] is set to `true`, all nodes are also rebuild when the widget configuration
   /// changes.
-  /// {@endtemplate}
-  final NodeBuilder<NodeIdType> nodeBuilder;
+  final NodeBuilder<NodeIdType, NodeModelType> nodeBuilder;
 
-  /// {@template graph_viewport.edge_builder}
   /// The widget builder function for edges.
   ///
   /// Returns an [EdgeWidget] for any supplied edge ID.
@@ -98,15 +99,11 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// Upon first construction of this widget, this builder will be called once for each edge that was supplied to
   /// the [GraphViewportController] to construct a quad tree that is then used to only build the
   /// visible edges lazily.
-  /// If [rebuildAllChildrenOnWidgetUpdate] is set to `true`, all edges are also rebuild when the widget configuration
-  /// changes.
-  /// {@endtemplate}
-  final EdgeBuilder<EdgeIdType> edgeBuilder;
+  final EdgeBuilder<EdgeIdType, EdgeModelType> edgeBuilder;
 
   /// The viewport transform through which the viewport's visible area is controlled programmatically.
   final GraphViewportTransform transform;
 
-  /// {@template graph_viewport.style}
   /// This viewport's own style.
   ///
   /// To apply the style for this widget, we will search for a non-null value for each [GraphStyle]-property. The
@@ -114,12 +111,9 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// 1. this [style].
   /// 2. the graph style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
   /// 3. [GraphStyle.fallback] which will have a fallback value for every property.
-  /// {@endtemplate}
   final GraphStyle? style;
 
-  /// {@template graph_viewport.cache_extent}
   /// The extent in each direction outside the visible viewport area, in which graph elements are to be displayed.
-  /// {@endtemplate}
   ///
   /// Defaults to [kDefaultCacheExtent].
   final double cacheExtent;
@@ -136,93 +130,57 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   /// Defaults to [kDefaultBoundaryInsets]
   final EdgeInsets boundaryInsets;
 
-  /// {@template graph_viewport.edge_hitbox_thickness}
-  /// The thickness of the gesture hitbox for all edges displayed by this GraphView.
-  /// {@endtemplate}
-  ///
-  /// Defaults to [kDefaultEdgeHitboxThickness].
-  final double edgeHitboxThickness;
-
-  /// {@template graph_viewport.debug_paint_quad_tree}
   /// Whether the quad tree, that is used to effectively store the children of the viewport, should be painted.
-  /// {@endtemplate}
   ///
   /// Defaults to `false`.
   final bool debugPaintQuadTree;
 
-  /// {@template graph_viewport.rebuild_all_children_on_widget_update}
-  /// Whether all children should be rebuilt when this widget's configuration changes (see [Element.update]).
-  ///
-  /// This should be set to `true` when you wish to see the changes, e.g. in your [nodeBuilder] and [edgeBuilder],
-  /// on hot reload.
-  ///
-  /// Otherwise, for performance reasons, this should probably be set to false and rebuilds of nodes and edges
-  /// should be initiated through [GraphViewportController.rebuildNode] and [GraphViewportController.rebuildEdge]
-  /// respectively.
-  /// {@endtemplate}
-  ///
-  /// Defaults to [kDefaultRebuildAllChildrenOnWidgetUpdate].
-  final bool rebuildAllChildrenOnWidgetUpdate;
+  final Set<NodeIdType> movingNodeIds;
 
-  /// {@template graph_viewport.on_tap_down}
+  final NodesMovedCallback<NodeIdType>? onNodesMoved;
+
   /// This callback will be called when a TapDown gesture was registered on the viewport,
   /// which was not registered on any child.
-  /// {@endtemplate}
   final GestureGraphViewportTapDownCallback? onTapDown;
 
-  /// {@template graph_viewport.on_tap}
   /// This callback will be called when a Tap gesture was registered on the viewport,
   /// which was not registered on any child.
-  /// {@endtemplate}
   final GestureGraphViewportTapCallback? onTap;
 
-  /// {@template graph_viewport.on_double_tap}
   /// This callback will be called when a DoubleTap gesture was registered on the viewport,
   /// which was not registered on any child.
-  /// {@endtemplate}
   final GestureGraphViewportDoubleTapCallback? onDoubleTap;
 
-  /// {@template graph_viewport.on_scale_start}
   /// This callback will be called when a ScaleStart gesture was registered on the viewport,
   /// which was not registered on any child.
-  /// {@endtemplate}
   final GestureGraphViewportScaleStartCallback? onScaleStart;
 
-  /// {@template graph_viewport.on_scale_update}
   /// This callback will be called when a ScaleUpdate gesture was registered on the viewport,
   /// which was not registered on any child.
-  /// {@endtemplate}
   final GestureGraphViewportScaleUpdateCallback? onScaleUpdate;
 
-  /// {@template graph_viewport.on_scale_end}
   /// This callback will be called when a ScaleEnd gesture was registered on the viewport,
   /// which was not registered on any child.
-  /// {@endtemplate}
   final GestureGraphViewportScaleEndCallback? onScaleEnd;
 
-  /// {@template graph_viewport.on_pointer_signal}
   /// This callback will be called when a pointer signal event, e.g. a scroll event, was registered on the viewport.
-  /// {@endtemplate}
   final void Function(PointerSignalEvent event)? onPointerSignal;
 
   @override
   RenderObjectElement createElement() {
-    return GraphViewportElement<NodeIdType, EdgeIdType>(this);
+    return GraphViewportElement<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>(this);
   }
 
   @override
-  RenderGraphViewport<NodeIdType, EdgeIdType> createRenderObject(BuildContext context) {
-    final GraphStyle? themeStyle = Theme.of(context).extension<GraphStyle>();
-    final GraphStyle fallbackStyle = GraphStyle.fallback();
-    final GraphStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+  RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> createRenderObject(BuildContext context) {
+    final GraphStyle effectiveStyle = GraphStyle.getEffectiveStyle(context, style: style);
 
-    return RenderGraphViewport<NodeIdType, EdgeIdType>(
-      viewportController: viewportController,
+    return RenderGraphViewport(
+      controller: controller,
       transform: transform,
-      layoutHelper: context as GraphViewportElement<NodeIdType, EdgeIdType>,
+      layoutHelper: context as GraphViewportElement<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>,
       cacheExtent: cacheExtent,
       boundaryInsets: boundaryInsets,
-      edgeHitboxThickness: edgeHitboxThickness,
       debugPaintQuadTree: debugPaintQuadTree,
       backgroundColor: effectiveStyle.backgroundColor!,
     );
@@ -231,18 +189,15 @@ class GraphViewport<NodeIdType, EdgeIdType> extends RenderObjectWidget {
   @override
   void updateRenderObject(
     BuildContext context,
-    RenderGraphViewport<NodeIdType, EdgeIdType> renderObject,
+    RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> renderObject,
   ) {
-    final GraphStyle? themeStyle = Theme.of(context).extension<GraphStyle>();
-    final GraphStyle fallbackStyle = GraphStyle.fallback();
-    final GraphStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+    final GraphStyle effectiveStyle = GraphStyle.getEffectiveStyle(context, style: style);
 
     renderObject
-      ..viewportController = viewportController
+      ..controller = controller
       ..transform = transform
       ..cacheExtent = cacheExtent
       ..boundaryInsets = boundaryInsets
-      ..edgeHitboxThickness = edgeHitboxThickness
       ..debugPaintQuadTree = debugPaintQuadTree
       ..backgroundColor = effectiveStyle.backgroundColor!;
   }

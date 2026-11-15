@@ -10,29 +10,21 @@ import "../style/edge_style.dart";
 ///
 /// To display this edge, it should be constructed as a child of a [GraphViewport] through [GraphViewport.edgeBuilder].
 ///
-/// To build an edge, its ID should first be added to a [GraphViewport]'s [GraphViewport.viewportController].
-class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
+/// To build an edge, its ID should first be added to a [GraphViewport]'s [GraphViewport.controller].
+class EdgeWidget extends LeafRenderObjectWidget {
+  /// The default value for [hitboxThickness] when it is not supplied to the constructor.
+  static const double kDefaultHitboxThickness = 40.0;
+
   /// Constructs an [EdgeWidget].
   const EdgeWidget({
     super.key,
-    required this.startNodeId,
-    required this.endNodeId,
     this.text,
     this.style,
     this.onTapDown,
     this.onTap,
     this.onLongPress,
-  });
-
-  /// The ID of the node where this edge originates from.
-  ///
-  /// This ID must be known by the [GraphViewport]'s [GraphViewport.viewportController].
-  final NodeIdType startNodeId;
-
-  /// The ID of the node where this edge ends at.
-  ///
-  /// This ID must be known by the [GraphViewport]'s [GraphViewport.viewportController].
-  final NodeIdType endNodeId;
+    this.hitboxThickness = kDefaultHitboxThickness,
+  }) : assert(hitboxThickness >= 1.0);
 
   /// The text that is shown at the center of this edge.
   ///
@@ -52,31 +44,29 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
 
   /// This callback will be called when a TapDown gesture was registered on this edge.
   ///
-  /// Note that you can configure the gesture hitbox for all edges of a viewport through
-  /// [GraphViewport.edgeHitboxThickness].
+  /// You can configure the gesture hitbox through [hitboxThickness].
   final GestureGraphViewportTapDownCallback? onTapDown;
 
   /// This callback will be called when a Tap gesture was registered on this edge.
   ///
-  /// Note that you can configure the gesture hitbox for all edges of a viewport through
-  /// [GraphViewport.edgeHitboxThickness].
+  /// You can configure the gesture hitbox through [hitboxThickness].
   final GestureGraphViewportTapCallback? onTap;
 
   /// This callback will be called when a LongPress gesture was registered on this edge.
   ///
-  /// Note that you can configure the gesture hitbox for all edges of a viewport through
-  /// [GraphViewport.edgeHitboxThickness].
+  /// You can configure the gesture hitbox through [hitboxThickness].
   final GestureGraphViewportLongPressCallback? onLongPress;
+
+  /// The thickness of the edge's gesture hitbox.
+  ///
+  /// Defaults to [kDefaultHitboxThickness].
+  final double hitboxThickness;
 
   @override
   GraphEdgeRenderObject createRenderObject(BuildContext context) {
-    final EdgeStyle? themeStyle = Theme.of(context).extension<EdgeStyle>();
-    final EdgeStyle fallbackStyle = EdgeStyle.fallback();
-    final EdgeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+    final EdgeStyle effectiveStyle = EdgeStyle.getEffectiveStyle(context, style: style);
 
     return GraphEdgeRenderObject(
-      startNodeId: startNodeId,
-      endNodeId: endNodeId,
       text: text,
       arrowStyle: effectiveStyle.arrowStyle!,
       lineStyle: effectiveStyle.lineStyle!,
@@ -85,6 +75,7 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
       textBackgroundColor: effectiveStyle.textBackgroundColor!,
       color: effectiveStyle.lineColor!,
       shadow: effectiveStyle.shadow!,
+      hitboxThickness: hitboxThickness,
     );
   }
 
@@ -95,13 +86,9 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
 
   @override
   void updateRenderObject(BuildContext context, GraphEdgeRenderObject renderObject) {
-    final EdgeStyle? themeStyle = Theme.of(context).extension<EdgeStyle>();
-    final EdgeStyle fallbackStyle = EdgeStyle.fallback();
-    final EdgeStyle effectiveStyle = fallbackStyle.merge(themeStyle).merge(style);
+    final EdgeStyle effectiveStyle = EdgeStyle.getEffectiveStyle(context, style: style);
 
     renderObject
-      ..startNodeId = startNodeId
-      ..endNodeId = endNodeId
       ..text = text
       ..arrowStyle = effectiveStyle.arrowStyle!
       ..lineStyle = effectiveStyle.lineStyle!
@@ -109,6 +96,7 @@ class EdgeWidget<NodeIdType> extends LeafRenderObjectWidget {
       ..textStyle = effectiveStyle.textStyle
       ..textBackgroundColor = effectiveStyle.textBackgroundColor!
       ..color = effectiveStyle.lineColor!
-      ..shadow = effectiveStyle.shadow!;
+      ..shadow = effectiveStyle.shadow!
+      ..hitboxThickness = hitboxThickness;
   }
 }

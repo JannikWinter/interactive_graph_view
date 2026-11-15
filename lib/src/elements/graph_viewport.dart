@@ -1,14 +1,15 @@
 import "package:flutter/gestures.dart";
 import "package:flutter/widgets.dart";
+import "package:interactive_graph_view/src/graph_viewport_controller.dart";
 
-import "../graph_viewport_controller.dart";
+import "../graph_viewport_edge_model.dart";
+import "../graph_viewport_node_model.dart";
 import "../graph_viewport_transform.dart";
 import "../interaction/scale_details.dart";
 import "../interaction/tap_details.dart";
 import "../rendering/edge.dart";
-import "../rendering/graph_element.dart";
+import "../rendering/graph_child.dart";
 import "../rendering/graph_viewport.dart";
-import "../rendering/graph_viewport_base.dart";
 import "../rendering/node.dart";
 import "../widgets/edge.dart";
 import "../widgets/graph_viewport.dart";
@@ -55,7 +56,14 @@ abstract interface class GraphViewportLayoutHelper {
   void endLayout();
 }
 
-class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement implements GraphViewportLayoutHelper {
+class GraphViewportElement<
+  NodeIdType,
+  EdgeIdType,
+  NodeModelType extends GraphViewportNodeModel,
+  EdgeModelType extends GraphViewportEdgeModel<NodeIdType>
+>
+    extends RenderObjectElement
+    implements GraphViewportLayoutHelper {
   GraphViewportElement(GraphViewport super.widget);
 
   late ScaleGestureRecognizer _scaleRecognizer;
@@ -63,8 +71,8 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   late DoubleTapGestureRecognizer _doubleTapRecognizer;
 
   @override
-  RenderGraphViewport<NodeIdType, EdgeIdType> get renderObject =>
-      super.renderObject as RenderGraphViewport<NodeIdType, EdgeIdType>;
+  RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> get renderObject =>
+      super.renderObject as RenderGraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>;
 
   Map<NodeIdType, Element> _nodes = {};
   Map<EdgeIdType, Element> _edges = {};
@@ -72,9 +80,9 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   Map<NodeIdType, Element> _lastNodes = {};
   Map<EdgeIdType, Element> _lastEdges = {};
 
-  late GraphViewportController<NodeIdType, EdgeIdType> _viewportController;
-  late NodeBuilder<NodeIdType> _nodeBuilder;
-  late EdgeBuilder<EdgeIdType> _edgeBuilder;
+  late NodeBuilder<NodeIdType, NodeModelType> _nodeBuilder;
+  late EdgeBuilder<EdgeIdType, EdgeModelType> _edgeBuilder;
+  late GraphViewportController<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> _controller;
 
   @override
   void startLayout() {
@@ -129,7 +137,8 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
 
   Element _buildNode(NodeIdType nodeId) {
     final GraphViewportNodeSlot newNodeSlot = GraphViewportNodeSlot(nodeId);
-    final NodeWidget newNodeWidget = _nodeBuilder(this, nodeId);
+    final NodeModelType nodeData = _controller.allNodes[nodeId]!;
+    final NodeWidget newNodeWidget = _nodeBuilder(this, nodeId, nodeData);
     final Element? oldNodeElement = _lastNodes[nodeId];
     final Element newNodeElement = updateChild(oldNodeElement, newNodeWidget, newNodeSlot)!;
 
@@ -138,83 +147,59 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
 
   Element _buildEdge(EdgeIdType edgeId) {
     final GraphViewportEdgeSlot newEdgeSlot = GraphViewportEdgeSlot(edgeId);
-    final EdgeWidget newEdgeWidget = _edgeBuilder(this, edgeId);
+    final EdgeModelType edgeData = _controller.allEdges[edgeId]!;
+    final EdgeWidget newEdgeWidget = _edgeBuilder(this, edgeId, edgeData);
     final Element? oldEdgeElement = _lastEdges[edgeId];
     final Element newEdgeElement = updateChild(oldEdgeElement, newEdgeWidget, newEdgeSlot)!;
 
     return newEdgeElement;
   }
 
-  void _buildAllNodes() {
-    for (final NodeIdType nodeId in _viewportController.allNodeIds) {
-      _nodes[nodeId] = _buildNode(nodeId);
-    }
-  }
-
-  void _buildAllEdges() {
-    for (final EdgeIdType edgeId in _viewportController.allEdgeIds) {
-      _edges[edgeId] = _buildEdge(edgeId);
-    }
-  }
-
   @override
   void mount(Element? parent, Object? newSlot) {
     super.mount(parent, newSlot);
 
-    final GraphViewport<NodeIdType, EdgeIdType> widget = this.widget as GraphViewport<NodeIdType, EdgeIdType>;
-
-    _viewportController = widget.viewportController;
-    _nodeBuilder = widget.nodeBuilder;
-    _edgeBuilder = widget.edgeBuilder;
-
-    _scaleRecognizer = ScaleGestureRecognizer(debugOwner: this, trackpadScrollCausesScale: true);
-    _scaleRecognizer.onStart = (widget.onScaleStart != null) ? _onScaleStart : null;
-    _scaleRecognizer.onUpdate = (widget.onScaleUpdate != null) ? _onScaleUpdate : null;
-    _scaleRecognizer.onEnd = (widget.onScaleEnd != null) ? _onScaleEnd : null;
-
-    _tapRecognizer = TapGestureRecognizer(debugOwner: this);
-    _tapRecognizer.onTapDown = (widget.onTapDown != null) ? _onTapDown : null;
-    _tapRecognizer.onTap = (widget.onTap != null) ? _onTap : null;
-
-    _doubleTapRecognizer = DoubleTapGestureRecognizer(debugOwner: this);
-    _doubleTapRecognizer.onDoubleTapDown = (widget.onTapDown != null) ? _onTapDown : null;
-    _doubleTapRecognizer.onDoubleTap = (widget.onDoubleTap != null) ? _onDoubleTap : null;
-
-    renderObject.onPointerDown = _handlePointerDown;
-    renderObject.onPointerPanZoomStart = _handlePointerPanZoomStart;
-    renderObject.onPointerSignal = _handlePointerSignal;
-
-    _buildAllNodes();
-    _buildAllEdges();
-    renderObject.markNeedsFirstLayout();
+    _initialize(widget as GraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType>);
   }
 
   @override
-  void update(GraphViewport<NodeIdType, EdgeIdType> newWidget) {
+  void update(GraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> newWidget) {
     super.update(newWidget);
 
-    _viewportController = newWidget.viewportController;
-    _nodeBuilder = newWidget.nodeBuilder;
-    _edgeBuilder = newWidget.edgeBuilder;
+    _initialize(newWidget);
+  }
 
-    _scaleRecognizer.onStart = (newWidget.onScaleStart != null) ? _onScaleStart : null;
-    _scaleRecognizer.onUpdate = (newWidget.onScaleUpdate != null) ? _onScaleUpdate : null;
-    _scaleRecognizer.onEnd = (newWidget.onScaleEnd != null) ? _onScaleEnd : null;
+  void _initialize(GraphViewport<NodeIdType, EdgeIdType, NodeModelType, EdgeModelType> widget) {
+    _nodeBuilder = widget.nodeBuilder;
+    _edgeBuilder = widget.edgeBuilder;
+    _controller = widget.controller;
 
-    _tapRecognizer.onTapDown = (newWidget.onTapDown != null) ? _onTapDown : null;
-    _tapRecognizer.onTap = (newWidget.onTap != null) ? _onTap : null;
+    _scaleRecognizer = ScaleGestureRecognizer(debugOwner: this, trackpadScrollCausesScale: true);
+    _scaleRecognizer.onStart = _onScaleStart;
+    _scaleRecognizer.onUpdate = _onScaleUpdate;
+    _scaleRecognizer.onEnd = _onScaleEnd;
 
-    _doubleTapRecognizer.onDoubleTap = (newWidget.onDoubleTap != null) ? _onDoubleTap : null;
+    _tapRecognizer = TapGestureRecognizer(debugOwner: this);
+    _tapRecognizer.onTapDown = _onTapDown;
+    _tapRecognizer.onTap = _onTap;
+
+    _doubleTapRecognizer = DoubleTapGestureRecognizer(debugOwner: this);
+    _doubleTapRecognizer.onDoubleTapDown = _onTapDown;
+    _doubleTapRecognizer.onDoubleTap = _onDoubleTap;
 
     renderObject.onPointerDown = _handlePointerDown;
     renderObject.onPointerPanZoomStart = _handlePointerPanZoomStart;
     renderObject.onPointerSignal = _handlePointerSignal;
 
-    if (newWidget.rebuildAllChildrenOnWidgetUpdate) {
-      _buildAllNodes();
-      _buildAllEdges();
-      renderObject.markNeedsFirstLayout();
-    }
+    renderObject.movingNodeIds = widget.movingNodeIds;
+    renderObject.onNodesMoved = widget.onNodesMoved;
+  }
+
+  @override
+  void reassemble() {
+    super.reassemble();
+
+    // TODO: implement for hot reload
   }
 
   @override
@@ -226,7 +211,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   }
 
   @override
-  void insertRenderObjectChild(GraphElementRenderObject child, GraphViewportChildSlot slot) {
+  void insertRenderObjectChild(GraphChildRenderObject child, GraphViewportChildSlot slot) {
     renderObject.setupParentData(child);
 
     switch (child) {
@@ -240,7 +225,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
 
   @override
   void moveRenderObjectChild(
-    GraphElementRenderObject child,
+    GraphChildRenderObject child,
     GraphViewportChildSlot oldSlot,
     GraphViewportChildSlot newSlot,
   ) {
@@ -252,7 +237,7 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   }
 
   @override
-  void removeRenderObjectChild(GraphElementRenderObject child, GraphViewportChildSlot slot) {
+  void removeRenderObjectChild(GraphChildRenderObject child, GraphViewportChildSlot slot) {
     switch (child) {
       case GraphNodeRenderObject():
         renderObject.dropNode((slot as GraphViewportNodeSlot).nodeId);
@@ -287,15 +272,12 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   void _handlePointerSignal(PointerSignalEvent event) {
     GestureBinding.instance.pointerSignalResolver.register(
       event,
-      (PointerSignalEvent event) {
-        final GraphViewport widget = this.widget as GraphViewport;
-        widget.onPointerSignal?.call(event);
-      },
+      _onPointerSignal,
     );
   }
 
   void _onTapDown(TapDownDetails details) {
-    final GraphViewportTransform viewportTransform = RenderGraphViewportBase.of(renderObject).transform;
+    final GraphViewportTransform viewportTransform = RenderGraphViewport.of(renderObject).transform;
     final GraphViewportTapDownDetails newDetails = GraphViewportTapDownDetails(
       globalPosition: details.globalPosition,
       viewportPosition: details.localPosition,
@@ -314,8 +296,8 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
   }
 
   void _onScaleStart(ScaleStartDetails details) {
-    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
-    final GraphViewportTransform viewportTransform = viewportBase.transform;
+    final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
+    final GraphViewportTransform viewportTransform = viewport.transform;
     final GraphViewportScaleStartDetails newDetails = GraphViewportScaleStartDetails(
       globalFocalPoint: details.focalPoint,
       viewportFocalPoint: details.localFocalPoint,
@@ -324,11 +306,12 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     );
 
     (widget as GraphViewport).onScaleStart?.call(newDetails);
+    viewportTransform.onScaleStart(newDetails);
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
-    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
-    final GraphViewportTransform viewportTransform = viewportBase.transform;
+    final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
+    final GraphViewportTransform viewportTransform = viewport.transform;
     final GraphViewportScaleUpdateDetails newDetails = GraphViewportScaleUpdateDetails(
       viewportFocalPointDelta: details.focalPointDelta,
       graphFocalPointDelta: viewportTransform.toGraphSpaceOffset(details.focalPointDelta),
@@ -340,11 +323,12 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     );
 
     (widget as GraphViewport).onScaleUpdate?.call(newDetails);
+    viewportTransform.onScaleUpdate(newDetails);
   }
 
   void _onScaleEnd(ScaleEndDetails details) {
-    final RenderGraphViewportBase viewportBase = RenderGraphViewportBase.of(renderObject);
-    final GraphViewportTransform viewportTransform = viewportBase.transform;
+    final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
+    final GraphViewportTransform viewportTransform = viewport.transform;
     final GraphViewportScaleEndDetails newDetails = GraphViewportScaleEndDetails(
       viewportVelocity: details.velocity,
       graphVelocity: Velocity(pixelsPerSecond: details.velocity.pixelsPerSecond / viewportTransform.scale),
@@ -353,5 +337,14 @@ class GraphViewportElement<NodeIdType, EdgeIdType> extends RenderObjectElement i
     );
 
     (widget as GraphViewport).onScaleEnd?.call(newDetails);
+    viewportTransform.onScaleEnd(newDetails);
+  }
+
+  void _onPointerSignal(PointerSignalEvent event) {
+    (widget as GraphViewport).onPointerSignal?.call(event);
+
+    final RenderGraphViewport viewport = RenderGraphViewport.of(renderObject);
+    final GraphViewportTransform viewportTransform = viewport.transform;
+    viewportTransform.onPointerSignal(event);
   }
 }
