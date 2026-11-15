@@ -1,4 +1,4 @@
-import "package:flutter/foundation.dart" show immutable;
+import "package:flutter/foundation.dart" show immutable, listEquals;
 import "package:flutter/painting.dart";
 import "package:material_ui/material_ui.dart"
     show BoxConstraints, Colors, ThemeExtension, Theme, BuildContext, DefaultTextStyle;
@@ -50,6 +50,7 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
     this.contentConstraints,
     this.clipBehavior,
     this.borderRadius,
+    this.shadow,
   });
 
   /// Constructs a fallback node style.
@@ -65,6 +66,7 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
         contentConstraints: const BoxConstraints(maxWidth: 400),
         clipBehavior: Clip.none,
         borderRadius: Radius.zero,
+        shadow: const [],
       );
 
   /// The text style for the text of the node.
@@ -96,6 +98,9 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
   /// The node's border radius applied to each corner.
   final Radius? borderRadius;
 
+  /// The list of shadows applied to the node.
+  final List<BoxShadow>? shadow;
+
   /// Creates a copy of this node style with all the given fields replaced by the non-null parameter values.
   @override
   NodeStyle copyWith({
@@ -106,6 +111,7 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
     Nullable<BoxConstraints>? contentConstraints,
     Nullable<Clip>? clipBehavior,
     Nullable<Radius>? borderRadius,
+    Nullable<List<BoxShadow>>? shadow,
   }) {
     return NodeStyle(
       textStyle: textStyle ?? this.textStyle,
@@ -115,6 +121,7 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
       contentConstraints: (contentConstraints != null) ? contentConstraints.value : this.contentConstraints,
       clipBehavior: (clipBehavior != null) ? clipBehavior.value : this.clipBehavior,
       borderRadius: (borderRadius != null) ? borderRadius.value : this.borderRadius,
+      shadow: (shadow != null) ? shadow.value : this.shadow,
     );
   }
 
@@ -136,6 +143,7 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
       contentConstraints: BoxConstraints.lerp(contentConstraints, other.contentConstraints, t),
       clipBehavior: (t < 0.5) ? clipBehavior : other.clipBehavior,
       borderRadius: Radius.lerp(borderRadius, other.borderRadius, t),
+      shadow: BoxShadow.lerpList(shadow, other.shadow, t),
     );
   }
 
@@ -159,6 +167,7 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
       contentConstraints: Nullable((other.contentConstraints != null) ? other.contentConstraints : contentConstraints),
       clipBehavior: Nullable((other.clipBehavior != null) ? other.clipBehavior : clipBehavior),
       borderRadius: Nullable((other.borderRadius != null) ? other.borderRadius : borderRadius),
+      shadow: Nullable((other.shadow != null) ? other.shadow : shadow),
     );
   }
 
@@ -178,7 +187,8 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
         borderSide == other.borderSide &&
         contentConstraints == other.contentConstraints &&
         clipBehavior == other.clipBehavior &&
-        borderRadius == other.borderRadius;
+        borderRadius == other.borderRadius &&
+        listEquals(shadow, other.shadow);
   }
 
   @override
@@ -190,5 +200,6 @@ class NodeStyle extends ThemeExtension<NodeStyle> {
     contentConstraints,
     clipBehavior,
     borderRadius,
+    shadow,
   );
 }
