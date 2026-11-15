@@ -407,6 +407,9 @@ final class GraphEdgeRenderObject extends GraphChildRenderObject {
   }
 
   @override
+  Rect get graphSpaceSemanticBounds => semanticBounds;
+
+  @override
   Rect get paintBounds {
     if (_textPainter == null) {
       return semanticBounds;
@@ -419,6 +422,9 @@ final class GraphEdgeRenderObject extends GraphChildRenderObject {
       return semanticBounds.expandToInclude(textBounds);
     }
   }
+
+  @override
+  Rect get graphSpacePaintBounds => paintBounds;
 
   double? getDistanceSquaredTo(Offset position) {
     if (!_hitTestPath.contains(position)) return null;

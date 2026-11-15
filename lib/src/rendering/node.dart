@@ -158,6 +158,12 @@ final class GraphNodeRenderObject extends GraphChildRenderObject
   Rect get semanticBounds => _simpleBounds;
 
   @override
+  Rect get graphSpaceSemanticBounds {
+    final Offset position = parentData.positionWithDragOffset;
+    return semanticBounds.translate(position.dx, position.dy);
+  }
+
+  @override
   Rect get paintBounds {
     if (overlay == null) {
       return _simpleBounds;
@@ -170,6 +176,12 @@ final class GraphNodeRenderObject extends GraphChildRenderObject
       );
       return _simpleBounds.expandToInclude(overlayBounds);
     }
+  }
+
+  @override
+  Rect get graphSpacePaintBounds {
+    final Offset position = parentData.positionWithDragOffset;
+    return paintBounds.translate(position.dx, position.dy);
   }
 
   Rect get symmetricPaintBounds {

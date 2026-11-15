@@ -282,7 +282,7 @@ class RenderGraphViewport<
     // Updating in-flight nodes would result in many unnecessary quad tree updates.
     // inFlightNodeIds are layouted even if they are not on screen, so they can safely be excluded from the quad tree.
     if (!inFlightNodeIds.contains(nodeId)) {
-      _childQuadTree.putNode(nodeId, node.semanticBounds);
+      _childQuadTree.putNode(nodeId, node.graphSpaceSemanticBounds);
     }
   }
 
@@ -390,7 +390,9 @@ class RenderGraphViewport<
       Rect newContentRect = _childQuadTree.contentRect;
       for (final NodeIdType movingNodeId in inFlightNodeIds) {
         final GraphNodeRenderObject movingNode = _nodes[movingNodeId]!;
-        newContentRect = newContentRect.expandToInclude(movingNode.semanticBounds);
+        newContentRect = newContentRect.expandToInclude(
+          movingNode.graphSpaceSemanticBounds,
+        );
       }
 
       if (_lastFrameContentRect != newContentRect) {
@@ -742,7 +744,7 @@ class RenderGraphViewport<
     final Rect? targetGraphSpaceRect = targetRenderObjects.fold(
       null,
       (Rect? previousValue, GraphChildRenderObject childRenderObject) {
-        final Rect childRect = childRenderObject.paintBounds;
+        final Rect childRect = childRenderObject.graphSpacePaintBounds;
         return previousValue?.expandToInclude(childRect) ?? childRect;
       },
     );

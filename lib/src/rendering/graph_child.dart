@@ -8,6 +8,14 @@ abstract base class GraphChildRenderObject extends RenderObject {
   bool get hasParentData => super.parentData != null;
 
   @override
+  Rect get semanticBounds;
+  Rect get graphSpaceSemanticBounds;
+
+  @override
+  Rect get paintBounds;
+  Rect get graphSpacePaintBounds;
+
+  @override
   void debugAssertDoesMeetConstraints() {
     // Constraints are never given to Graph children, so nothing to check here
   }
