@@ -246,7 +246,8 @@ class BasicNodeContent extends StatelessWidget {
 
 /// The widget that is used by [NodeWidget.basic] to construct the [NodeWidget.background] of a basic node.
 ///
-/// This only uses [NodeStyle.backgroundColor], [NodeStyle.borderSide] and [NodeStyle.borderRadius] from [style].
+/// This only uses [NodeStyle.backgroundColor], [NodeStyle.borderSide], [NodeStyle.borderRadius] and
+/// [NodeStyle.shadow] from [style].
 ///
 /// To apply the style for this widget, we will search for a non-null value for each [NodeStyle]-property. The applied
 /// `NodeStyle`s are searched in the following order:
@@ -271,12 +272,14 @@ class BasicNodeBackground extends StatelessWidget {
     final Color effectiveBackgroundColor = effectiveStyle.backgroundColor!;
     final BorderSide effectiveBorderSide = effectiveStyle.borderSide!;
     final Radius effectiveBorderRadius = effectiveStyle.borderRadius!;
+    final List<BoxShadow> effectiveShadow = effectiveStyle.shadow!;
 
     return Container(
       decoration: BoxDecoration(
         color: effectiveBackgroundColor,
         border: Border.fromBorderSide(effectiveBorderSide),
         borderRadius: BorderRadius.all(effectiveBorderRadius),
+        boxShadow: effectiveShadow,
       ),
     );
   }
