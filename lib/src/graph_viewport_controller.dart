@@ -193,6 +193,7 @@ class GraphViewportController<
 
     final Set<NodeIdType> removedNodeIds = previousNodeIds.difference(newNodeIds);
     final Set<NodeIdType> addedNodeIds = newNodeIds.difference(previousNodeIds);
+    final Set<NodeIdType> remainingNodeIds = previousNodeIds.intersection(newNodeIds);
 
     for (final nodeId in removedNodeIds) {
       final NodeModelType node = _nodes[nodeId]!;
@@ -209,6 +210,31 @@ class GraphViewportController<
         node.onNeedsRebuild = () => _viewport!.markNodeNeedsRebuild(nodeId);
       }
       _viewport!.markNodeNeedsRebuild(nodeId);
+    }
+    for (final nodeId in remainingNodeIds) {
+      final NodeModelType node = nodes[nodeId]!;
+      final NodeModelType? previous = _nodes[nodeId];
+
+      if (previous == node) continue;
+
+      _nodes[nodeId] = node;
+
+      if (previous is DynamicGraphViewportNodeModel) {
+        assert(previous.onNeedsRebuild != null);
+        previous.onNeedsRebuild = null;
+      }
+
+      switch (node) {
+        case StaticGraphViewportNodeModel():
+          if (previous is! StaticGraphViewportNodeModel || node.shouldRebuild(previous)) {
+            _viewport!.markNodeNeedsRebuild(nodeId);
+          }
+
+        case DynamicGraphViewportNodeModel():
+          assert(node.onNeedsRebuild == null);
+          node.onNeedsRebuild = () => _viewport!.markNodeNeedsRebuild(nodeId);
+          _viewport!.markNodeNeedsRebuild(nodeId);
+      }
     }
 
     _nodes = Map.from(nodes);
@@ -230,6 +256,7 @@ class GraphViewportController<
 
     final Set<EdgeIdType> removedEdgeIds = previousEdgeIds.difference(newEdgeIds);
     final Set<EdgeIdType> addedEdgeIds = newEdgeIds.difference(previousEdgeIds);
+    final Set<EdgeIdType> remainingEdgeIds = previousEdgeIds.intersection(newEdgeIds);
 
     for (final edgeId in removedEdgeIds) {
       final EdgeModelType edge = _edges[edgeId]!;
@@ -246,6 +273,31 @@ class GraphViewportController<
         edge.onNeedsRebuild = () => _viewport!.markEdgeNeedsRebuild(edgeId);
       }
       _viewport!.markEdgeNeedsRebuild(edgeId);
+    }
+    for (final edgeId in remainingEdgeIds) {
+      final EdgeModelType edge = edges[edgeId]!;
+      final EdgeModelType? previous = _edges[edgeId];
+
+      if (previous == edge) continue;
+
+      _edges[edgeId] = edge;
+
+      if (previous is DynamicGraphViewportEdgeModel<NodeIdType>) {
+        assert(previous.onNeedsRebuild != null);
+        previous.onNeedsRebuild = null;
+      }
+
+      switch (edge) {
+        case StaticGraphViewportEdgeModel<NodeIdType>():
+          if (previous is! StaticGraphViewportEdgeModel<NodeIdType> || edge.shouldRebuild(previous)) {
+            _viewport!.markEdgeNeedsRebuild(edgeId);
+          }
+
+        case DynamicGraphViewportEdgeModel<NodeIdType>():
+          assert(edge.onNeedsRebuild == null);
+          edge.onNeedsRebuild = () => _viewport!.markEdgeNeedsRebuild(edgeId);
+          _viewport!.markEdgeNeedsRebuild(edgeId);
+      }
     }
 
     _edges = Map.from(edges);
