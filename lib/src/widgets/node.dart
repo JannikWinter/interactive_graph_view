@@ -16,14 +16,14 @@ enum NodeWidgetSlot { content, background, overlay }
 ///
 /// To build a node, its ID should first be added to a [GraphViewport]'s [GraphViewport.controller].
 class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, RenderBox> {
-  /// Constructs a [NodeWidget] at a given [position] while giving you full customizability for the [content],
+  /// Constructs a [NodeWidget] while giving you full customizability for the [content],
   /// [background] and [overlay] widgets.
   ///
   /// If you just want to construct a simple node, which only requires a text, you probably want to use
   /// [NodeWidget.basic].
   ///
-  /// Note that only the following [NodeStyle]-properties are applied when using this constructor:
-  /// - [NodeStyle.maxWidth] will be used for wrapping the content.
+  /// Note that, when using this constructor, only the following [NodeStyle]-properties are applied:
+  /// - [NodeStyle.contentConstraints] will be used for wrapping the content.
   /// - [NodeStyle.clipBehavior], if not [Clip.none], will clip [content] and [background] according to
   /// [NodeStyle.borderRadius].
   /// - [NodeStyle.borderRadius] will be used for correctly displaying an edge's arrow near the corner of this node.
@@ -31,7 +31,7 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
   /// The other properties would apply to [content] and [background], which you define yourself.
   ///
   /// To apply the style for this widget, we will search for a non-null value for each [NodeStyle]-property. The applied
-  /// `NodeStyle`s are searched in the following order:
+  /// [NodeStyle]s are searched in the following order:
   /// 1. the given [style].
   /// 2. the node style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
   /// 3. [NodeStyle.fallback] which will have a fallback value for every property.
@@ -53,13 +53,13 @@ class NodeWidget extends SlottedMultiChildRenderObjectWidget<NodeWidgetSlot, Ren
     this.onDragCancel,
   });
 
-  /// Constructs a [NodeWidget] at a given [position] with given [text], [style] and optional [overlay].
+  /// Constructs a [NodeWidget] with given [text], [style] and optional [overlay].
   ///
   /// If you want more control over the content and background of the node, you should use [NodeWidget.custom],
   /// where you define the widgets for [content] and [background] yourself.
   ///
   /// To apply the style for this widget, we will search for a non-null value for each [NodeStyle]-property. The applied
-  /// `NodeStyle`s are searched in the following order:
+  /// [NodeStyle]s are searched in the following order:
   /// 1. the given [style].
   /// 2. the node style of the closest [Theme] widget up the tree (see [ThemeData.extensions]).
   /// 3. [NodeStyle.fallback] which will have a fallback value for every property.

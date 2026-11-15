@@ -26,6 +26,12 @@ import "../util/nullable.dart";
 /// ```
 @immutable
 class NodeStyle extends ThemeExtension<NodeStyle> {
+  /// Computes the effective [NodeStyle] for a given [BuildContext] and optionally applies [style] on top.
+  ///
+  /// The result is computed and merged in the following order:
+  /// - Fallback style (see [NodeStyle.fallback]) with the [context]'s [DefaultTextStyle]
+  /// - The [context]'s [Theme]'s [NodeStyle] (applied through a [ThemeExtension], see [NodeStyle] for more information)
+  /// - The optionally given [style]
   static NodeStyle getEffectiveStyle(BuildContext context, {NodeStyle? style}) {
     final TextStyle defaultTextStyle = DefaultTextStyle.of(context).style;
     final NodeStyle fallbackStyle = NodeStyle.fallback().merge(NodeStyle(textStyle: defaultTextStyle));

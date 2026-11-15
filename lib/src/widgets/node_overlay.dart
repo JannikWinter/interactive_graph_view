@@ -19,7 +19,7 @@ abstract class NodeOverlayConfig {
   /// {@endtemplate}
   static const kDefaultOffset = Offset.zero;
 
-  const NodeOverlayConfig({
+  const NodeOverlayConfig._({
     this.alignmentInNode = Alignment.center,
     this.alignmentAroundAnchor = Alignment.center,
     this.offset = Offset.zero,
@@ -78,7 +78,7 @@ class NodeOverlay extends NodeOverlayConfig {
     super.alignmentAroundAnchor,
     super.offset,
     required this.child,
-  });
+  }) : super._();
 
   /// The child that will be placed according to [alignmentInNode], [alignmentAroundAnchor] and [offset].
   final Widget child;

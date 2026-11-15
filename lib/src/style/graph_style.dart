@@ -22,6 +22,13 @@ import "../util/nullable.dart";
 /// ```
 @immutable
 class GraphStyle extends ThemeExtension<GraphStyle> {
+  /// Computes the effective [GraphStyle] for a given [BuildContext] and optionally applies [style] on top.
+  ///
+  /// The result is computed and merged in the following order:
+  /// - Fallback style (see [GraphStyle.fallback])
+  /// - The [context]'s [Theme]'s [GraphStyle] (applied through a [ThemeExtension],
+  ///   see [GraphStyle] for more information)
+  /// - The optionally given [style]
   static GraphStyle getEffectiveStyle(BuildContext context, {GraphStyle? style}) {
     final GraphStyle fallbackStyle = GraphStyle.fallback();
     final GraphStyle? themeStyle = Theme.of(context).extension<GraphStyle>();

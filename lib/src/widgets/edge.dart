@@ -44,23 +44,20 @@ class EdgeWidget extends LeafRenderObjectWidget {
 
   /// This callback will be called when a TapDown gesture was registered on this edge.
   ///
-  /// Note that you can configure the gesture hitbox for all edges of a viewport through
-  /// [GraphViewport.edgeHitboxThickness].
+  /// You can configure the gesture hitbox through [hitboxThickness].
   final GestureGraphViewportTapDownCallback? onTapDown;
 
   /// This callback will be called when a Tap gesture was registered on this edge.
   ///
-  /// Note that you can configure the gesture hitbox for all edges of a viewport through
-  /// [GraphViewport.edgeHitboxThickness].
+  /// You can configure the gesture hitbox through [hitboxThickness].
   final GestureGraphViewportTapCallback? onTap;
 
   /// This callback will be called when a LongPress gesture was registered on this edge.
   ///
-  /// Note that you can configure the gesture hitbox for all edges of a viewport through
-  /// [GraphViewport.edgeHitboxThickness].
+  /// You can configure the gesture hitbox through [hitboxThickness].
   final GestureGraphViewportLongPressCallback? onLongPress;
 
-  /// The thickness of the gesture hitbox for all edges displayed by this GraphView.
+  /// The thickness of the edge's gesture hitbox.
   ///
   /// Defaults to [kDefaultHitboxThickness].
   final double hitboxThickness;

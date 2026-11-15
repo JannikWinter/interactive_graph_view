@@ -26,6 +26,12 @@ import "line_style.dart";
 /// ```
 @immutable
 class EdgeStyle extends ThemeExtension<EdgeStyle> {
+  /// Computes the effective [EdgeStyle] for a given [BuildContext] and optionally applies [style] on top.
+  ///
+  /// The result is computed and merged in the following order:
+  /// - Fallback style (see [EdgeStyle.fallback]) with the [context]'s [DefaultTextStyle]
+  /// - The [context]'s [Theme]'s [EdgeStyle] (applied through a [ThemeExtension], see [EdgeStyle] for more information)
+  /// - The optionally given [style]
   static EdgeStyle getEffectiveStyle(BuildContext context, {EdgeStyle? style}) {
     final TextStyle defaultTextStyle = DefaultTextStyle.of(context).style;
     final EdgeStyle fallbackStyle = EdgeStyle.fallback().merge(EdgeStyle(textStyle: defaultTextStyle));

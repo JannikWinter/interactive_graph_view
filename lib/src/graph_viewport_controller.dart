@@ -13,7 +13,7 @@ class GraphViewportController<
   NodeModelType extends GraphViewportNodeModel,
   EdgeModelType extends GraphViewportEdgeModel<NodeIdType>
 > {
-  /// Constructs a viewport controller with all [initialNodeIds] and [initialEdgeIds] that exist.
+  /// Constructs a viewport controller with all [initialNodes] and [initialEdges] that exist.
   GraphViewportController({
     required Map<NodeIdType, NodeModelType> initialNodes,
     required Map<EdgeIdType, EdgeModelType> initialEdges,
@@ -77,9 +77,13 @@ class GraphViewportController<
     _viewport!.markEdgeNeedsRebuild(edgeId);
   }
 
-  /// Insert a node into the [GraphViewport] that this controller is attached to.
+  /// Update or insert a node in the [GraphViewport] that this controller is attached to.
   ///
-  /// The framework will automatically build this node with [GraphViewport.nodeBuilder] in the next frame.
+  /// When the new data differs from the saved data, the framework will automatically build this node with
+  /// [GraphViewport.nodeBuilder] in the next frame.
+  ///
+  /// For defining if a change should trigger a rebuild, see [StaticGraphViewportNodeModel.shouldRebuild] and
+  /// [DynamicGraphViewportNodeModel.onNeedsRebuild].
   void setNode(NodeIdType nodeId, NodeModelType node) {
     final NodeModelType? previous = _nodes[nodeId];
 
@@ -105,9 +109,13 @@ class GraphViewportController<
     }
   }
 
-  /// Insert an edge into the [GraphViewport] that this controller is attached to.
+  /// Update or insert an edge in the [GraphViewport] that this controller is attached to.
   ///
-  /// The framework will automatically build this node with [GraphViewport.edgeBuilder] in the next frame.
+  /// When the new data differs from the saved data, the framework will automatically build this node with
+  /// [GraphViewport.edgeBuilder] in the next frame.
+  ///
+  /// For defining if a change should trigger a rebuild, see [StaticGraphViewportEdgeModel.shouldRebuild] and
+  /// [DynamicGraphViewportEdgeModel.onNeedsRebuild].
   void setEdge(EdgeIdType edgeId, EdgeModelType edge) {
     final EdgeModelType? previous = _edges[edgeId];
 
@@ -144,6 +152,8 @@ class GraphViewportController<
   }
 
   /// Remove a node from the [GraphViewport] that this controller is attached to.
+  ///
+  /// The framework automatically triggers a rebuild.
   void removeNode(
     NodeIdType nodeId,
   ) {
@@ -163,6 +173,8 @@ class GraphViewportController<
   }
 
   /// Remove an edge from the [GraphViewport] that this controller is attached to.
+  ///
+  /// The framework automatically triggers a rebuild.
   void removeEdge(EdgeIdType edgeId) {
     assert(_edges.containsKey(edgeId));
 
@@ -182,11 +194,12 @@ class GraphViewportController<
   /// Replace the nodes of the [GraphViewport] that this controller is attached to.
   ///
   /// This will automatically:
-  /// - remove all nodes that were contained in the viewport and are not contained in [nodeIds]
-  /// - insert and build all nodes that were not contained in the viewport and are contained in [nodeIds]
+  /// - remove all nodes that were contained in the viewport and are not contained in [nodes]
+  /// - insert and build all nodes that were not contained in the viewport and are contained in [nodes]
   ///
-  /// Nodes that both were contained in the viewport before and are also contained in [nodeIds] will **not** be rebuilt
-  /// automatically.
+  /// Nodes that both were contained in the viewport before and are also contained in [nodes] will be checked through
+  /// [StaticGraphViewportNodeModel.shouldRebuild] or [DynamicGraphViewportNodeModel.onNeedsRebuild] and will only be
+  /// rebuilt if necessary.
   void setNodes(Map<NodeIdType, NodeModelType> nodes) {
     final Set<NodeIdType> previousNodeIds = _nodes.keys.toSet();
     final Set<NodeIdType> newNodeIds = nodes.keys.toSet();
@@ -245,11 +258,12 @@ class GraphViewportController<
   /// Replace the edges of the [GraphViewport] that this controller is attached to.
   ///
   /// This will automatically:
-  /// - remove all edges that were contained in the viewport and are not contained in [edgeIds]
-  /// - insert and build all edges that were not contained in the viewport and are contained in [edgeIds]
+  /// - remove all edges that were contained in the viewport and are not contained in [edges]
+  /// - insert and build all edges that were not contained in the viewport and are contained in [edges]
   ///
-  /// Edges that both were contained in the viewport before and are also contained in [edgeIds] will **not** be rebuilt
-  /// automatically.
+  /// Edges that both were contained in the viewport before and are also contained in [edges] will be checked through
+  /// [StaticGraphViewportEdgeModel.shouldRebuild] or [DynamicGraphViewportEdgeModel.onNeedsRebuild] and will only be
+  /// rebuilt if necessary.
   void setEdges(Map<EdgeIdType, EdgeModelType> edges) {
     final Set<EdgeIdType> previousEdgeIds = _edges.keys.toSet();
     final Set<EdgeIdType> newEdgeIds = edges.keys.toSet();
