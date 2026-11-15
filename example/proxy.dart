@@ -2,7 +2,8 @@ import "package:material_ui/material_ui.dart";
 
 import "package:interactive_graph_view/interactive_graph_view.dart";
 
-// TODO: Explain here, what this proxy example includes
+// This example demonstrates the usage of `GraphViewportProxy` for displaying `NodeWidget`s and `EdgeWidget`s
+// outside of a `GraphViewport`.
 
 void main() {
   runApp(const GraphViewExampleApp());
@@ -41,6 +42,7 @@ class GraphViewExampleHomePage extends StatelessWidget {
           ),
           Expanded(
             child: GraphViewportProxy(
+              backgroundColor: Colors.blue,
               child: EdgeWidget(),
             ),
           ),

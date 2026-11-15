@@ -27,10 +27,19 @@ This example demonstrates the usage of styles: Both, in combination with `ThemeD
 
 ![Styling and themes example image](../images/example/styling_and_themes.png "Styling and themes example")
 
+### Proxy
+
+[`example/proxy.dart`](./proxy.dart)
+
+This example demonstrates the usage of `GraphViewportProxy` for displaying `NodeWidget`s and `EdgeWidget`s
+outside of a `GraphViewport`.
+
+![Proxy example image](../images/example/proxy.png "Proxy example")
+
 ### Large example
 
 [`example/large.dart`](./large.dart)
 
 This example combines most of the features and gives you an interactive demo.
 
-![Large example image](../images/example/large.gif "Big example")
+![Large example image](../images/example/large.gif "Large example")
