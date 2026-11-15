@@ -1,4 +1,4 @@
-import "package:flutter/foundation.dart" show immutable;
+import "package:flutter/foundation.dart" show immutable, listEquals;
 import "package:flutter/widgets.dart" show BuildContext, TextStyle, Color, DefaultTextStyle;
 import "package:material_ui/material_ui.dart" show ThemeExtension, Theme, Colors;
 
@@ -167,7 +167,7 @@ class EdgeStyle extends ThemeExtension<EdgeStyle> {
         lineStyle == other.lineStyle &&
         curveStyle == other.curveStyle &&
         arrowStyle == other.arrowStyle &&
-        shadow == other.shadow;
+        listEquals(shadow, other.shadow);
   }
 
   @override
